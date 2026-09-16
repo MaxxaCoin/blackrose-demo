@@ -1,0 +1,13 @@
+[
+  {
+    "id": "sch_val_seed",
+    "name": "validation-echo-scratch",
+    "prompt": "You are running as an unattended scheduled task during a validation exercise. Do not use any tools. Reply with exactly this single word and nothing else: FIRED",
+    "everyMinutes": 100,
+    "enabled": true,
+    "created": "2026-09-16T12:00:00.000Z",
+    "runCount": 1,
+    "lastRun": "2026-09-16T12:50:57.012Z",
+    "lastResult": "FIRED"
+  }
+]

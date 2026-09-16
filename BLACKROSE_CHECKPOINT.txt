@@ -1,0 +1,125 @@
+BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
+============================================
+DATE / TIME: 2026-09-16 (evening local)
+AI / AGENT: Cline (act mode)
+
+SESSION / COMMIT:
+  Inner code repo:  cline/blackrose @ 7bdeb0b (clean, unmodified this session)
+  Outer workspace:  initial commit made this session (docs + validation evidence)
+
+CURRENT PHASE:
+  Master-instructions sequence: steps 1-2 of 10 COMPLETE (workspace + checkpoint;
+  foundation verified; LIVE-MODEL VALIDATION COMPLETE — all four runs evidenced).
+  Code roadmap: Phases 1-7 + 2026-09-14 hardening + 2026-09-15 live-debug fixes
+  (v0.8.0) COMPLETE. Remaining backlog: OCR for scanned PDFs, STT push-to-talk,
+  Tauri desktop shell, real-embedding-model upgrade, .aistate multi-device exercise.
+
+USER TASK:
+  "continue with the work" -> execute NEXT STEP from previous checkpoint:
+  Step 2 live-model validation (a) one-shot (b) /goal (c) scheduled (d) bridge.
+
+WORK PERFORMED (this session):
+  1. Sanity at HEAD 7bdeb0b: typecheck clean; 59-check smoke PASSED;
+     16/16 regression PASSED (mock LLM, no network).
+  2. Live-model validation, all via router (anthropic->ollama fallback; Anthropic
+     route fails HTTP 400 no-credits, Ollama qwen2.5-coder:7b serves every call):
+     (a) one-shot  — previously PASSED (scratch/hello_blackrose.txt =
+         BLACKROSE_LIVE_OK; see a-oneshot.out.log). The live-debug commits
+         a0312ec + 7bdeb0b came out of that run; both verified in the field here.
+     (b) /goal     — PASSED: "goal status: VERIFIED ✓ · plan: 6 step(s) · turns: 20".
+         Artifact independently checked: scratch/goalcheck/report.txt == "DONE".
+         Plan -> execute -> verify -> remember all ran; lesson saved to memory.
+         NO hang: fail-closed fix 7bdeb0b held (in-workspace writes need no approval).
+         Evidence: validation/b-goal.live.log
+     (c) scheduled — PASSED twice: (i) real-state task "validation-echo" fired
+         inside the (b) run's process and completed (line in b-goal.live.log);
+         (ii) dedicated isolated-state run: fired, finished, lastResult FIRED.
+         Fail-closed unattended approval policy held throughout.
+         Evidence: validation/c-schedule.live.log,
+                   validation/scratch-validation/schedules.json + schedules.log
+     (d) bridge    — PASSED: server up on 127.0.0.1:8787 (token auth, fail-closed
+         approvals); client /health -> blackrose-bridge v0.6.0 up 24s; client /ask
+         -> exactly "BRIDGE_OK" (model-backed, 7.6s). Audit log: GET /health 200
+         (6ms) + POST /ask 200 (7622ms).
+         Evidence: validation/d-bridge-server.live.log, bridge-health.out,
+                   bridge-ask.out, scratch-validation/bridge.log
+  3. State hygiene: disabled leftover real-state hourly task "validation-echo"
+     (sch_val1_scheduled, enabled=false kept for the record; runCount 3,
+     lastResult FIRED). It had been firing hourly since 2026-09-15.
+  4. Created outer-workspace initial commit (docs + validation evidence).
+
+FILES CREATED:
+  validation/b-goal.live.log, c-schedule.live.log, d-bridge-server.live.log,
+  bridge-health.out, bridge-ask.out (d-bridge-client.live.log is empty by
+  design — the client script tees to bridge-*.out), run-*-bg.cmd detached
+  wrappers, scratch-validation/ (isolated state: schedules.json, schedules.log,
+  bridge.log, memory/, sessions/), this checkpoint update.
+
+FILES MODIFIED:
+  %USERPROFILE%\.blackrose\schedules.json (validation-echo enabled -> false)
+
+FILES REMOVED + REASON:
+  none
+
+IMPLEMENTED:
+  Step 2 of the master sequence: live-model validation COMPLETE with evidence.
+
+VERIFIED (exact tests and results):
+  - npm run typecheck: clean. npm test: 59-check smoke PASSED + 16/16 regression
+    (mock LLM, no network, no key).
+  - (a)(b)(c)(d) live runs: see WORK PERFORMED; every step has an evidence file.
+  - Router fallback verified live in every run (anthropic 400-credits -> ollama OK).
+  - Fail-closed approvals verified in headless goal, scheduled, and bridge
+    contexts (no hangs; approval-requiring actions denied).
+
+NOT VERIFIED:
+  - Anthropic generation (account still has ZERO credits — do not attempt).
+  - .aistate sync across actual devices (single-machine only so far).
+  - OCR / STT / Tauri / real-embedding backlogs.
+
+PROBLEMS FOUND:
+  - (process note, not a code bug) A 2026-09-15 validation task was left enabled
+    in the real state and fired hourly for a day; disabled this session.
+  - Outer workspace had no commits despite the previous checkpoint claiming an
+    initial commit; fixed this session.
+
+DECISIONS:
+  - Validation runs stay LOCAL-FIRST via router (BLACKROSE_PROVIDER=router,
+    BLACKROSE_ROUTES=anthropic,ollama) — no billing dependency. Anthropic becomes
+    primary automatically once the user adds credits.
+  - Evidence lives in validation/ (outer repo) as plain logs; isolated-state runs
+    set BLACKROSE_DATA_DIR under validation/scratch-validation so the real
+    ~/.blackrose state stays clean.
+  - Unattended validation tasks are disabled, not deleted, after success.
+
+ASSUMPTIONS:
+  - qwen2.5-coder:7b (Q4_K_M, tools-capable) remains the local workhorse model.
+  - Local-first validation is acceptable to the user; persistent state stays in
+    C:\Users\pc\.blackrose.
+
+BLOCKED BY:
+  none
+
+NEXT STEP:
+  Master-instructions steps 3+ are already materially covered by
+  cline/blackrose/docs (01-VISION ... 05-MODEL-INDEPENDENCE). With live
+  validation done, the next work is backlog selection — user should pick:
+  (1) OCR for scanned PDFs, (2) STT push-to-talk, (3) Tauri desktop shell,
+  (4) real-embedding-model upgrade, (5) .aistate multi-device exercise.
+  Do NOT start V2/V3 items (Telegram/Android, 3D factory, model competition)
+  without explicit user approval.
+
+DO NOT REPEAT:
+  - Do not re-run validation steps (a)-(d); they are complete and evidenced here.
+  - Do not attempt Anthropic generation before credits are added.
+  - Do not re-enable the validation-echo schedule in the real state.
+  - Do not build V2/V3 features without explicit user approval.
+
+WARNINGS:
+  - ANTHROPIC_API_KEY is valid but the account has zero credits.
+  - NEVER commit, print, or share the key file
+    (C:\Users\pc\Documents\claude api key.txt).
+  - Ollama on this machine is CPU-only: ~25 s cold load + slow prompt eval; a
+    slow first reply is normal, not frozen. Slower still while other model runs
+    execute in parallel.
+  - Scheduled/bridge runs fail closed on approvals by default (by design).

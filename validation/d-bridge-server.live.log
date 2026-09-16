@@ -1,0 +1,6 @@
+BlackRose bridge listening on http://127.0.0.1:8787
+  provider: router(anthropic→ollama) · model: claude-sonnet-4-5 → qwen2.5-coder:7b
+  approvals: fail-closed — remote actions are denied
+  audit log: C:\Users\pc\Desktop\BlackRose\validation\scratch-validation\bridge.log
+  Ctrl+C to stop.
+  ↪ route "anthropic" failed → falling back (LLM API error (HTTP 400): Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase cr)

@@ -1,0 +1,19 @@
+# Outer workspace repo — tracks workspace-level docs/protocol only.
+# The code lives in cline/blackrose which has its own git repo (keep nested
+# repos out of this one).
+cline/
+
+# Common junk
+node_modules/
+dist/
+dist-build/
+*.log
+
+# Validation evidence logs ARE the handoff record — keep them in version control
+!validation/*.log
+!validation/scratch-validation/*.log
+.env
+.env.*
+__pycache__/
+Thumbs.db
+desktop.ini
