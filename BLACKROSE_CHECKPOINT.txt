@@ -96,12 +96,24 @@ ASSUMPTIONS:
 BLOCKED BY:
   none
 
+USER PLAN (set 2026-09-16 night):
+  User will TEST-DRIVE the shipped build tomorrow (2026-09-17) before any
+  new work: launch via dist\BlackRose.cmd (or npm run ui), try `ocr_read`
+  on real images / scanned PDFs + `/say`, use it for real day-to-day tasks,
+  then pick the next backlog item. Agent: DO NOT start new work until the
+  user returns with results / a pick.
+
 NEXT STEP:
-  Remaining backlog, user should pick:
+  Wait for the user's test-drive results + backlog pick:
   (2) STT push-to-talk (needs a local STT provider choice, e.g. whisper.cpp —
       note whisper.cpp needs a toolchain/build; weigh vs. Ollama-hosted STT),
   (3) Tauri desktop shell (deferred by decision, CLI-first),
   (5) .aistate multi-device exercise (needs a second machine/device).
+  Optional user-side upgrades meanwhile (no agent action needed):
+  - add Anthropic credits (router switches to Claude automatically),
+  - install LLVM or Git for Windows so `npm run build:exe` can emit the
+    single-file BlackRose.exe (currently skipped, BlackRose.cmd works),
+  - back up %USERPROFILE%\.blackrose (that folder IS BlackRose's memory).
   Do NOT start V2/V3 items (Telegram/Android, 3D factory, model competition)
   without explicit user approval.
 
