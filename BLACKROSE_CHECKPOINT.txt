@@ -1,130 +1,120 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 ============================================
-DATE / TIME: 2026-09-16 (late evening local)
+DATE / TIME: 2026-09-16 (night local)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 2d0384c (clean; 1 new commit this session)
+  Inner code repo:  cline/blackrose @ 5135218 (clean; 1 new commit this session)
   Outer workspace:  to be committed at the end of this session (validation evidence)
 
 CURRENT PHASE:
-  Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog item (4)
-  real-embedding-model upgrade — DONE this session. Remaining backlog:
-  (1) OCR for scanned PDFs, (2) STT push-to-talk, (3) Tauri desktop shell,
+  Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog items (4)
+  real-embedding-model and (1) OCR-for-scanned-PDFs — DONE (OCR this session).
+  Remaining backlog: (2) STT push-to-talk, (3) Tauri desktop shell,
   (5) .aistate multi-device exercise.
 
 USER TASK:
-  "continue without stopping" — work the backlog item (4) real-embedding-model
-  upgrade (previously listed as option (4) in the NEXT STEP of the prior
-  checkpoint; no further user pick was given, so the list order was followed
-  and (4) was chosen as the highest-value low-risk item, deferring OCR/STT/
-  Tauri which need new toolchains or devices).
+  "your wish" — agent's pick among backlog items. Chose (1) OCR: Windows-
+  native (Windows.Media.Ocr + Windows.Data.Pdf via PowerShell 5.1 WinRT
+  projection), zero new dependencies, fully offline — the same zero-dep
+  pattern as the SAPI `say` tool. STT/Tauri need new toolchains and the
+  multi-device exercise needs a second device, so OCR was the one backlog
+  item completable end-to-end on this machine alone.
 
 WORK PERFORMED (this session):
-  1. Pulled nomic-embed-text (274 MB) into local Ollama; verified via
-     `ollama list`. Pull log: validation/ollama-pull.log
-  2. New module src/memory/embedder.ts — pluggable embedding backend:
-     primary Ollama POST /api/embed (default nomic-embed-text, 768-dim,
-     L2-normalized; batched: one HTTP call for query + all docs), fallback
-     to the hash embedder (br-hash-v1, 256-dim) on ANY failure (unreachable,
-     wrong model type, BLACKROSE_EMBED=off). 60 s probe cache so a newly
-     pulled model is picked up without restart. Single vector space per
-     batch guaranteed (whole batch falls back together, never mixed).
-  3. Rewired the memory layer onto it: vectors.ts (vectorsFor now async
-     batch; store header records model+dim; mid-flight backend change
-     rebuilds the store instead of mixing vector spaces), hybrid.ts (one
-     batched call per search; cosFloor calibrated per dim: 0.25 for >=384-d,
-     0.08 for the hash embedder), tools/knowledge.ts + tools/memory.ts +
-     doctor.ts + smoke.ts + src/llm/prompt.ts (backend hint for the agent).
-  4. Probe script validation/scratch-embed/embed-upgrade.mjs (3 scenarios,
-     10 assertions, live Ollama): PASS 10/10 — validation/embed-probe.out.
-  5. Docs updated: docs/04-ROADMAP.md (Phase 6 bullet), docs/03-ARCHITECTURE.md
-     (memory/ tree). dist-build/ + dist/ regenerated via npm run build:exe
-     (47 modules, syntax + runtime checks ok; SEA .exe skipped — no objcopy
-     on this machine, same known condition as before).
-
-FILES CREATED:
-  src/memory/embedder.ts (inner repo); validation/ollama-pull.log,
-  validation/embed-probe.out, validation/scratch-embed/embed-upgrade.mjs,
-  validation/npmtest.out, validation/buildexe.out (outer repo).
-
-FILES MODIFIED (inner repo, all in commit 2d0384c):
-  src/memory/vectors.ts, src/memory/hybrid.ts, src/tools/knowledge.ts,
-  src/tools/memory.ts, src/doctor.ts, src/smoke.ts, src/llm/prompt.ts,
-  docs/03-ARCHITECTURE.md, docs/04-ROADMAP.md.
-FILES MODIFIED (outer repo): %USERPROFILE%\.blackrose\schedules.json
-  (validation-echo disabled in the previous session; no further state edits),
-  plus regenerated cline/blackrose/dist-build/** + dist/** (not committed —
-  build output).
+  1. Feasibility probe (validation/scratch-ocr/probe-ocr.ps1): WinRT OCR
+     engine available (en-US; langs en-GB,en-US); a generated PNG with three
+     known lines recognized VERBATIM incl. digits; Windows.Data.Pdf present.
+  2. New src/memory/ocr.ts: ocrImageFile (StorageFile -> BitmapDecoder ->
+     SoftwareBitmap -> OcrEngine.RecognizeAsync) and ocrPdfFile
+     (PdfDocument.LoadFromFileAsync -> per-page RenderToStreamAsync to PNG ->
+     OCR, pages joined in order). Non-Windows / no-engine / no-text -> null.
+  3. New src/tools/ocr.ts — tool `ocr_read` (images + scanned PDFs; read-only,
+     no approval, mirrors read_image; size caps 20/50 MB; page cap 60).
+  4. learn_pdf (src/tools/knowledge.ts) now falls back to ocrPdfFile when the
+     extracted text layer is < 20 chars; stores OCR text as normal chunks.
 
 IMPLEMENTED:
-  Backlog (4): real embedding model behind the existing hybrid retriever,
-  fully local, zero new dependencies, fail-safe fallback preserved.
+  Backlog (1): OCR fully local via the OS — `ocr_read` tool for images and
+  scanned PDFs; `learn_pdf` transparent OCR fallback for image-only PDFs.
 
 VERIFIED (exact tests and results):
-  - npm run typecheck: clean (after every change, final state clean).
-  - npm test: full smoke suite PASSED (~60 checks incl. the new/updated
-    vector-store checks) + 16/16 regression — log validation/npmtest.out.
-  - Live probe (validation/embed-probe.out), 10/10 PASS:
-    A fallback (BLACKROSE_EMBED=off): top hit correct, model=br-hash-v1 dim=256,
-      vector file written.
-    B real model: model=nomic-embed-text dim=768; SEMANTIC evidence — query
-      "how do I ship a new version to the team?" (zero keyword overlap with
-      the runbook text) ranks the release-runbook chunk first (0.71) vs
-      unrelated 0.16/0.05.
-    C fail-safe: BLACKROSE_EMBED_MODEL=qwen2.5-coder:7b (chat model, cannot
-      embed) silently falls back to hash; top hit still correct.
-  - Bundle regenerated and executes (node --check ok, --doctor runtime ok).
+  - npm run typecheck: clean.
+  - npm test: smoke suite ALL PASS (62 checks, incl. new live win32 OCR
+    check "ocr_read recognizes text in an image") + regression 16/16.
+    Log: validation/ocr-final.out
+  - Live driver (validation/scratch-ocr/driver-ocr.mjs →
+    validation/ocr-driver.out): DRIVER_ALL_PASS —
+    * learn_pdf on an image-only PDF (no text layer) → "via OCR",
+      86 chars recognized from the rendered page;
+    * knowledge_search over the OCR text → top hit 0.83, verbatim;
+    * ocr_read on PNG → verbatim ("BLACKROSE OCR PROBE 2026 ...");
+    * ocr_read on the scanned PDF → same verbatim text.
+  - Cross-check: the standalone PowerShell mirror (diag-pdf2.ps1) produced
+    the identical recognition, ruling out driver artifacts.
 
 NOT VERIFIED:
   - Anthropic generation (account still has ZERO credits — do not attempt).
-  - .aistate sync across actual devices (single-machine only so far).
-  - OCR / STT / Tauri / .aistate multi-device exercise backlogs.
-  - Real .exe build (SEA) — machine lacks objcopy/llvm-objcopy (pre-existing).
+  - OCR accuracy on real-world photos/low-quality scans (only crisp
+    synthetic raster text validated; PS defaults to 96 dpi rendering).
+  - Multi-page scanned PDFs end-to-end (single-page validated; loop logic
+    is page-generic), non-Windows runtime (null-path code-reviewed only),
+  - STT / Tauri / .aistate multi-device backlogs.
+  - Real .exe build (SEA) — machine lacks objcopy (pre-existing).
 
-PROBLEMS FOUND:
-  - The custom bundler (scripts/build-exe.ts) cannot emit aliased named
-    imports ("import { A as B }"); embedder.ts was the first module to use
-    one. Fixed by importing EMBED_MODEL/EMBED_DIM directly and aliasing via
-    local consts. Kept as a code convention note: avoid `as` in import
-    clauses of src/ modules.
-  - (process, prior session) leftover enabled validation schedule — already
-    disabled; not repeated this session.
+PROBLEMS FOUND (all fixed):
+  - PowerShell 5.1 WinRT adapter does not expose PdfPageRenderOptions
+    properties ("TargetSize cannot be found") → dropped custom render
+    options; default 96-dpi PNG render proved sufficient for OCR.
+  - Static [System.WindowsRuntimeSystemExtensions]::AsTask cannot bind for
+    IAsyncAction (RenderToStreamAsync) → reflected the non-generic AsTask
+    overload (PS_AWAIT_ACTION) and Invoke + Wait() it.
+  - Hand-built synthetic PDF (GDI+ JPEG + hand-rolled xref) failed
+    LoadFromFileAsync with HRESULT 0x80048018 (my xref offsets were wrong;
+    Windows' parser is strict) → switched to Edge headless
+    --print-to-pdf of a full-page <img>, a genuinely valid image-only PDF.
+  - First ocrPdfFile parser accepted PowerShell error chatter as "OCR text"
+    (contaminated chunks in the driver's state) → strict parsing: only text
+    between BLACKROSE_PAGE markers counts, error patterns stripped, and
+    stale validation scratch state must be purged between runs.
 
 DECISIONS:
-  - Default model nomic-embed-text (768-d), configurable via
-    BLACKROSE_EMBED_MODEL; kill switch BLACKROSE_EMBED=off.
-  - Whole-batch fallback (never mix vector spaces in one request); store
-    records model+dim and rebuilds on backend change.
-  - cosFloor 0.25 (>=384-d) vs 0.08 (hash) — calibrated, keeps MIN_SCORE
-    filtering meaningful on both backends.
-  - nomic-embed-text stays pulled locally; no auto-pull logic added (user
-    may not want surprise downloads).
+  - Windows-native OCR over bundling Tesseract/whisper: zero dependencies,
+    zero downloads, privacy-first, consistent with the `say`/`screenshot`
+    pattern. Non-Windows gets a clean null + "Windows-only" tool reply.
+  - ocr_read requires NO approval (read-only, mirrors read_image); the
+    screenshot remains the approval-gated privacy boundary.
+  - learn_pdf OCR fallback is automatic (no extra tool round-trip); caps:
+    60 pages per call, 50 MB PDF / 20 MB image, 180 s timeout.
+  - Strict output parsing in ocrPdfFile — PS error noise must never masquerade
+    as recognized text (fail-closed, consistent with project rules).
 
 ASSUMPTIONS:
-  - Ollama at http://127.0.0.1:11434 remains the local model host; CPU-only
-    inference accepted (embeddings are fast even on CPU).
-  - User accepts fully-local embeddings (privacy-first, per project rules).
+  - Windows 10/11 with at least one OCR recognizer language installed
+    (en-US here); PS 5.1 WinRT projection available (default on Windows).
 
 BLOCKED BY:
   none
 
 NEXT STEP:
   Remaining backlog, user should pick:
-  (1) OCR for scanned PDFs (learn_pdf currently skips image-only pages),
-  (2) STT push-to-talk (needs a local STT provider choice, e.g. whisper.cpp),
+  (2) STT push-to-talk (needs a local STT provider choice, e.g. whisper.cpp —
+      note whisper.cpp needs a toolchain/build; weigh vs. Ollama-hosted STT),
   (3) Tauri desktop shell (deferred by decision, CLI-first),
   (5) .aistate multi-device exercise (needs a second machine/device).
   Do NOT start V2/V3 items (Telegram/Android, 3D factory, model competition)
   without explicit user approval.
 
 DO NOT REPEAT:
-  - Do not re-run the completed validations (steps (a)-(d) live runs, embed
-    probe) unless something changed; all evidenced in validation/.
+  - Do not re-run completed validations (steps (a)-(d) live runs, embed
+    probe, OCR probe/driver) unless something changed; all evidenced in
+    validation/.
   - Do not attempt Anthropic generation before credits are added.
   - Do not re-enable the validation-echo schedule in the real state.
   - Do not build V2/V3 features without explicit user approval.
   - Do not use `import { x as y }` syntax in src/ (bundler limitation).
+  - Do not trust PowerShell stdout blindly in WinRT wrappers — parse only
+    explicitly delimited, success-gated markers.
 
 WARNINGS:
   - ANTHROPIC_API_KEY is valid but the account has zero credits.
@@ -134,3 +124,7 @@ WARNINGS:
     slow first reply is normal, not frozen. Slower still while other model runs
     execute in parallel.
   - Scheduled/bridge runs fail closed on approvals by default (by design).
+
+  5. Wired everywhere: tools/index.ts registry, llm/prompt.ts hint block,
+     doctor.ts OCR line, smoke.ts end-to-end check (win32-gated).
+  6. Docs: docs/04-ROADMAP.md Phase 6 bullets (learn_pdf + OCR entry).
