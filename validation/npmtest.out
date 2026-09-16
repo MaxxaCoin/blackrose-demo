@@ -1,0 +1,91 @@
+
+> blackrose@0.8.0 test
+> node src/smoke.ts && node --test src/regression.test.ts
+
+  PASS — loop finished with a final text
+  PASS — file was written by tool_use
+  PASS — edit_file applied
+  PASS — history contains tool_result blocks
+  PASS — router falls back when primary fails
+  PASS — ollama adapter recovers a text-embedded tool call (and leaves prose/unknown tools alone)
+  PASS — learn_file chunks a document
+  PASS — knowledge_search retrieves the right passage
+  PASS — project note persisted and readable
+  PASS — .aistate rejects a wrong password (AES-GCM integrity)
+  PASS — .aistate import restores memory + knowledge + projects
+  PASS — background job runs and completes
+  PASS — schedule created + persisted
+  PASS — schedule is due when never run
+  PASS — every-minutes schedule respects interval
+  PASS — scheduler fired the due task unattended (fail-closed approvals)
+  PASS — schedule removed
+  PASS — task engine: plan→execute→verify
+  PASS — read_image attaches image blocks for vision models
+  PASS — execShell captures output + exit code
+  PASS — renderDiff shows removed + added lines
+  PASS — skill saved + loaded from disk
+  PASS — skill_run dispatches to a sub-agent with args
+  PASS — spawn_agent returns the sub-agent answer
+  PASS — MCP client lists + calls external tools
+  PASS — untrusted MCP server requires approval
+  PASS — .aistate v2 incremental export packs only changes
+  PASS — .aistate delta imports and merges correctly
+  PASS — embeddings: deterministic + subword robust
+  PASS — hybrid ranking: keyword + typo-tolerant semantic
+  PASS — vector store records its embedding model + dim
+  PASS — vector index persisted under dataDir
+  PASS — memory_search finds notes (hybrid)
+  PASS — PDF text extraction (zlib stream, text operators)
+  PASS — learn_pdf ingests a real PDF into knowledge
+  PASS — learn_docx ingests a real DOCX into knowledge
+  PASS — knowledge_search finds learned DOCX passages
+  PASS — parseTranscript strips SRT cues and dedupes rolling captions
+  PASS — learn_transcript ingests WebVTT into knowledge
+  PASS — knowledge_search finds learned transcript text
+  PASS — --doctor reports provider, data inventory and vector index
+  PASS — bridge rejects requests without a token
+  PASS — bridge /health reports provider/model
+  PASS — bridge /ask runs the agent with tools
+  PASS — bridge /goal runs plan→execute→verify
+  PASS — bridge rejects an invalid token
+  PASS — bridge memory save + search roundtrip
+  PASS — bridge knowledge search
+  PASS — sync push: delta exported, imported on remote device
+  PASS — sync pull: remote edits merged back locally
+  PASS — bridge audit log written
+  PASS — resilient client retries transient 429s until success
+  PASS — non-transient errors fail fast (no retry)
+  PASS — isTransientError classifies transient vs fatal
+  PASS — compactHistory folds old messages into a summary
+  PASS — compactHistory is a no-op on short conversations
+  PASS — --resume finds the most recent session
+  PASS — ui serves the embedded page
+  PASS — ui health reports provider/model + counts
+  PASS — ui approval relay: dialog waits and Allow lets the tool run
+
+  workspace: C:\Users\pc\AppData\Local\Temp\blackrose-smoke-M58K3G
+SMOKE TEST PASSED
+✔ final assistant answer survives session persistence and a follow-up call (13.3089ms)
+✔ tool conversation retains exactly one final assistant message (2.0056ms)
+✔ state import rejects unsafe path "../state-other/escaped.md" before writing any entries (158.9059ms)
+✔ state import rejects unsafe path "memory/../../state-other/escaped.md" before writing any entries (182.7934ms)
+✔ state import rejects unsafe path "memory/..\\..\\state-other/escaped.md" before writing any entries (145.2044ms)
+✔ state import rejects unsafe path "memory/../sessions/escaped.json" before writing any entries (168.3236ms)
+✔ state import rejects unsafe path "mcp.json" before writing any entries (170.8291ms)
+✔ state import rejects unsafe path "memory/note.md:stream" before writing any entries (181.2823ms)
+✔ state import rejects unsafe path "memory/trailing./note.md" before writing any entries (180.4746ms)
+✔ state import rejects unsafe path "memory//note.md" before writing any entries (167.743ms)
+✔ state import rejects an absolute path (154.0671ms)
+✔ state import rejects junction/symlink parents pointing outside the state root (180.9827ms)
+✔ state import validates all entry contents before modifying existing state (159.3981ms)
+✔ full state roundtrip supports nested files and a relative destination (204.8602ms)
+✔ --resume is a mode flag: it starts the REPL instead of being sent as a prompt (552.7082ms)
+✔ web UI with a token: unauthenticated requests are rejected and the token grants access (125.4555ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3251.6103
