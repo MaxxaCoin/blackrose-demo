@@ -1,0 +1,10 @@
+=== GPU ===
+no nvidia-smi
+Intel(R) HD Graphics 520
+=== OLLAMA MODELS ===
+NAME                       ID              SIZE      MODIFIED     
+nomic-embed-text:latest    0a109f422b47    274 MB    23 hours ago    
+qwen2.5-coder:7b           dae161e27b0e    4.7 GB    3 days ago      
+=== BASELINE qwen2.5-coder:7b ===
+wall_ms=22898 prompt_eval_ms=4723 eval_ms=382 eval_rate_tps=5.2
+BASELINE_DONE

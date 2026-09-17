@@ -1,0 +1,4 @@
+[OK] models :: 41 models, 0 free-active, target=deepseek-v4-flash-free MISSING
+[FAIL] chat :: {"message":"Model 'Deepseek V4 Flash Free' is currently under maintenance. Please try again later or select another model.","type":"server_error","code":"model_
+[FAIL] tool_calls :: ERROR {"message":"Model 'Deepseek V4 Flash Free' is currently under maintenance. Please try again later or select another model.","type":"server_e
+KIRA_PROBE_DONE

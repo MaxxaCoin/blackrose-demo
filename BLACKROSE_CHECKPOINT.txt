@@ -1,142 +1,168 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 ============================================
-DATE / TIME: 2026-09-16 (night local)
+DATE / TIME: 2026-09-17 (evening local)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 5135218 (clean; 1 new commit this session)
+  Inner code repo:  cline/blackrose @ 867d307 (clean; 1 new commit this session)
   Outer workspace:  to be committed at the end of this session (validation evidence)
 
 CURRENT PHASE:
-  Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog items (4)
-  real-embedding-model and (1) OCR-for-scanned-PDFs — DONE (OCR this session).
-  Remaining backlog: (2) STT push-to-talk, (3) Tauri desktop shell,
-  (5) .aistate multi-device exercise.
+  Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
+  (4) real-embedding-model, (1) OCR. COMPLETE THIS SESSION: provider switch
+  to OpenAI-protocol gateways via the `openai` adapter — factory wiring,
+  multi-gateway router chain, doctor probes, docs, AND full live validation
+  (adapter roundtrip + CLI --goal VERIFIED end-to-end). The agent now runs on
+  free cloud models with local Ollama as the last fallback.
 
-USER TASK:
-  "your wish" — agent's pick among backlog items. Chose (1) OCR: Windows-
-  native (Windows.Media.Ocr + Windows.Data.Pdf via PowerShell 5.1 WinRT
-  projection), zero new dependencies, fully offline — the same zero-dep
-  pattern as the SAPI `say` tool. STT/Tauri need new toolchains and the
-  multi-device exercise needs a second device, so OCR was the one backlog
-  item completable end-to-end on this machine alone.
+USER TASK (why this direction):
+  "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
+  first but its free tier died (all 4 free models → maintenance, verified
+  2026-09-17 via kira-probe.out). User provided OpenRouter + Groq keys; both
+  are OpenAI-protocol gateways, so the same `openai` adapter serves both.
+  Key files (NEVER commit/print/transmit contents):
+    C:\Users\pc\Documents\openrouter_api_key.txt
+    C:\Users\pc\Documents\groq_api_key.txt
+
+GATEWAY FACTS (verified live 2026-09-17):
+  - OpenRouter: https://openrouter.ai/api/v1 — 444 models, 24 free-priced,
+    20 free with tools support. Attribution headers (HTTP-Referer/X-Title)
+    sent automatically when the base URL is openrouter.ai.
+  - CHOSEN primary: nvidia/nemotron-3-super-120b-a12b:free (native
+    tool_calls PASS, 262k ctx). NOTE: upstream occasionally returns
+    "Upstream error from Nvidia: Service temporarily overloaded" — transient,
+    handled by resilientClient retry (seen + retried successfully live).
+  - CHOSEN secondary (openai1): Groq https://api.groq.com/openai/v1 —
+    openai/gpt-oss-120b (native tool_calls PASS, ~1s responses, 131k ctx).
+  - OpenRouter quirks seen in the free pool: gemma-4 free was 429-limited
+    upstream; thinkingmachines/inkling* :free is 403 "only available on
+    agentic harnesses". Avoid both as defaults.
+  - Groq also hosts whisper-large-v3 / whisper-large-v3-turbo → candidate
+    STT backend for backlog item (2); not wired yet.
+  - Ollama: qwen2.5-coder:7b + nomic-embed-text intact. qwen2.5-coder:3b
+    pull ABORTED at 69% (service restart mid-pull) — NOT present; the 7b is
+    the local route. Ollama self-updated silently (~18:27) and was briefly
+    down; embeddings smoke check failed once because of that, passed after.
+  - Ollama baseline (CPU): 22.9s wall, 5.2 tok/s — cloud gateway is ~20x
+    faster on this machine.
 
 WORK PERFORMED (this session):
-  1. Feasibility probe (validation/scratch-ocr/probe-ocr.ps1): WinRT OCR
-     engine available (en-US; langs en-GB,en-US); a generated PNG with three
-     known lines recognized VERBATIM incl. digits; Windows.Data.Pdf present.
-  2. New src/memory/ocr.ts: ocrImageFile (StorageFile -> BitmapDecoder ->
-     SoftwareBitmap -> OcrEngine.RecognizeAsync) and ocrPdfFile
-     (PdfDocument.LoadFromFileAsync -> per-page RenderToStreamAsync to PNG ->
-     OCR, pages joined in order). Non-Windows / no-engine / no-text -> null.
-  3. New src/tools/ocr.ts — tool `ocr_read` (images + scanned PDFs; read-only,
-     no approval, mirrors read_image; size caps 20/50 MB; page cap 60).
-  4. learn_pdf (src/tools/knowledge.ts) now falls back to ocrPdfFile when the
-     extracted text layer is < 20 chars; stores OCR text as normal chunks.
+  1. src/llm/factory.ts: numbered gateway routes — `openai`, `openai1`…
+     `openai9`, each with BLACKROSE_OPENAI<N>_API_KEY/_MODEL/_BASE_URL
+     (bare `openai` keeps OPENAI_API_KEY fallback). Defaults switched:
+     OpenRouter base URL + nvidia/nemotron-3-super-120b-a12b:free. Router
+     env contract accepts any openai<N> in BLACKROSE_ROUTES.
+  2. src/llm/openai.ts: optional attribution { siteUrl, siteName } headers
+     (factory sends them for OpenRouter automatically).
+  3. src/doctor.ts: probes every openai<N> route in router mode (models +
+     free list, :free ids recognized; key never printed); tip text updated
+     off KiraAI.
+  4. src/llm/ollama.ts: keep_alive '30m' default (model stays warm; was
+     losing ~20s/call to reloads).
+  5. src/smoke.ts: openai adapter fetch-stubbed checks (native tool_calls,
+     text-JSON recovery, prose/unknown untouched) — staged from previous
+     session, defaults updated.
+  6. Docs: README modes, docs/04-ROADMAP, docs/05-MODEL-INDEPENDENCE.
+  7. ENV WIRED (User scope, persists):
+     BLACKROSE_PROVIDER=router
+     BLACKROSE_ROUTES=openai,openai1,ollama
+     BLACKROSE_OPENAI_API_KEY=<openrouter key> MODEL=nvidia/nemotron-3-super-120b-a12b:free
+     BLACKROSE_OPENAI_BASE_URL=https://openrouter.ai/api/v1
+     BLACKROSE_OPENAI1_API_KEY=<groq key> MODEL=openai/gpt-oss-120b
+     BLACKROSE_OPENAI1_BASE_URL=https://api.groq.com/openai/v1
+  8. Rebuilt dist-build/ + dist (50 modules; SEA .exe still skipped — no
+     objcopy/LLVM toolchain, same as before).
 
-IMPLEMENTED:
-  Backlog (1): OCR fully local via the OS — `ocr_read` tool for images and
-  scanned PDFs; `learn_pdf` transparent OCR fallback for image-only PDFs.
-
-VERIFIED (exact tests and results):
-  - npm run typecheck: clean.
-  - npm test: smoke suite ALL PASS (62 checks, incl. new live win32 OCR
-    check "ocr_read recognizes text in an image") + regression 16/16.
-    Log: validation/ocr-final.out
-  - Live driver (validation/scratch-ocr/driver-ocr.mjs →
-    validation/ocr-driver.out): DRIVER_ALL_PASS —
-    * learn_pdf on an image-only PDF (no text layer) → "via OCR",
-      86 chars recognized from the rendered page;
-    * knowledge_search over the OCR text → top hit 0.83, verbatim;
-    * ocr_read on PNG → verbatim ("BLACKROSE OCR PROBE 2026 ...");
-    * ocr_read on the scanned PDF → same verbatim text.
-  - Cross-check: the standalone PowerShell mirror (diag-pdf2.ps1) produced
-    the identical recognition, ruling out driver artifacts.
+VERIFIED (exact tests and results, evidence in validation/):
+  - npm run typecheck — clean.
+  - npm test — SMOKE TEST PASSED (58 checks incl. new openai adapter check)
+    + regression 16/16 (npmtest-openrouter.out).
+  - openrouter-models.out / groq-models.out — live /models on both gateways.
+  - toolprobe-1.out — native tool_calls + plain chat PASS on both chosen
+    models (nemotron free 1.1s, groq gpt-oss-120b 1.05s).
+  - live-agent-probe.out — the SHIPPING adapter (src/llm/openai.ts) wrapped
+    in resilientClient: 2-tool agent roundtrip (write_file → disk verified →
+    read_file → correct final answer) PASS on OpenRouter (one transient
+    Nvidia overload auto-retried) and Groq.
+  - doctor-gateway.out — --doctor shows routes openai,openai1,ollama and
+    probes both gateways live (444 models / 13 models).
+  - goal-gateway.out — REAL CLI end-to-end:
+    node src/index.ts --goal "create gateway-check.txt … then read back" →
+    plan 2 steps → write_file + read_file executed → "Verification: VERIFIED"
+    → lesson saved to memory. Router chain worked as configured.
 
 NOT VERIFIED:
-  - Anthropic generation (account still has ZERO credits — do not attempt).
-  - OCR accuracy on real-world photos/low-quality scans (only crisp
-    synthetic raster text validated; PS defaults to 96 dpi rendering).
-  - Multi-page scanned PDFs end-to-end (single-page validated; loop logic
-    is page-generic), non-Windows runtime (null-path code-reviewed only),
-  - STT / Tauri / .aistate multi-device backlogs.
-  - Real .exe build (SEA) — machine lacks objcopy (pre-existing).
+  - Groq-as-fallback trigger (openai → openai1 handoff on live failure) was
+    not exercised for real; the router fallback logic itself is covered by
+    smoke ("router falls back when primary fails").
+  - Whisper STT integration (backlog 2) — only the model's existence on
+    Groq was confirmed.
+  - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
 
-PROBLEMS FOUND (all fixed):
-  - PowerShell 5.1 WinRT adapter does not expose PdfPageRenderOptions
-    properties ("TargetSize cannot be found") → dropped custom render
-    options; default 96-dpi PNG render proved sufficient for OCR.
-  - Static [System.WindowsRuntimeSystemExtensions]::AsTask cannot bind for
-    IAsyncAction (RenderToStreamAsync) → reflected the non-generic AsTask
-    overload (PS_AWAIT_ACTION) and Invoke + Wait() it.
-  - Hand-built synthetic PDF (GDI+ JPEG + hand-rolled xref) failed
-    LoadFromFileAsync with HRESULT 0x80048018 (my xref offsets were wrong;
-    Windows' parser is strict) → switched to Edge headless
-    --print-to-pdf of a full-page <img>, a genuinely valid image-only PDF.
-  - First ocrPdfFile parser accepted PowerShell error chatter as "OCR text"
-    (contaminated chunks in the driver's state) → strict parsing: only text
-    between BLACKROSE_PAGE markers counts, error patterns stripped, and
-    stale validation scratch state must be purged between runs.
+PROBLEMS FOUND:
+  - KiraAI free tier: dead (all free models in maintenance) — pivot justified.
+  - Free OpenRouter models: transient upstream overloads/429s happen;
+    resilientClient handles them (verified live); expect occasional retries.
+  - Ollama auto-update restarted the service mid-session, aborting the 3b
+    pull at 69% and briefly dropping the embed backend.
 
 DECISIONS:
-  - Windows-native OCR over bundling Tesseract/whisper: zero dependencies,
-    zero downloads, privacy-first, consistent with the `say`/`screenshot`
-    pattern. Non-Windows gets a clean null + "Windows-only" tool reply.
-  - ocr_read requires NO approval (read-only, mirrors read_image); the
-    screenshot remains the approval-gated privacy boundary.
-  - learn_pdf OCR fallback is automatic (no extra tool round-trip); caps:
-    60 pages per call, 50 MB PDF / 20 MB image, 180 s timeout.
-  - Strict output parsing in ocrPdfFile — PS error noise must never masquerade
-    as recognized text (fail-closed, consistent with project rules).
+  - One generic `openai` provider with numbered variants (openai1…9) — many
+    gateways, one code path, env-driven; no per-vendor adapters.
+  - Chain: OpenRouter (free) → Groq (free) → Ollama (local) — implements the
+    master-instructions "Free → Local → Paid" routing at zero cost.
+  - Keys stay in Documents/*.txt AND User-scope env vars (set this session);
+    never log/commit them.
+  - Default model nvidia/nemotron-3-super-120b-a12b:free; revisit if Nvidia
+    upstream stays flaky (candidates: nex-agi/nex-n2.5-pro:free,
+    cohere/north-mini-code:free, google/gemma-4-31b-it:free).
 
 ASSUMPTIONS:
-  - Windows 10/11 with at least one OCR recognizer language installed
-    (en-US here); PS 5.1 WinRT projection available (default on Windows).
+  - Free-tier quotas on both gateways are sufficient for personal use;
+    OpenRouter free models are rate-limited per-day — if exhausted, the
+    router falls to Groq, then Ollama.
 
 BLOCKED BY:
   none
 
-USER PLAN (set 2026-09-16 night):
-  User will TEST-DRIVE the shipped build tomorrow (2026-09-17) before any
-  new work: launch via dist\BlackRose.cmd (or npm run ui), try `ocr_read`
-  on real images / scanned PDFs + `/say`, use it for real day-to-day tasks,
-  then pick the next backlog item. Agent: DO NOT start new work until the
-  user returns with results / a pick.
-
 NEXT STEP:
-  Wait for the user's test-drive results + backlog pick:
-  (2) STT push-to-talk (needs a local STT provider choice, e.g. whisper.cpp —
-      note whisper.cpp needs a toolchain/build; weigh vs. Ollama-hosted STT),
-  (3) Tauri desktop shell (deferred by decision, CLI-first),
-  (5) .aistate multi-device exercise (needs a second machine/device).
-  Optional user-side upgrades meanwhile (no agent action needed):
-  - add Anthropic credits (router switches to Claude automatically),
-  - install LLVM or Git for Windows so `npm run build:exe` can emit the
-    single-file BlackRose.exe (currently skipped, BlackRose.cmd works),
-  - back up %USERPROFILE%\.blackrose (that folder IS BlackRose's memory).
-  Do NOT start V2/V3 items (Telegram/Android, 3D factory, model competition)
-  without explicit user approval.
+  Backlog picks in priority order:
+  (2) STT: wire Groq whisper-large-v3-turbo (OpenAI /audio/transcriptions
+      protocol) behind learn_transcript / a new transcribe tool — key is
+      already configured.
+  (3) Tauri desktop shell, (5) .aistate multi-device exercise (needs 2nd
+      device). Also: user may test-drive the CLI/UI on the new chain.
 
 DO NOT REPEAT:
-  - Do not re-run completed validations (steps (a)-(d) live runs, embed
-    probe, OCR probe/driver) unless something changed; all evidenced in
-    validation/.
+  - Do not re-run completed validations (gateway probes, toolprobe,
+    live-agent-probe, npm suite, build) unless code changed.
   - Do not attempt Anthropic generation before credits are added.
   - Do not re-enable the validation-echo schedule in the real state.
+  - Do not re-pull qwen2.5-coder:3b without asking (7b works; pull died at
+    69% once already and eats disk+bandwidth for ~1h).
+  - Do not use KiraAI defaults (kiraai.vn base URL / deepseek-v4-flash-free)
+    — removed from the code; free tier is in maintenance.
+  - Do not select thinkingmachines/inkling*:free (403 agentic-harness-only)
+    or gemma-4:free as defaults (upstream 429s during probe).
   - Do not build V2/V3 features without explicit user approval.
   - Do not use `import { x as y }` syntax in src/ (bundler limitation).
   - Do not trust PowerShell stdout blindly in WinRT wrappers — parse only
     explicitly delimited, success-gated markers.
+  - Do NOT read/echo the contents of the key files (openrouter, groq,
+    claude, kira) into chat, logs, or commits; load them only inside the
+    program at runtime.
+  - PowerShell 5.1: avoid `??` in inline commands (parse errors); use
+    if/else. Long node runs: use cmd /c redirect or Start-Process (30s cap).
 
 WARNINGS:
   - ANTHROPIC_API_KEY is valid but the account has zero credits.
-  - NEVER commit, print, or share the key file
-    (C:\Users\pc\Documents\claude api key.txt).
+  - NEVER commit, print, or share any key file
+    (openrouter_api_key.txt, groq_api_key.txt, claude api key.txt,
+    kira_api_key.txt).
   - Ollama on this machine is CPU-only: ~25 s cold load + slow prompt eval; a
-    slow first reply is normal, not frozen. Slower still while other model runs
-    execute in parallel.
+    slow first reply is normal, not frozen. It may self-update and drop the
+    service mid-session (seen 2026-09-17) — check /api/tags on odd failures.
   - Scheduled/bridge runs fail closed on approvals by default (by design).
-
-  5. Wired everywhere: tools/index.ts registry, llm/prompt.ts hint block,
-     doctor.ts OCR line, smoke.ts end-to-end check (win32-gated).
-  6. Docs: docs/04-ROADMAP.md Phase 6 bullets (learn_pdf + OCR entry).
+  - Free-model availability on OpenRouter changes daily; if the default
+    model 404s/429s persistently, re-run the models probe and pick a new
+    free model with tools support.
