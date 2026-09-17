@@ -4,8 +4,8 @@ DATE / TIME: 2026-09-17 (evening local)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 867d307 (clean; 1 new commit this session)
-  Outer workspace:  to be committed at the end of this session (validation evidence)
+  Inner code repo:  cline/blackrose @ 201c6a7 (clean; 2 new commits this session)
+  Outer workspace:  committed at the end of this session (checkpoint + validation evidence)
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
@@ -13,7 +13,9 @@ CURRENT PHASE:
   to OpenAI-protocol gateways via the `openai` adapter — factory wiring,
   multi-gateway router chain, doctor probes, docs, AND full live validation
   (adapter roundtrip + CLI --goal VERIFIED end-to-end). The agent now runs on
-  free cloud models with local Ollama as the last fallback.
+  free cloud models with local Ollama as the last fallback. ALSO THIS SESSION:
+  web UI conversation-memory fix (chat now remembers context across messages;
+  user-reported via a real test-drive, fixed + live-verified same session).
 
 USER TASK (why this direction):
   "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
@@ -71,12 +73,27 @@ WORK PERFORMED (this session):
      BLACKROSE_OPENAI1_API_KEY=<groq key> MODEL=openai/gpt-oss-120b
      BLACKROSE_OPENAI1_BASE_URL=https://api.groq.com/openai/v1
   8. Rebuilt dist-build/ + dist (50 modules; SEA .exe still skipped — no
-     objcopy/LLVM toolchain, same as before).
+     objcopy/LLVM toolchain, same as before). Rebuilt again after item 9.
+  9. UI CONVERSATION MEMORY (user bug report: "it seems to be forgetting
+     once the instruction is over" — see Documents\test run.txt; every UI
+     turn forgot the previous ones because /api/ask was stateless):
+     src/ui/web/server.ts — /api/ask now threads server-side history per
+     browser tab (page sends a random `session` id; map lives in startWebUi
+     scope, capped at 50 keys), persists each turn to dataDir/sessions, and
+     a fresh key resumes the latest persisted session (CLI --resume
+     equivalent). New POST /api/new clears the caller's context (wired to
+     the 🧹 Clear conversation button). /api/goal intentionally stays
+     stateless (a goal is a fresh plan → execute → verify run).
+     src/ui/web/assets.ts — per-tab SESSION id, context-aware request body,
+     🧹 button POSTs /api/new. src/smoke.ts — 4 new checks. README +
+     docs/04-ROADMAP updated.
 
 VERIFIED (exact tests and results, evidence in validation/):
   - npm run typecheck — clean.
-  - npm test — SMOKE TEST PASSED (58 checks incl. new openai adapter check)
-    + regression 16/16 (npmtest-openrouter.out).
+  - npm test — SMOKE TEST PASSED (62 checks incl. the openai adapter check +
+    4 new UI conversation-memory checks: cross-request memory, /api/new
+    clear, per-tab isolation, restart-resume) + regression 16/16
+    (npmtest-uimemory.out).
   - openrouter-models.out / groq-models.out — live /models on both gateways.
   - toolprobe-1.out — native tool_calls + plain chat PASS on both chosen
     models (nemotron free 1.1s, groq gpt-oss-120b 1.05s).
@@ -90,6 +107,11 @@ VERIFIED (exact tests and results, evidence in validation/):
     node src/index.ts --goal "create gateway-check.txt … then read back" →
     plan 2 steps → write_file + read_file executed → "Verification: VERIFIED"
     → lesson saved to memory. Router chain worked as configured.
+  - ui-context-probe.out — REAL UI server (node src/index.ts --ui 8790,
+    throwaway BLACKROSE_DATA_DIR) + real gateway chain, two /api/ask turns:
+    turn 1 "remember codeword CRIMSONFALCON" → "OK"; turn 2 "what codeword?"
+    → "CRIMSONFALCON" → UI-CONTEXT PASS. The exact user-reported regression,
+    fixed and proven end-to-end.
 
 NOT VERIFIED:
   - Groq-as-fallback trigger (openai → openai1 handoff on live failure) was
@@ -100,6 +122,11 @@ NOT VERIFIED:
   - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
 
 PROBLEMS FOUND:
+  - Web UI /api/ask was stateless — every chat turn forgot the previous ones
+    (caught by user test-drive 2026-09-17, Documents\test run.txt). First
+    fix attempt put the conversations Map inside the http request handler
+    (recreated per request → still forgets); the new smoke checks caught it
+    before ship. State must live in startWebUi scope.
   - KiraAI free tier: dead (all free models in maintenance) — pivot justified.
   - Free OpenRouter models: transient upstream overloads/429s happen;
     resilientClient handles them (verified live); expect occasional retries.
@@ -126,6 +153,8 @@ BLOCKED BY:
   none
 
 NEXT STEP:
+  First: user re-test-drives the UI (npm run ui) — context now persists
+  across messages; 🧹 Clear conversation resets it; reload/restart resumes.
   Backlog picks in priority order:
   (2) STT: wire Groq whisper-large-v3-turbo (OpenAI /audio/transcriptions
       protocol) behind learn_transcript / a new transcribe tool — key is
@@ -136,6 +165,9 @@ NEXT STEP:
 DO NOT REPEAT:
   - Do not re-run completed validations (gateway probes, toolprobe,
     live-agent-probe, npm suite, build) unless code changed.
+  - Do not keep per-request state inside the http handler closure — the UI
+    conversations Map must live in startWebUi scope (per-request recreation
+    silently reintroduced the forgetting bug; smoke checks caught it).
   - Do not attempt Anthropic generation before credits are added.
   - Do not re-enable the validation-echo schedule in the real state.
   - Do not re-pull qwen2.5-coder:3b without asking (7b works; pull died at
