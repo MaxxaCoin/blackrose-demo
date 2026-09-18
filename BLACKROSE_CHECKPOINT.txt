@@ -1,11 +1,15 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 ============================================
-DATE / TIME: 2026-09-17 → 2026-09-18 (session spans both days, evening local)
+DATE / TIME: 2026-09-17 → 2026-09-18 (evening local; recovery/handoff session 2026-09-18 night)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ b8261fa (clean; 4 new commits this session)
-  Outer workspace:  committed at the end of this session (checkpoint + validation evidence)
+  Inner code repo:  cline/blackrose @ 5b32ea6 (clean; f62faf6 ui-clear
+                    hardening + 5b32ea6 removes the stale build-desktop.js
+                    byproduct; git index/ref REPAIRED after an
+                    interrupted-write corruption, see PROBLEMS FOUND)
+  Outer workspace:  to be committed at the end of this session (checkpoint +
+                    ui-clear/postrepair validation evidence)
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
@@ -21,6 +25,9 @@ CURRENT PHASE:
   E2E (which also produced the first live openai→openai1 fallback proof).
   AND: backlog item (3) desktop shell SCAFFOLDED — complete Tauri v2 shell
   + fail-closed build:desktop (build itself pending the Rust toolchain).
+  AND: UI clear-conversation HARDENING shipped (🧹 archives the cleared
+  session under sessions/cleared/; page served no-store) — and the
+  project's first git-corruption incident RECOVERED losslessly (night).
 
 USER TASK (why this direction):
   "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
@@ -125,6 +132,24 @@ WORK PERFORMED (this session):
      verified live: full staging + exact 3-missing-pieces report
      (desktop-boot.out). Smoke +2 checks (70 total). README + ROADMAP
      updated (backlog 3 → scaffolded; new "Desktop shell" section).
+  12. UI CLEAR HARDENING (commit f62faf6, follow-up to the memory fix):
+      (a) /api/new now ARCHIVES the cleared session under sessions/cleared/
+      so a reload/restart cannot resurrect it (src/session/history.ts);
+      (b) the UI page is served with cache-control: no-store so a stale
+      cached page cannot bypass /api/new (src/ui/web/server.ts);
+      (c) the icon writer moved to src/ui/ico.ts so builders import one
+      copy (scripts/build-desktop.ts −93 lines). +2 smoke checks (72).
+      Live 4-turn probe PASS (ui-clear-probe.out). NOTE: a stale compiled
+      scripts/build-desktop.js byproduct got committed in f62faf6; removed
+      from tracking in the follow-up commit (content preserved in history).
+  13. GIT REPAIR (this session, after the 09-18 session died mid-write):
+      .git/index and refs/heads/main were zero-filled, reflog tail NULed
+      → "bad signature 0x00000000" / "branch appears broken". Recovered
+      WITHOUT loss: ref restored from logs/HEAD → f62faf6 (object verified
+      via cat-file), corrupt index deleted, `git reset` rebuilt it, fsck
+      clean, the working-tree-deleted build-desktop.js restored via
+      checkout (byte-identical to the committed blob), full suite re-run
+      green on the repaired repo (npmtest-postrepair.out).
 
 VERIFIED (exact tests and results, evidence in validation/):
   - npm run typecheck — clean.
@@ -164,6 +189,14 @@ VERIFIED (exact tests and results, evidence in validation/):
     exact fail-closed report (missing: Rust, MSVC link.exe,
     @tauri-apps/cli — each with a fix), NO binary built. Icon render
     visually confirmed (validation/icon-preview.png).
+  - ui-clear-probe.out — LIVE 4-turn probe: page sends cache-control
+    no-store; codeword MOONLITROSE set → recalled → forgotten after 🧹
+    (/api/new) → still gone from a fresh tab → UI-CLEAR PASS.
+  - npmtest-uiclear.out — suite after the ui-clear commit: 72 checks PASS
+    + regression 16/16.
+  - npmtest-postrepair.out — the SAME suite re-run on the REPAIRED repo
+    (post git recovery, 2026-09-18 night): 72 checks PASS + regression
+    16/16 + typecheck clean → the repair restored a fully healthy tree.
 
 NOT VERIFIED:
   - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
@@ -193,6 +226,17 @@ PROBLEMS FOUND:
     resilientClient handles them (verified live); expect occasional retries.
   - Ollama auto-update restarted the service mid-session, aborting the 3b
     pull at 69% and briefly dropping the embed backend.
+  - Inner repo git CORRUPTED (2026-09-18, during/after the ui-clear
+    commit): interrupted write zero-filled .git/index and
+    refs/heads/main (NUL tail in logs/HEAD) → "bad signature 0x00000000"
+    / "branch appears broken". The commit object itself survived (objects
+    are content-addressed; cat-file + fsck verified it). Recovery recipe
+    that worked: (1) read .git/logs/HEAD → last commit hash; (2) verify
+    `git cat-file -t <hash>`; (3) write the hash into refs/heads/<branch>
+    (LF only, no CR); (4) delete .git/index → `git reset` (rebuilds);
+    (5) `git fsck`; (6) restore tree damage with `git checkout -- <file>`;
+    (7) re-run the suite. A stale build-desktop.js byproduct was also
+    committed by that dying session and removed right after.
 
 DECISIONS:
   - One generic `openai` provider with numbered variants (openai1…9) — many
@@ -255,7 +299,12 @@ DO NOT REPEAT:
     claude, kira) into chat, logs, or commits; load them only inside the
     program at runtime.
   - PowerShell 5.1: avoid `??` in inline commands (parse errors); use
-    if/else. Long node runs: use cmd /c redirect or Start-Process (30s cap).
+    if/else. Long node runs: launch DETACHED via Start-Process (cmd /c
+    "... > out 2>&1") and poll the output file — a synchronous cmd /c
+    redirect still dies with the 30 s tool cap (seen 2026-09-18).
+  - Never interrupt git mid-write and always end a session with a clean
+    `git status` + error-free `git fsck` (the 2026-09-18 corruption came
+    from an interrupted git write; recovery recipe in PROBLEMS FOUND).
 
 WARNINGS:
   - ANTHROPIC_API_KEY is valid but the account has zero credits.
