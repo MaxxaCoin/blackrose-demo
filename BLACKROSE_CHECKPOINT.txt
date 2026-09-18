@@ -4,9 +4,10 @@ DATE / TIME: 2026-09-17 → 2026-09-18 (evening local; recovery/handoff session 
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 5b32ea6 (clean; f62faf6 ui-clear
-                    hardening + 5b32ea6 removes the stale build-desktop.js
-                    byproduct; git index/ref REPAIRED after an
+  Inner code repo:  cline/blackrose @ 62e0e0b (clean; 5b32ea6 removes the
+                    stale build-desktop.js byproduct; 62e0e0b completes the
+                    desktop toolchain + 2 build fixes, first Tauri build in
+                    flight; git index/ref REPAIRED earlier tonight after an
                     interrupted-write corruption, see PROBLEMS FOUND)
   Outer workspace:  to be committed at the end of this session (checkpoint +
                     ui-clear/postrepair validation evidence)
@@ -150,6 +151,22 @@ WORK PERFORMED (this session):
       clean, the working-tree-deleted build-desktop.js restored via
       checkout (byte-identical to the committed blob), full suite re-run
       green on the repaired repo (npmtest-postrepair.out).
+  14. DESKTOP BUILD ADVANCE (2026-09-18 night, backlog 3): the toolchain
+      was completed on this machine — VS 2022 Community MSVC link.exe
+      appeared, @tauri-apps/cli 2.11.4 installed, Rust 1.98.1
+      stable-msvc via rustup (user-scope, ~576 MB). Two real bugs fixed
+      en route: (a) scripts/build-desktop.ts spawned 'npx.cmd' → Node
+      EINVAL (CVE-2024-27980 hardening) died SILENTLY — now spawns
+      process.execPath on node_modules/@tauri-apps/cli/tauri.js (main.js
+      is a library export, NOT a runnable script) + fails loud; (b)
+      tauri.conf.json frontendDist was '../ui' (resolved to desktop/ui,
+      nonexistent) — corrected to './ui'. Result: the tauri CLI engages,
+      cargo fetched the full dep tree and is COMPILING the release build
+      (desktop-build4.out; first 3 attempts archived as desktop-build1/2/3
+      .out). The Rust compile is therefore UNVERIFIED at checkpoint time —
+      first thing next session: read desktop-build4.out tail; if NSIS
+      installer exists under desktop/tauri/target/release/bundle/nsis/,
+      smoke-test it end-to-end; if compile errors, fix main.rs nits.
 
 VERIFIED (exact tests and results, evidence in validation/):
   - npm run typecheck — clean.
@@ -258,7 +275,14 @@ BLOCKED BY:
   none
 
 NEXT STEP:
-  First: user test-drives — (a) the UI (context persists across messages,
+  First: READ validation/desktop-build4.out (tail) — the first real Tauri
+  release build was left COMPILING overnight (cargo PID may be gone; the
+  log is the truth). If it finished: smoke-test the NSIS installer under
+  desktop/tauri/target/release/bundle/nsis/ end-to-end (install, launch,
+  splash → live UI, exit kills the core), tick backlog 3, then the user
+  test-drives below. If it failed: fix the Rust compile nits in
+  desktop/tauri/src/main.rs and re-run npm run build:desktop.
+  Then: user test-drives — (a) the UI (context persists across messages,
   🧹 resets it), (b) audio transcription: drop any mp3/wav/m4a path in chat
   and ask to transcribe it (approval dialog will appear; sidecar/ingest via
   save/ingest inputs).
@@ -305,6 +329,14 @@ DO NOT REPEAT:
   - Never interrupt git mid-write and always end a session with a clean
     `git status` + error-free `git fsck` (the 2026-09-18 corruption came
     from an interrupted git write; recovery recipe in PROBLEMS FOUND).
+  - Do NOT spawn .cmd shims from node scripts on modern Node (EINVAL,
+    CVE-2024-27980) — spawn process.execPath on the package's real JS bin
+    entry instead, and always check spawnSync r.error (silent death cost
+    three dead build attempts on 2026-09-18).
+  - Long cargo builds: run detached (Start-Process) and poll the LOG, not
+    process lists; deep directory size scans get slow and hit the tool cap.
+    cargo keeps compiling fine unattended — an overnight build does not
+    need a babysitting session.
 
 WARNINGS:
   - ANTHROPIC_API_KEY is valid but the account has zero credits.
