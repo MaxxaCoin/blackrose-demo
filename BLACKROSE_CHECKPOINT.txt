@@ -4,7 +4,7 @@ DATE / TIME: 2026-09-17 → 2026-09-18 (session spans both days, evening local)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ fe09e5d (clean; 3 new commits this session)
+  Inner code repo:  cline/blackrose @ b8261fa (clean; 4 new commits this session)
   Outer workspace:  committed at the end of this session (checkpoint + validation evidence)
 
 CURRENT PHASE:
@@ -19,6 +19,8 @@ CURRENT PHASE:
   AND: backlog item (2) STT shipped — transcribe_audio via Groq
   whisper-large-v3-turbo, live-verified with a SAPI sentinel WAV + real-agent
   E2E (which also produced the first live openai→openai1 fallback proof).
+  AND: backlog item (3) desktop shell SCAFFOLDED — complete Tauri v2 shell
+  + fail-closed build:desktop (build itself pending the Rust toolchain).
 
 USER TASK (why this direction):
   "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
@@ -104,12 +106,31 @@ WORK PERFORMED (this session):
      new "Speech-to-text" section). smoke.ts +2 checks (68 total). Bundle
      rebuilt. NOTE: made the smoke vector-store model check backend-
      tolerant (Ollama was DOWN again — see PROBLEMS FOUND).
+ 11. DESKTOP SHELL (backlog item 3, scaffolded): desktop/tauri/ — complete
+     Tauri v2 scaffold: src/main.rs boot supervisor (free-port pick →
+     spawn `node core/blackrose.mjs --ui <port>` using bundled
+     node/node.exe or PATH node → raw-TcpStream /api/health poll (no HTTP
+     dep) → location.replace into the live UI → core killed on RunEvent
+     exit; CREATE_NO_WINDOW; USERPROFILE as workspace; 90s boot timeout
+     with fail state surfaced into the splash via eval'd
+     window.__blackroseFail). tauri.conf.json (NSIS + WebView2
+     bootstrapper, 1180x780 window), capabilities/default.json,
+     ui/index.html — DESIGNED splash (black-glass + rose-neon: breathing
+     nested-⬥ mark, grain, Cascadia boot log, sweep bar; per the
+     frontend-design skill). scripts/build-desktop.ts + npm script
+     build:desktop: stages bundle + node runtime (self-contained ~90MB),
+     GENERATES icons/icon.ico procedurally (zero-dep BMP-in-ICO writer,
+     byte layout smoke-verified), validates toolchain (vswhere/Program
+     Files scan for MSVC link.exe), builds NSIS ONLY when complete —
+     verified live: full staging + exact 3-missing-pieces report
+     (desktop-boot.out). Smoke +2 checks (70 total). README + ROADMAP
+     updated (backlog 3 → scaffolded; new "Desktop shell" section).
 
 VERIFIED (exact tests and results, evidence in validation/):
   - npm run typecheck — clean.
-  - npm test — SMOKE TEST PASSED (68 checks: openai adapter + 4 UI
-    conversation-memory + 2 STT checks, vector-store check now backend-
-    tolerant) + regression 16/16 (npmtest-stt.out).
+  - npm test — SMOKE TEST PASSED (70 checks: openai adapter + 4 UI memory +
+    2 STT + 2 desktop-shell checks; vector-store check backend-tolerant)
+    + regression 16/16 (npmtest-desktop.out).
   - openrouter-models.out / groq-models.out — live /models on both gateways.
   - toolprobe-1.out — native tool_calls + plain chat PASS on both chosen
     models (nemotron free 1.1s, groq gpt-oss-120b 1.05s).
@@ -138,9 +159,18 @@ VERIFIED (exact tests and results, evidence in validation/):
     route threw "Upstream error from Nvidia: Service temporarily overloaded"
     and the router fell back openai→openai1 live — FIRST end-to-end proof
     of that handoff (was in NOT VERIFIED before this session).
+  - desktop-boot.out — build:desktop verified live UP TO the toolchain:
+    bundle + node runtime + procedural icon staged correctly, then the
+    exact fail-closed report (missing: Rust, MSVC link.exe,
+    @tauri-apps/cli — each with a fix), NO binary built. Icon render
+    visually confirmed (validation/icon-preview.png).
 
 NOT VERIFIED:
   - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
+  - The Tauri desktop build itself (Rust compile + NSIS installer) —
+    blocked by the local toolchain (cargo/rustc + MSVC link.exe +
+    @tauri-apps/cli all missing); the Rust code is unverified until the
+    first successful `npm run build:desktop` after installing them.
   (Groq openai→openai1 fallback + whisper STT were live-verified this
   session — see stt-agent.out / stt-probe.out.)
 
@@ -154,6 +184,10 @@ PROBLEMS FOUND:
     as 2026-09-17): the smoke vector-store check then failed because it
     assumed Ollama embeddings — made it backend-tolerant (recorded model
     must equal the backend actually used, hash fallback included).
+  - pathToFileURL(import.meta.url) double-encodes (it expects a PATH, not
+    a URL string) → the desktop script's root path was garbage and staging
+    "failed"; build-exe.ts already had the right pattern: new
+    URL(import.meta.url).pathname. Use that.
   - KiraAI free tier: dead (all free models in maintenance) — pivot justified.
   - Free OpenRouter models: transient upstream overloads/429s happen;
     resilientClient handles them (verified live); expect occasional retries.
@@ -185,9 +219,14 @@ NEXT STEP:
   and ask to transcribe it (approval dialog will appear; sidecar/ingest via
   save/ingest inputs).
   Backlog picks in priority order:
-  (3) Tauri desktop shell, (5) .aistate multi-device exercise (needs 2nd
-      device). Local push-to-talk (backlog 3) still deferred — needs a
-      local/loopback STT provider; cloud STT now exists.
+  (3) finish the desktop shell: install Rust (rustup-init.exe) + Visual
+      Studio Build Tools "Desktop development with C++" + npm i -D
+      @tauri-apps/cli → re-run npm run build:desktop → smoke-test the
+      NSIS installer end-to-end (first real Rust build; expect and fix
+      compile nits in main.rs).
+  (5) .aistate multi-device exercise (needs 2nd device). Local
+      push-to-talk (backlog 3-STT) still deferred — needs a local/loopback
+      STT provider; cloud STT now exists.
 
 DO NOT REPEAT:
   - Do not re-run completed validations (gateway probes, toolprobe,
@@ -198,6 +237,8 @@ DO NOT REPEAT:
   - Do not make smoke checks assume Ollama is up (down again 2026-09-18,
     silent self-update): backend-dependent checks must tolerate the hash
     fallback (vector-store model check now does).
+  - Do not wrap import.meta.url in pathToFileURL (double-encode bug) — use
+    new URL(import.meta.url).pathname like build-exe.ts does.
   - Do not attempt Anthropic generation before credits are added.
   - Do not re-enable the validation-echo schedule in the real state.
   - Do not re-pull qwen2.5-coder:3b without asking (7b works; pull died at
