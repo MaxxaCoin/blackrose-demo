@@ -1,0 +1,16 @@
+
+> blackrose@0.8.0 test
+> node src/smoke.ts && node --test src/regression.test.ts
+
+[TypeError: fetch failed] {
+  [cause]: Error: bad port
+      at makeNetworkError (node:internal/deps/undici/undici:11841:35)
+      at mainFetch (node:internal/deps/undici/undici:13224:22)
+      at fetching (node:internal/deps/undici/undici:13211:7)
+      at fetch (node:internal/deps/undici/undici:13075:20)
+      at fetch (node:internal/deps/undici/undici:17857:10)
+      at fetch (node:internal/bootstrap/web/exposed-window-or-worker:83:12)
+      at bridgeSyncPush (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/bridge/client.ts:95:21)
+      at main (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:708:24)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+}

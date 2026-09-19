@@ -4,10 +4,11 @@ DATE / TIME: 2026-09-17 → 2026-09-18 (evening local; recovery/handoff session 
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 407d430 (clean; 62e0e0b build fixes +
-                    407d430 the Tauri desktop shell DONE — installer
-                    verified end-to-end; git index/ref REPAIRED on 09-18
-                    after an interrupted-write corruption, see PROBLEMS FOUND)
+  Inner code repo:  cline/blackrose @ 877d86f (clean; 407d430 desktop DONE +
+                    877d86f Conversations sidebar — sessions list/open/delete,
+                    non-destructive new chat, session-id collision fix;
+                    git index/ref REPAIRED on 09-18 after an
+                    interrupted-write corruption, see PROBLEMS FOUND)
   Outer workspace:  to be committed at the end of this session (checkpoint +
                     ui-clear/postrepair validation evidence)
 
@@ -30,6 +31,11 @@ CURRENT PHASE:
   AND: UI clear-conversation HARDENING shipped (🧹 archives the cleared
   session under sessions/cleared/; page served no-store) — and the
   project's first git-corruption incident RECOVERED losslessly (09-18 night).
+  AND (2026-09-19): Conversations SIDEBAR shipped (ChatGPT-style) — every
+  persisted chat listed, click to reopen + continue its context, ＋ New chat
+  is NON-destructive, ✕ delete archives to sessions/deleted/; +4 checks
+  (76); fixed a same-second session-id collision the new checks caught;
+  desktop bundle rebuilt and live-verified serving the sidebar.
 
 USER TASK (why this direction):
   "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
@@ -227,6 +233,17 @@ VERIFIED (exact tests and results, evidence in validation/):
     gpt-oss-120b → qwen2.5-coder:7b) + real ~/.blackrose state →
     UI page 200 (10,782 bytes, no-store) → WM_CLOSE → app exits AND the
     core child is killed (verified both runs). Backlog 3 CLOSED.
+  - npmtest-sessions4.out — Conversations sidebar suite: 76 checks PASS
+    (list newest-first + titles, open reattaches context, non-destructive
+    new chat, delete + unsafe-id rejection) + regression 16/16 + typecheck
+    clean. (npmtest-sessions.out had a transient bridge 'bad port' flake,
+    green on rerun; sessions2/3 caught + fixed the same-second id collision.)
+  - buildexe-sessions.out — bundle (52 modules) + desktop rebuild; new
+    installer 24,609,201 bytes.
+  - Live desktop re-verification (in-session): fresh silent install →
+    app boot → page 200 WITH sidebar markers (session-list/Conversations/
+    btn-new) → /api/sessions 200 listing real past chats (e.g. 'what
+    codeword did I give you?') → close → app+core exited cleanly.
 
 NOT VERIFIED:
   - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
