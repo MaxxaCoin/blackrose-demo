@@ -9,8 +9,8 @@ SESSION / COMMIT:
                     non-destructive new chat, session-id collision fix;
                     git index/ref REPAIRED on 09-18 after an
                     interrupted-write corruption, see PROBLEMS FOUND)
-  Outer workspace:  to be committed at the end of this session (checkpoint +
-                    ui-clear/postrepair validation evidence)
+  Outer workspace:  committed @ 3d3aec5 (checkpoint + sidebar/desktop
+                    validation evidence); this session's edits commit on top
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
