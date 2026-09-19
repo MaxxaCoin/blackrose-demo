@@ -4,11 +4,13 @@ DATE / TIME: 2026-09-19 (local; sessions 09-17 → 09-19)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 2a4f5a4 (clean; 61002b0 chain +
-                    61002b0 local push-to-talk DONE + OmniRoute/free-first
-                    router chain; git index/ref REPAIRED on 09-18 after an
-                    interrupted-write corruption, see PROBLEMS FOUND)
-  Outer workspace:  committed through 0e68521 (this checkpoint commits on top)
+  Inner code repo:  cline/blackrose @ 8ebb234 (clean; sidebar + listen DONE
+                    + OmniRoute/free-first router chain + doctor chat-ping +
+                    Cloudflare openai5 + route-tray spec; git index/ref
+                    REPAIRED on 09-18 after an interrupted-write corruption,
+                    see PROBLEMS FOUND)
+  Outer workspace:  committed through 93ec1bb (route-tray spec; this
+                    line commits on top)
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
