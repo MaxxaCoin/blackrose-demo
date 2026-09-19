@@ -4,11 +4,11 @@ DATE / TIME: 2026-09-19 (local; sessions 09-17 → 09-19)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 61002b0 (clean; 877d86f sidebar +
+  Inner code repo:  cline/blackrose @ 2a4f5a4 (clean; 61002b0 chain +
                     61002b0 local push-to-talk DONE + OmniRoute/free-first
                     router chain; git index/ref REPAIRED on 09-18 after an
                     interrupted-write corruption, see PROBLEMS FOUND)
-  Outer workspace:  committed through 3aa87fd (this checkpoint commits on top)
+  Outer workspace:  committed through 0e68521 (this checkpoint commits on top)
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
@@ -41,12 +41,12 @@ CURRENT PHASE:
   live probes PASS. AND (2026-09-19, DONE): OmniRoute + FREE-FIRST router
   chain — openai2 = OmniRoute combo "BlackRose" (all free models,
   auto-fallback inside), openai3 = NVIDIA direct, openai = OpenRouter free,
-  openai1 = Groq free, openai4 = Hugging Face, ollama LAST. Verified:
-  agent roundtrip, router fallback, CLI --goal VERIFIED; all 5 cloud
+  openai1 = Groq free, openai4 = Hugging Face, openai5 = Cloudflare Workers
+  AI (@cf/openai/gpt-oss-120b, free), ollama LAST. Verified:
+  agent roundtrip, router fallback, CLI --goal VERIFIED; all 6 cloud
   routes healthy in --doctor (probeOpenAi now falls back to a chat ping
-  when /models is restricted — OmniRoute's /models 401s but chat works).
-
-USER TASK (why this direction):
+  when /models is restricted — OmniRoute's /models 401s, Cloudflare's 405,
+  but chat works on both).
   "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
   first but its free tier died (all 4 free models → maintenance, verified
   2026-09-17 via kira-probe.out). User provided OpenRouter + Groq keys; both
@@ -294,17 +294,17 @@ VERIFIED (exact tests and results, evidence in validation/):
     agent roundtrip PASS (11s) → router chain fell back from a dead first
     route and served FALLBACK-OK → OMNIROUTE PROBE PASS.
   - omniroute-chain-e2e.out — REAL CLI --goal over the full chain
-    (openai2,openai3,openai,openai1,openai4,ollama): write_file + read_file
+    (openai2,openai3,openai,openai1,openai4,openai5,ollama): write_file + read_file
     → \"goal status: VERIFIED ✓\" (no fallback logged → served by openai2).
   - doctor-chain.out — all 5 cloud routes healthy live: openai2 \"chat probe
     OK (model gemini-3.7-flash-low)\", openai3 NVIDIA 82 models, openai
     OpenRouter 447, openai1 Groq 13, openai4 Hugging Face 139.
   - provider-survey.out — per-key free-tier survey (Gemini native
     function-calling works but OpenAI-compat chat 404s; NVIDIA direct works;
-    HF works; Cloudflare token has no account; Kira dead; Anthropic 0 credit).
-  - buildexe-chain.out — bundle + installer rebuilt with the doctor fix
-    + listen tool; installer 24,617,131 bytes.
-
+  - Cloudflare verdict CHANGED: with the account-linked token + account id,
+    text-generation models work (HTTP 200) and @cf/openai/gpt-oss-120b has
+    native function calling ✓ (probe-cf2.out) → wired as openai5; live in
+    --doctor (doctor-chain3.out). Kira dead; Anthropic 0 credit.)
 NOT VERIFIED:
   - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
   - The Tauri desktop build itself (Rust compile + NSIS installer) —
@@ -398,7 +398,7 @@ NEXT STEP:
       exercised between two real machines.
   (3-STT) local push-to-talk — DONE 2026-09-19 (commit 61002b0): smoke
       checks, live WAV + mic probes, docs, installer rebuilt (24.6MB).
-      Native Gemini adapter + Cloudflare remain skipped (see NOT VERIFIED).
+      Cloudflare Workers AI wired 2026-09-19 as openai5 (account-linked token; native function calling PASS; doctor probes it via the new 405→chat fallback). Native Gemini adapter remains skipped (OpenAI-compat endpoint 404s; native generateContent works with function calling ✓).
   sea .exe (optional): dist/BlackRose.exe via SEA still needs
       objcopy/LLVM — but the Tauri installer now supersedes it as the
       real desktop deliverable; decide whether to keep or drop the SEA
