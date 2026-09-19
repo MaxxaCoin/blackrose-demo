@@ -418,9 +418,33 @@ NEXT STEP:
       @tauri-apps/cli → re-run npm run build:desktop → smoke-test the
       NSIS installer end-to-end (first real Rust build; expect and fix
       compile nits in main.rs).
-  (5) .aistate multi-device exercise (needs 2nd device). Local
-      push-to-talk (backlog 3-STT) still deferred — needs a local/loopback
-      STT provider; cloud STT now exists.
+  (5) .aistate multi-device exercise (needs 2nd device).
+  UI remodel backlog (DEFERRED BY USER 2026-09-19) —
+  ROUTE STATUS TRAY (implement during the full UI remodel, not before):
+  The top tray (where the provider badge + status dot sit today) gains a
+  status box for EVERY numbered gateway route currently in BLACKROSE_ROUTES
+  (openai, openai1, openai2, … — whatever is live at that time):
+    🟩 GREEN GLOW  = the route currently answering (last /api/ask or /api/goal
+                      went through it). Only one box is green at a time.
+    🟥 RED GLOW    = the route is exhausted/quota-out — e.g. HTTP 429 or the
+                      upstream "temporarily overloaded" family; expected to
+                      recover (router already falls to the next route).
+    🟨 YELLOW      = the route needs attention on OUR side — bad/missing key
+                      (401/403), unreachable endpoint (connection refused /
+                      timeout), or an explicitly 404'd/retired model id.
+  Backend notes for the future implementer:
+    - the server already knows the answer: router.ts decides per-call, and
+      --doctor's probeOpenAi classifies reachability. Expose route state
+      without a new dependency: extend /api/health with a `routes: [{name,
+      state, detail}]` array (state = ok|degraded|down|unknown; refreshed
+      by doctor-style probing, cached ~30-60s, never blocking the UI).
+    - the page then polls /api/health and paints each box (CSS glow via
+      box-shadow + pulse animation on the ACTIVE one; tooltips show the
+      route detail string doctor already produces).
+    - classifying errors: 429/overloaded → RED; 401/403/timeout/refused/404
+      → YELLOW; last successful route → GREEN (updated on every /api/ask).
+    - scope excludes auth/token entry + cable behind the boxes: the remodel
+      as a whole handles that (see UI polish line above).
 
 DO NOT REPEAT:
   - Do not re-run completed validations (gateway probes, toolprobe,
