@@ -1,16 +1,15 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 ============================================
-DATE / TIME: 2026-09-17 → 2026-09-18 (evening local; recovery/handoff session 2026-09-18 night)
+DATE / TIME: 2026-09-19 (local; sessions 09-17 → 09-19)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 877d86f (clean; 407d430 desktop DONE +
-                    877d86f Conversations sidebar — sessions list/open/delete,
-                    non-destructive new chat, session-id collision fix;
-                    git index/ref REPAIRED on 09-18 after an
-                    interrupted-write corruption, see PROBLEMS FOUND)
-  Outer workspace:  committed @ 3d3aec5 (checkpoint + sidebar/desktop
-                    validation evidence); this session's edits commit on top
+  Inner code repo:  cline/blackrose @ 9f7b9ac (clean; 877d86f Conversations
+                    sidebar + 9f7b9ac WIP local push-to-talk 'listen' tool —
+                    WIP IS UNVERIFIED, see NOT VERIFIED; git index/ref
+                    REPAIRED on 09-18 after an interrupted-write corruption,
+                    see PROBLEMS FOUND)
+  Outer workspace:  committed through e9fd7bf (this checkpoint commits on top)
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
@@ -36,6 +35,12 @@ CURRENT PHASE:
   is NON-destructive, ✕ delete archives to sessions/deleted/; +4 checks
   (76); fixed a same-second session-id collision the new checks caught;
   desktop bundle rebuilt and live-verified serving the sidebar.
+  AND (2026-09-19, IN PROGRESS): local PUSH-TO-TALK — a new `listen` tool
+  (backlog 3-STT) using the LOCAL Windows dictation engine (System.Speech
+  via PowerShell: zero downloads, offline, audio never leaves the machine),
+  complementing the cloud `transcribe_audio`. Code is written + typechecks;
+  the recognizer is present on this machine; it is NOT yet smoke-tested or
+  live-mic verified (see NOT VERIFIED).
 
 USER TASK (why this direction):
   "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
@@ -158,6 +163,30 @@ WORK PERFORMED (this session):
       clean, the working-tree-deleted build-desktop.js restored via
       checkout (byte-identical to the committed blob), full suite re-run
       green on the repaired repo (npmtest-postrepair.out).
+  14b. CONVERSATIONS SIDEBAR (2026-09-19): ChatGPT-style session history in
+      the UI + desktop app — `GET /api/sessions`,
+      `POST /api/sessions/open` (binds a session to the browser tab so the
+      next /api/ask continues it), `POST /api/sessions/delete` (archives to
+      sessions/deleted/); `/api/new` is now NON-destructive (＋ New chat
+      keeps the previous chat listed); sidebar renders list + active row;
+      page renders the latest thread on load; ids validated against path
+      traversal. Fixed a REAL collision bug the new checks caught: session
+      file ids were second-precision, so two conversations created in the
+      same second overwrote each other — ids now carry a random suffix
+      (src/session/history.ts sessionFileId). +4 smoke checks (76 total).
+      Bundle + installer rebuilt; sidebar live-verified in the installed
+      desktop app (page markers + /api/sessions listing real past chats).
+  15. LOCAL PUSH-TO-TALK (backlog 3-STT) — WIP, UNVERIFIED:
+      src/tools/voice.ts gained `listen` + `localSttAvailable()`; registered
+      in tools/index.ts; doctor prints a `listen — … READY/UNAVAILABLE`
+      line. Route chosen: the LOCAL Windows dictation engine
+      (System.Speech.Recognition via PowerShell 5.1 — same zero-dependency
+      pattern as `say`/`ocr`), because it needs NO downloads, works offline
+      and keeps audio on the machine; cloud whisper (`transcribe_audio`)
+      stays for files/accuracy. Mic probe on this machine: 1 recognizer
+      (en-US, MS Speech Recognizer 8.0) → route viable. Approval-gated on
+      every call (a mic is opening). Typecheck clean. NOT YET: smoke check,
+      live mic run, README/ROADMAP docs, bundle/installer rebuild.
   14. DESKTOP BUILD ADVANCE (2026-09-18 night, backlog 3): the toolchain
       was completed on this machine — VS 2022 Community MSVC link.exe
       appeared, @tauri-apps/cli 2.11.4 installed, Rust 1.98.1
@@ -244,8 +273,17 @@ VERIFIED (exact tests and results, evidence in validation/):
     app boot → page 200 WITH sidebar markers (session-list/Conversations/
     btn-new) → /api/sessions 200 listing real past chats (e.g. 'what
     codeword did I give you?') → close → app+core exited cleanly.
+  - typecheck-listen.out — `npm run typecheck` clean after the `listen`
+    tool WIP (the only verification so far for that tool).
+  - Local-recognizer probe (ad-hoc PowerShell): COUNT=1 —
+    'en-US | Microsoft Speech Recognizer 8.0 for Windows (English - US)'
+    → the local dictation route exists on this machine.
 
 NOT VERIFIED:
+  - THE `listen` TOOL (local push-to-talk, commit 9f7b9ac) is NOT verified
+    end-to-end: no smoke check yet, no live microphone run yet, no docs yet,
+    bundle/installer not rebuilt with it. Only `npm run typecheck` passed and
+    the recognizer's presence was probed (1 × en-US). Treat it as WIP.
   - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
   - The Tauri desktop build itself (Rust compile + NSIS installer) —
     blocked by the local toolchain (cargo/rustc + MSVC link.exe +
@@ -294,6 +332,16 @@ PROBLEMS FOUND:
 DECISIONS:
   - One generic `openai` provider with numbered variants (openai1…9) — many
     gateways, one code path, env-driven; no per-vendor adapters.
+  - Local push-to-talk provider = the LOCAL Windows dictation engine
+    (System.Speech.Recognition via PowerShell 5.1): zero downloads, offline,
+    audio never leaves the machine, and it matches the existing zero-dep
+    `say`/`ocr` pattern. Cloud whisper stays for files/accuracy. (Whisper.cpp
+    / Vosk rejected for now: they need binary+model downloads or native
+    builds — revisit only if dictation accuracy proves insufficient.)
+  - Conversations sidebar semantics (user-approved): ＋ New chat is
+    NON-destructive; delete is an explicit, recoverable archive to
+    sessions/deleted/. /api/new no longer archives (the old 🧹 behavior was
+    replaced deliberately).
   - Chain: OpenRouter (free) → Groq (free) → Ollama (local) — implements the
     master-instructions "Free → Local → Paid" routing at zero cost.
   - Keys stay in Documents/*.txt AND User-scope env vars (set this session);
@@ -316,12 +364,25 @@ NEXT STEP:
   (5) .aistate multi-device exercise (needs a 2nd device) — bridge +
       --sync-push/--sync-pull are implemented and smoke-verified but never
       exercised between two real machines.
-  (3-STT) local push-to-talk (needs a local/loopback STT provider; cloud
-      STT already shipped via Groq whisper).
-  Sea .exe (optional): dist/BlackRose.exe via SEA still needs
+  (3-STT) local push-to-talk — IN PROGRESS (commit 9f7b9ac, unverified):
+      finish it first next session —
+        a) smoke check(s): arg bounds + strict marker parsing + fail-closed
+           when no recognizer (no mic access needed, keep the suite green);
+        b) LIVE mic run: `node src/index.ts` → ask it to listen (approve) and
+           confirm real speech becomes text (report honestly if the machine
+           has no usable mic);
+        c) docs: README env vars (BLACKROSE_LISTEN_MS / _LOCALE) + ROADMAP
+           backlog 3-STT → done + a "Push-to-talk" section;
+        d) rebuild bundle (build:exe) + desktop installer (build:desktop) so
+           the shipped app carries the tool; smoke-test the installer again;
+        e) commit + fold the WIP note out of the checkpoint.
+  sea .exe (optional): dist/BlackRose.exe via SEA still needs
       objcopy/LLVM — but the Tauri installer now supersedes it as the
       real desktop deliverable; decide whether to keep or drop the SEA
       route.
+  UI polish (DEFERRED BY USER 2026-09-19): "we can modify the ui (view &
+      text later)" — e.g. a "continue previous conversation / new chat"
+      choice on launch instead of auto-opening the latest thread.
   User test-drives still open: (a) the UI (context persists across
   messages, 🧹 resets it), (b) audio transcription: drop any mp3/wav/m4a
   path in chat and ask to transcribe it (approval dialog will appear),
