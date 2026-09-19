@@ -464,3 +464,67 @@ BlackRose desktop shell (Tauri v2)
    Compiling toml v0.9.12+spec-1.1.0
    Compiling windows v0.61.3
    Compiling embed-resource v3.0.11
+   Compiling webview2-com-sys v0.38.2
+   Compiling heck v0.5.0
+   Compiling raw-window-handle v0.6.2
+   Compiling crossbeam-utils v0.8.23
+   Compiling tauri-winres v0.3.6
+   Compiling cargo_toml v0.22.3
+   Compiling dirs v6.0.0
+   Compiling miniz_oxide v0.9.1
+   Compiling dpi v0.1.2
+   Compiling cookie v0.18.2
+   Compiling flate2 v1.1.10
+   Compiling tauri-build v2.6.3
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling miniz_oxide v0.8.9
+   Compiling fdeflate v0.3.7
+   Compiling webview2-com-macros v0.8.1
+   Compiling windows-version v0.1.7
+   Compiling unicode-segmentation v1.13.3
+   Compiling once_cell v1.21.4
+   Compiling bitflags v1.3.2
+   Compiling pin-project-lite v0.2.17
+   Compiling png v0.17.16
+   Compiling digest v0.10.7
+   Compiling crossbeam-channel v0.5.17
+   Compiling tracing-core v0.1.36
+   Compiling tauri-runtime v2.11.3
+   Compiling wry v0.55.1
+   Compiling cpufeatures v0.2.17
+   Compiling sha2 v0.10.9
+   Compiling webview2-com v0.38.2
+   Compiling tracing v0.1.44
+   Compiling ico v0.5.0
+   Compiling tauri v2.11.5
+   Compiling tauri-runtime-wry v2.11.4
+   Compiling base64 v0.22.1
+   Compiling getrandom v0.3.4
+   Compiling tauri-codegen v2.6.3
+   Compiling tao v0.35.3
+   Compiling softbuffer v0.4.8
+   Compiling keyboard-types v0.7.0
+   Compiling serialize-to-javascript-impl v0.1.2
+   Compiling serialize-to-javascript v0.1.2
+   Compiling window-vibrancy v0.6.0
+   Compiling muda v0.19.3
+   Compiling tauri-macros v2.6.3
+   Compiling tokio v1.53.1
+   Compiling blackrose-desktop v0.8.0 (C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri)
+   Compiling serde_repr v0.1.21
+   Compiling mime v0.3.17
+    Finished `release` profile [optimized] target(s) in 18m 35s
+       Built application at: C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\BlackRose.exe
+        Info Patching C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\BlackRose.exe with bundle type information: nsis
+        Info Verifying NSIS package
+ Downloading https://github.com/tauri-apps/binary-releases/releases/download/nsis-3.11/nsis-3.11.zip
+        Info validating hash
+        Info extracting NSIS
+ Downloading https://github.com/tauri-apps/nsis-tauri-utils/releases/download/nsis_tauri_utils-v0.5.3/nsis_tauri_utils.dll
+        Info validating hash
+        Info Target: x64
+     Running makensis to produce C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\bundle\nsis\BlackRose_0.8.0_x64-setup.exe
+    Finished 1 bundle at:
+        C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\bundle\nsis\BlackRose_0.8.0_x64-setup.exe
+
