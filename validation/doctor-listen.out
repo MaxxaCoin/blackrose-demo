@@ -1,0 +1,19 @@
+BlackRose doctor
+  ✓ runtime — node v24.21.0 · win32
+  ✓ provider router — routes: openai,openai1,ollama
+  ✓ route openai — https://openrouter.ai/api/v1 · 447 model(s) · free: inclusionai/ling-3.0-flash-vl:free, nex-agi/nex-n2.5-mini:free, nex-agi/nex-n2.5-pro:free, inclusionai/ling-3.0-flash-sante:free…
+  ✓ route openai1 — https://api.groq.com/openai/v1 · 13 model(s)
+  ✓ data dir — C:\Users\pc\.blackrose
+  · memory files: 5
+  · knowledge sources: 0
+  · sessions: 7
+  · experience months: 1
+  · skills: 0
+  · schedules: 0
+  · vector index — empty (populates automatically as you save/search)
+  · embeddings — ollama http://127.0.0.1:11434 · model nomic-embed-text (fallback: hash embedder if unavailable)
+  · ocr — Windows OCR engine (ocr_read; learn_pdf falls back to OCR for scanned PDFs)
+  · stt — https://api.groq.com/openai/v1 · model whisper-large-v3-turbo (transcribe_audio; key configured)
+  · listen — local push-to-talk READY (Windows dictation engine; BLACKROSE_LISTEN_MS=8000)
+  · state password — unset (/sync and /export need BLACKROSE_STATE_PASSWORD)
+  tip: "credit balance is too low" → add credits at console.anthropic.com, or switch providers: BLACKROSE_PROVIDER=openai (OpenAI-protocol; OpenRouter free models by default — set BLACKROSE_OPENAI_API_KEY) or BLACKROSE_PROVIDER=ollama.

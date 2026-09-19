@@ -4,12 +4,11 @@ DATE / TIME: 2026-09-19 (local; sessions 09-17 → 09-19)
 AI / AGENT: Cline (act mode)
 
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 9f7b9ac (clean; 877d86f Conversations
-                    sidebar + 9f7b9ac WIP local push-to-talk 'listen' tool —
-                    WIP IS UNVERIFIED, see NOT VERIFIED; git index/ref
-                    REPAIRED on 09-18 after an interrupted-write corruption,
-                    see PROBLEMS FOUND)
-  Outer workspace:  committed through e9fd7bf (this checkpoint commits on top)
+  Inner code repo:  cline/blackrose @ 61002b0 (clean; 877d86f sidebar +
+                    61002b0 local push-to-talk DONE + OmniRoute/free-first
+                    router chain; git index/ref REPAIRED on 09-18 after an
+                    interrupted-write corruption, see PROBLEMS FOUND)
+  Outer workspace:  committed through 3aa87fd (this checkpoint commits on top)
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
@@ -35,12 +34,17 @@ CURRENT PHASE:
   is NON-destructive, ✕ delete archives to sessions/deleted/; +4 checks
   (76); fixed a same-second session-id collision the new checks caught;
   desktop bundle rebuilt and live-verified serving the sidebar.
-  AND (2026-09-19, IN PROGRESS): local PUSH-TO-TALK — a new `listen` tool
-  (backlog 3-STT) using the LOCAL Windows dictation engine (System.Speech
-  via PowerShell: zero downloads, offline, audio never leaves the machine),
-  complementing the cloud `transcribe_audio`. Code is written + typechecks;
-  the recognizer is present on this machine; it is NOT yet smoke-tested or
-  live-mic verified (see NOT VERIFIED).
+  AND (2026-09-19, DONE): local PUSH-TO-TALK — the `listen` tool (backlog
+  3-STT) via the LOCAL Windows dictation engine (System.Speech, offline,
+  zero downloads, audio never leaves the machine): mic or `path=<.wav>`,
+  approval-gated, fail-closed precheck; 3 smoke checks (79) + 16/16 green;
+  live probes PASS. AND (2026-09-19, DONE): OmniRoute + FREE-FIRST router
+  chain — openai2 = OmniRoute combo "BlackRose" (all free models,
+  auto-fallback inside), openai3 = NVIDIA direct, openai = OpenRouter free,
+  openai1 = Groq free, openai4 = Hugging Face, ollama LAST. Verified:
+  agent roundtrip, router fallback, CLI --goal VERIFIED; all 5 cloud
+  routes healthy in --doctor (probeOpenAi now falls back to a chat ping
+  when /models is restricted — OmniRoute's /models 401s but chat works).
 
 USER TASK (why this direction):
   "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
@@ -278,19 +282,47 @@ VERIFIED (exact tests and results, evidence in validation/):
   - Local-recognizer probe (ad-hoc PowerShell): COUNT=1 —
     'en-US | Microsoft Speech Recognizer 8.0 for Windows (English - US)'
     → the local dictation route exists on this machine.
+  - local-stt-probe.out — LIVE local STT: SAPI TTS synthesized a sentinel
+    WAV → the shipping `listen` tool transcribed it OFFLINE via the Windows
+    dictation engine → sentinel words recognized ('black', 'local speech',
+    'sentinel') → LOCAL-STT PASS. mic-probe.out — the mic path opens the
+    default audio device and listens cleanly (silence handled, non-error).
+  - npmtest-listen3.out — suite after listen: 79 checks PASS + regression
+    16/16 + typecheck clean.
+  - omniroute-probe.out — LIVE OmniRoute combo \"BlackRose\": raw chat HTTP
+    200 (upstream gemini-3.7-flash-low, 3.6s) → shipping adapter 2-tool
+    agent roundtrip PASS (11s) → router chain fell back from a dead first
+    route and served FALLBACK-OK → OMNIROUTE PROBE PASS.
+  - omniroute-chain-e2e.out — REAL CLI --goal over the full chain
+    (openai2,openai3,openai,openai1,openai4,ollama): write_file + read_file
+    → \"goal status: VERIFIED ✓\" (no fallback logged → served by openai2).
+  - doctor-chain.out — all 5 cloud routes healthy live: openai2 \"chat probe
+    OK (model gemini-3.7-flash-low)\", openai3 NVIDIA 82 models, openai
+    OpenRouter 447, openai1 Groq 13, openai4 Hugging Face 139.
+  - provider-survey.out — per-key free-tier survey (Gemini native
+    function-calling works but OpenAI-compat chat 404s; NVIDIA direct works;
+    HF works; Cloudflare token has no account; Kira dead; Anthropic 0 credit).
+  - buildexe-chain.out — bundle + installer rebuilt with the doctor fix
+    + listen tool; installer 24,617,131 bytes.
 
 NOT VERIFIED:
-  - THE `listen` TOOL (local push-to-talk, commit 9f7b9ac) is NOT verified
-    end-to-end: no smoke check yet, no live microphone run yet, no docs yet,
-    bundle/installer not rebuilt with it. Only `npm run typecheck` passed and
-    the recognizer's presence was probed (1 × en-US). Treat it as WIP.
   - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
   - The Tauri desktop build itself (Rust compile + NSIS installer) —
     blocked by the local toolchain (cargo/rustc + MSVC link.exe +
     @tauri-apps/cli all missing); the Rust code is unverified until the
     first successful `npm run build:desktop` after installing them.
-  (Groq openai→openai1 fallback + whisper STT were live-verified this
-  session — see stt-agent.out / stt-probe.out.)
+  - Gemini via the OpenAI-compat chat endpoint 404s on this key's free
+    tier; only the NATIVE generateContent API works (function calling ✓) —
+    a native `gemini.ts` adapter is a candidate for a future session.
+  - Cloudflare Workers AI not usable: the API token isn't linked to any
+    account (GET /accounts → 0 accounts), and /ai/v1/models → 405.
+    Supplied account id (6bb9e4fc33a9879d08d7bcbdeea9d115) noted but not
+    sufficient without an AI-enabled token.
+  (Groq openai→openai1 fallback + whisper STT + local push-to-talk
+  `listen` + the OmniRoute/free-first router chain were all live-verified
+  this session — see the VERIFIED list.)
+  (The `listen` tool is NO LONGER WIP — it was verified this session.)
+
 
 PROBLEMS FOUND:
   - Web UI /api/ask was stateless — every chat turn forgot the previous ones
@@ -364,18 +396,9 @@ NEXT STEP:
   (5) .aistate multi-device exercise (needs a 2nd device) — bridge +
       --sync-push/--sync-pull are implemented and smoke-verified but never
       exercised between two real machines.
-  (3-STT) local push-to-talk — IN PROGRESS (commit 9f7b9ac, unverified):
-      finish it first next session —
-        a) smoke check(s): arg bounds + strict marker parsing + fail-closed
-           when no recognizer (no mic access needed, keep the suite green);
-        b) LIVE mic run: `node src/index.ts` → ask it to listen (approve) and
-           confirm real speech becomes text (report honestly if the machine
-           has no usable mic);
-        c) docs: README env vars (BLACKROSE_LISTEN_MS / _LOCALE) + ROADMAP
-           backlog 3-STT → done + a "Push-to-talk" section;
-        d) rebuild bundle (build:exe) + desktop installer (build:desktop) so
-           the shipped app carries the tool; smoke-test the installer again;
-        e) commit + fold the WIP note out of the checkpoint.
+  (3-STT) local push-to-talk — DONE 2026-09-19 (commit 61002b0): smoke
+      checks, live WAV + mic probes, docs, installer rebuilt (24.6MB).
+      Native Gemini adapter + Cloudflare remain skipped (see NOT VERIFIED).
   sea .exe (optional): dist/BlackRose.exe via SEA still needs
       objcopy/LLVM — but the Tauri installer now supersedes it as the
       real desktop deliverable; decide whether to keep or drop the SEA
@@ -442,6 +465,13 @@ DO NOT REPEAT:
     need a babysitting session.
 
 WARNINGS:
+  - SECURITY: on 2026-09-19 a PowerShell env dump leaked API key VALUES
+    (OpenRouter + Groq) into this session's transcript. The keys are valid
+    and stored in User-scope env + Documents/*.txt. RECOMMEND rotating both
+    (openrouter_api_key.txt, groq_api_key.txt) at the next convenient time.
+    Reminder: never Get-ChildItem env: without filtering — always
+    names-only for secrets.
+
   - ANTHROPIC_API_KEY is valid but the account has zero credits.
   - NEVER commit, print, or share any key file
     (openrouter_api_key.txt, groq_api_key.txt, claude api key.txt,
