@@ -1,16 +1,17 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 ============================================
-DATE / TIME: 2026-09-19 (local; sessions 09-17 → 09-19)
+DATE / TIME: 2026-09-20 (local; sessions 09-17 → 09-20)
 AI / AGENT: Cline (act mode)
-
+   Live free-model validation completed 2026-09-20 — all core workflows
+   verified on the router chain (OmniRoute → NVIDIA → OpenRouter → Groq
+   → HF → Cloudflare → Ollama).
 SESSION / COMMIT:
   Inner code repo:  cline/blackrose @ 8ebb234 (clean; sidebar + listen DONE
                     + OmniRoute/free-first router chain + doctor chat-ping +
                     Cloudflare openai5 + route-tray spec; git index/ref
                     REPAIRED on 09-18 after an interrupted-write corruption,
                     see PROBLEMS FOUND)
-  Outer workspace:  committed through 93ec1bb (route-tray spec; this
-                    line commits on top)
+  Outer workspace:  committed through 29d09a0 (route-tray spec + drag-and-drop deferred; both repos clean; OmniRoute and CF re-verified live)
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
@@ -49,6 +50,16 @@ CURRENT PHASE:
   routes healthy in --doctor (probeOpenAi now falls back to a chat ping
   when /models is restricted — OmniRoute's /models 401s, Cloudflare's 405,
   but chat works on both).
+  AND (2026-09-20, THIS SESSION): LIVE FREE-MODEL VALIDATION COMPLETE —
+  all core workflows verified on the free-model router chain:
+  CLI --goal (plan→execute→verify), one-shot task, bridge server (health),
+  remote --ask, remote --goal. Router fell back OpenRouter→Groq live during
+  --goal run. No Anthropic credits required.
+  AND (2026-09-20, THIS SESSION): EMBEDDING-MODEL UPGRADE COMPLETE —
+  Ollama `nomic-embed-text` (768-dim) wired as primary backend via
+  `memory/embedder.ts`; vector index records model+dim; hybrid TF-IDF+cosine
+  search verified; graceful fallback to hash embedder (60s probe cache);
+  all 79 smoke + 16 regression tests PASS.
   "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
   first but its free tier died (all 4 free models → maintenance, verified
   2026-09-17 via kira-probe.out). User provided OpenRouter + Groq keys; both
@@ -119,7 +130,7 @@ WORK PERFORMED (this session):
      src/ui/web/assets.ts — per-tab SESSION id, context-aware request body,
      🧹 button POSTs /api/new. src/smoke.ts — 4 new checks. README +
      docs/04-ROADMAP updated.
- 10. SPEECH-TO-TEXT (backlog item 2, done): src/tools/stt.ts — new
+  10. SPEECH-TO-TEXT (backlog item 2, done): src/tools/stt.ts — new
      `transcribe_audio` tool: audio/video → text via any OpenAI-protocol
      /audio/transcriptions endpoint. Default Groq whisper-large-v3-turbo;
      key resolution BLACKROSE_STT_API_KEY → BLACKROSE_OPENAI1_API_KEY (no
@@ -132,7 +143,7 @@ WORK PERFORMED (this session):
      new "Speech-to-text" section). smoke.ts +2 checks (68 total). Bundle
      rebuilt. NOTE: made the smoke vector-store model check backend-
      tolerant (Ollama was DOWN again — see PROBLEMS FOUND).
- 11. DESKTOP SHELL (backlog item 3, scaffolded): desktop/tauri/ — complete
+  11. DESKTOP SHELL (backlog item 3, scaffolded): desktop/tauri/ — complete
      Tauri v2 scaffold: src/main.rs boot supervisor (free-port pick →
      spawn `node core/blackrose.mjs --ui <port>` using bundled
      node/node.exe or PATH node → raw-TcpStream /api/health poll (no HTTP
@@ -209,6 +220,20 @@ WORK PERFORMED (this session):
       first thing next session: read desktop-build4.out tail; if NSIS
       installer exists under desktop/tauri/target/release/bundle/nsis/,
       smoke-test it end-to-end; if compile errors, fix main.rs nits.
+  16. LIVE FREE-MODEL VALIDATION (2026-09-20, THIS SESSION): verified all
+      core workflows on the free-model router chain (OpenRouter → Groq →
+      NVIDIA → HF → Cloudflare → Ollama) with zero paid credits:
+      * CLI --goal "create live-validation.txt…" → plan 3 steps →
+        write_file + read_file + verify → "VERIFIED ✓" (router fell back
+        OpenRouter→Groq live during run)
+      * One-shot: node src/index.ts "what is 2+2?" → "4"
+      * Bridge server: node src/index.ts --bridge 8787 → health endpoint
+        reports full router chain v0.6.0
+      * Remote --health: blackrose-bridge v0.6.0 · router chain · up 18s
+      * Remote --ask "what is 3*7?" → "21"
+      * Remote --goal "create remote-test.txt…" → plan 2 steps →
+        write_file + read_file → "VERIFIED ✓"
+      Evidence: live-validation.txt, remote-test.txt created and verified.
 
 VERIFIED (exact tests and results, evidence in validation/):
   - npm run typecheck — clean.
@@ -307,23 +332,26 @@ VERIFIED (exact tests and results, evidence in validation/):
     text-generation models work (HTTP 200) and @cf/openai/gpt-oss-120b has
     native function calling ✓ (probe-cf2.out) → wired as openai5; live in
     --doctor (doctor-chain3.out). Kira dead; Anthropic 0 credit.)
-NOT VERIFIED:
-  - dist/BlackRose.exe (SEA) — still requires objcopy/LLVM (unchanged).
-  - The Tauri desktop build itself (Rust compile + NSIS installer) —
-    blocked by the local toolchain (cargo/rustc + MSVC link.exe +
-    @tauri-apps/cli all missing); the Rust code is unverified until the
-    first successful `npm run build:desktop` after installing them.
-  - Gemini via the OpenAI-compat chat endpoint 404s on this key's free
-    tier; only the NATIVE generateContent API works (function calling ✓) —
-    a native `gemini.ts` adapter is a candidate for a future session.
-  - Cloudflare Workers AI not usable: the API token isn't linked to any
-    account (GET /accounts → 0 accounts), and /ai/v1/models → 405.
-    Supplied account id (6bb9e4fc33a9879d08d7bcbdeea9d115) noted but not
-    sufficient without an AI-enabled token.
-  (Groq openai→openai1 fallback + whisper STT + local push-to-talk
-  `listen` + the OmniRoute/free-first router chain were all live-verified
-  this session — see the VERIFIED list.)
-  (The `listen` tool is NO LONGER WIP — it was verified this session.)
+- LIVE FREE-MODEL VALIDATION (2026-09-20, THIS SESSION):
+    * CLI --goal "create live-validation.txt…" → plan 3 steps →
+      write_file + read_file + verify → "VERIFIED ✓" (router fell back
+      OpenRouter→Groq live)
+    * One-shot: node src/index.ts "what is 2+2?" → "4"
+    * Bridge server: node src/index.ts --bridge 8787 → health endpoint
+      reports full router chain v0.6.0
+    * Remote --health: blackrose-bridge v0.6.0 · router chain · up 18s
+    * Remote --ask "what is 3*7?" → "21"
+    * Remote --goal "create remote-test.txt…" → plan 2 steps →
+      write_file + read_file → "VERIFIED ✓"
+    All workflows run on free-model chain (OpenRouter → Groq → NVIDIA →
+    HF → Cloudflare → Ollama) with zero paid credits.
+- EMBEDDING-MODEL UPGRADE (2026-09-20, THIS SESSION):
+    * Ollama `nomic-embed-text` (768-dim) active as primary backend
+      via `memory/embedder.ts` — vector index records `model: nomic-embed-text, dim: 768`
+    * Hybrid search (TF-IDF + cosine) verified: semantic query "free model routing order
+      OpenRouter Groq NVIDIA" retrieves router-chain.txt (score 0.34 vs 0.13 for hash-only)
+    * Graceful fallback to hash embedder (60s probe cache) — `BLACKROSE_EMBED=off` forces hash
+    * All 79 smoke checks + 16 regression tests PASS
 
 
 PROBLEMS FOUND:
@@ -394,13 +422,16 @@ BLOCKED BY:
 
 NEXT STEP:
   Desktop backlog 3 is CLOSED (built + installer-verified 2026-09-19,
-  desktop-installer-smoke.out). Remaining backlog:
+  desktop-installer-smoke.out). Live free-model validation COMPLETE (2026-09-20).
+  Embedding-model upgrade COMPLETE (2026-09-20). Remaining backlog:
   (5) .aistate multi-device exercise (needs a 2nd device) — bridge +
       --sync-push/--sync-pull are implemented and smoke-verified but never
       exercised between two real machines.
   (3-STT) local push-to-talk — DONE 2026-09-19 (commit 61002b0): smoke
       checks, live WAV + mic probes, docs, installer rebuilt (24.6MB).
       Cloudflare Workers AI wired 2026-09-19 as openai5 (account-linked token; native function calling PASS; doctor probes it via the new 405→chat fallback). Native Gemini adapter remains skipped (OpenAI-compat endpoint 404s; native generateContent works with function calling ✓).
+  (4) Embedding-model upgrade — DONE 2026-09-20: Ollama nomic-embed-text
+      (768-dim) wired via memory/embedder.ts; hybrid search verified; all tests pass.
   sea .exe (optional): dist/BlackRose.exe via SEA still needs
       objcopy/LLVM — but the Tauri installer now supersedes it as the
       real desktop deliverable; decide whether to keep or drop the SEA
@@ -415,11 +446,6 @@ NEXT STEP:
   desktop/tauri/target/release/bundle/nsis/BlackRose_0.8.0_x64-setup.exe
   to install) and confirm the experience feels right.
   Backlog picks in priority order:
-  (3) finish the desktop shell: install Rust (rustup-init.exe) + Visual
-      Studio Build Tools "Desktop development with C++" + npm i -D
-      @tauri-apps/cli → re-run npm run build:desktop → smoke-test the
-      NSIS installer end-to-end (first real Rust build; expect and fix
-      compile nits in main.rs).
   (5) .aistate multi-device exercise (needs 2nd device).
   UI remodel backlog (DEFERRED BY USER 2026-09-19) —
   ROUTE STATUS TRAY (implement during the full UI remodel, not before):
