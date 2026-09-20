@@ -1,5 +1,5 @@
-BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
-============================================
+  Native Gemini adapter (gemini.ts) — DONE 2026-09-20: native generateContent protocol, thought_signature support for 3.x tool calling, function calling verified live, Ollama last-resort fallback preserved, route priority: openai2(OmniRoute) -> gemini -> openai3(NVIDIA) -> openai(OpenRouter) -> openai1(Groq) -> openai4(HF) -> openai5(Cloudflare) -> ollama(last).
+  UI polish (DEFERRED BY USER 2026-09-19): "we can modify the ui (view & text later)" — e.g. a "continue previous conversation / new chat" choice on launch instead of auto-opening the latest thread.
 DATE / TIME: 2026-09-20 (local; sessions 09-17 → 09-20)
 AI / AGENT: Cline (act mode)
    Live free-model validation completed 2026-09-20 — all core workflows
@@ -549,4 +549,4 @@ WARNINGS:
   - Scheduled/bridge runs fail closed on approvals by default (by design).
   - Free-model availability on OpenRouter changes daily; if the default
     model 404s/429s persistently, re-run the models probe and pick a new
-    free model with tools support.
+NEXT STEP:  Multi-device .aistate sync (needs 2nd device) — bridge + --sync-push/--sync-pull are implemented and smoke-verified but never exercised between two real machines.
