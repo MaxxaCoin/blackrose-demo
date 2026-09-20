@@ -11,7 +11,7 @@ SESSION / COMMIT:
                     Cloudflare openai5 + route-tray spec; git index/ref
                     REPAIRED on 09-18 after an interrupted-write corruption,
                     see PROBLEMS FOUND)
-  Outer workspace:  committed through 29d09a0 (route-tray spec + drag-and-drop deferred; both repos clean; OmniRoute and CF re-verified live)
+  Outer workspace:  committed through c2853f4 (audit 09-20: header restored, artifacts moved to validation/, drag-and-drop deferred, OmniRoute+CF live)
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
