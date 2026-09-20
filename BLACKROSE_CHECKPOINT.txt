@@ -448,6 +448,21 @@ NEXT STEP:
     - scope excludes auth/token entry + cable behind the boxes: the remodel
       as a whole handles that (see UI polish line above).
 
+  - DRAG-AND-DROP AUDIO INPUT (DEFERRED TO the future full UI remodel,
+    alongside the route-status tray above, NOT built now): today the STT
+    UX for audio-file transcription is still path-based \u2014 you provide the
+    audio file path (e.g. copy/paste or type it into chat) and the agent
+    runs `transcribe_audio` with approval (Groq whisper drop-back is the
+    verified live path; SIDECAR save + optional knowledge ingest already
+    exist/verified). The transcribe step itself was experienced as smooth/fast
+    (fast Groq whisper drop-back). Want a SMOOTH drag-and-drop + click-to-choose
+    drop zone on the chat input bar for audio files? That is a future-remodel
+    feature: accept .wav/.mp3/.m4a/.mp4/.flac/.ogg, wire to the existing
+    `transcribe_audio` tool (already verified live: approval-gated cloud STT via
+    Groq whisper, with sidecar save + optional knowledge ingest). While the
+    remodel is deferred: keep using the path-copy way for audio file
+    transcription (works smoothly, as the user confirmed today).
+
 DO NOT REPEAT:
   - Do not re-run completed validations (gateway probes, toolprobe,
     live-agent-probe, npm suite, build) unless code changed.
