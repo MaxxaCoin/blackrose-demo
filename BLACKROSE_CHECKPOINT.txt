@@ -421,15 +421,15 @@ BLOCKED BY:
   none
 
 NEXT STEP:
-  Desktop backlog 3 is CLOSED (built + installer-verified 2026-09-19,
-  desktop-installer-smoke.out). Live free-model validation COMPLETE (2026-09-20).
-  Embedding-model upgrade COMPLETE (2026-09-20). Remaining backlog:
-  (5) .aistate multi-device exercise (needs a 2nd device) — bridge +
+  Multi-device .aistate sync (needs 2nd device) — bridge +
       --sync-push/--sync-pull are implemented and smoke-verified but never
       exercised between two real machines.
-  (3-STT) local push-to-talk — DONE 2026-09-19 (commit 61002b0): smoke
-      checks, live WAV + mic probes, docs, installer rebuilt (24.6MB).
-      Cloudflare Workers AI wired 2026-09-19 as openai5 (account-linked token; native function calling PASS; doctor probes it via the new 405→chat fallback). Native Gemini adapter remains skipped (OpenAI-compat endpoint 404s; native generateContent works with function calling ✓).
+  UI remodel (deferred): route-status tray (green=current, red=quota-out,
+      yellow=needs key/repair) + drag-and-drop audio input for `transcribe_audio`;
+      spec saved in checkpoint & checkpoint backlog. SEA.exe DROPPED —
+      Tauri installer (24.6 MB) supersedes it as the primary desktop deliverable.
+      real desktop deliverable; SEA script archived for reference only.
+  User test-drives still open: (a) the UI (context persists across
   (4) Embedding-model upgrade — DONE 2026-09-20: Ollama nomic-embed-text
       (768-dim) wired via memory/embedder.ts; hybrid search verified; all tests pass.
   sea .exe (optional): dist/BlackRose.exe via SEA still needs
@@ -549,4 +549,3 @@ WARNINGS:
   - Scheduled/bridge runs fail closed on approvals by default (by design).
   - Free-model availability on OpenRouter changes daily; if the default
     model 404s/429s persistently, re-run the models probe and pick a new
-NEXT STEP:  Multi-device .aistate sync (needs 2nd device) — bridge + --sync-push/--sync-pull are implemented and smoke-verified but never exercised between two real machines.
