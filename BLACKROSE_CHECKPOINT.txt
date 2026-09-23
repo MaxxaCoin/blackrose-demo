@@ -1,5 +1,20 @@
-  Native Gemini adapter (gemini.ts) — DONE 2026-09-20: native generateContent protocol, thought_signature support for 3.x tool calling, function calling verified live, Ollama last-resort fallback preserved, route priority: openai2(OmniRoute) -> gemini -> openai3(NVIDIA) -> openai(OpenRouter) -> openai1(Groq) -> openai4(HF) -> openai5(Cloudflare) -> ollama(last).
-  UI polish (DEFERRED BY USER 2026-09-19): "we can modify the ui (view & text later)" — e.g. a "continue previous conversation / new chat" choice on launch instead of auto-opening the latest thread.
+BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
+============================================
+DATE / TIME: 2026-09-20 (local; sessions 09-17 → 09-20)
+AI / AGENT: Cline (act mode)
+   Live free-model validation completed 2026-09-20 — all core workflows
+   verified on the router chain (OmniRoute → NVIDIA → OpenRouter → Groq
+   → HF → Cloudflare → Ollama).
+SESSION / COMMIT:
+  Inner code repo:  cline/blackrose @ db39729 (clean; sidebar + listen DONE
+                    + OmniRoute/free-first router chain + native Gemini adapter
+                    + Cloudflare openai5 + route-tray spec + drag-and-drop spec;
+                    git index/ref REPAIRED on 09-18 after an interrupted-write
+                    corruption, see PROBLEMS FOUND)
+  Outer workspace:  committed through fecc428 (audit 09-20: header restored,
+                    artifacts moved to validation/, drag-and-drop deferred,
+                    Multi-device + UI remodel added to Phase 8 final phases,
+                    SEA.exe DROPPED — Tauri installer supersedes it, OmniRoute+CF live)
 DATE / TIME: 2026-09-20 (local; sessions 09-17 → 09-20)
 AI / AGENT: Cline (act mode)
    Live free-model validation completed 2026-09-20 — all core workflows
@@ -92,6 +107,14 @@ GATEWAY FACTS (verified live 2026-09-17):
     faster on this machine.
 
 WORK PERFORMED (this session):
+  0. 2026-09-21 `.aistate` sync hardening: expanded the isolated two-device
+     bridge simulation in `cline/blackrose/src/smoke.ts` to prove unchanged
+     repeat pulls are no-ops and to preserve both concurrent versions: the
+     receiver keeps its copy and stores the incoming copy with an
+     `.incoming-<hash>` suffix. Conflict copies are excluded from future
+     automatic deltas until reviewed. CLI push/pull output reports conflicts;
+     README documents the behavior. `npm test` and `npm run typecheck` PASS.
+     A real second-device LAN exercise remains unverified.
   1. src/llm/factory.ts: numbered gateway routes — `openai`, `openai1`…
      `openai9`, each with BLACKROSE_OPENAI<N>_API_KEY/_MODEL/_BASE_URL
      (bare `openai` keeps OPENAI_API_KEY fallback). Defaults switched:
@@ -421,9 +444,24 @@ BLOCKED BY:
   none
 
 NEXT STEP:
-  Multi-device .aistate sync (needs 2nd device) — bridge +
-      --sync-push/--sync-pull are implemented and smoke-verified but never
-      exercised between two real machines.
+  1. Keep the current `.aistate` hardening changes uncommitted only until the
+     user reviews them; then make one focused inner-repository commit covering
+     `state/aistate.ts`, bridge sync reporting, smoke coverage, and README.
+  2. When a second Windows/Mac/Linux computer is available, perform the first
+     real LAN exercise on a trusted private network: configure the same
+     `BLACKROSE_STATE_PASSWORD` on both devices, start the primary bridge with
+     a stable `BLACKROSE_BRIDGE_TOKEN` and `BLACKROSE_BRIDGE_HOST=0.0.0.0`,
+     verify `--health` from the second device, then test pull, independent
+     edits, conflict-copy preservation, and push. Do not expose the bridge to
+     the public internet.
+  3. Record the exact two-device commands and outcomes in this checkpoint.
+     A mobile phone can presently perform only a LAN bridge reachability check,
+     not `.aistate` synchronization.
+  Future mobile companion / .aistate sync (deferred, requires explicit
+      approval): add a native mobile client with device pairing, HTTPS,
+      secure credential storage, background sync, and an explicit conflict
+      policy. Do not expose the current HTTP bridge to the public internet;
+      its current LAN-only design is not a mobile-sync security boundary.
   UI remodel (deferred): route-status tray (green=current, red=quota-out,
       yellow=needs key/repair) + drag-and-drop audio input for `transcribe_audio`;
       spec saved in checkpoint & checkpoint backlog. SEA.exe DROPPED —
