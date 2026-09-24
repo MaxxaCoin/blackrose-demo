@@ -478,6 +478,10 @@ NEXT STEP:
       window.__blackroseUpdate in the UI. cargo check clean; typecheck+suite
       green. NOTE: updater endpoint is a GitHub-releases PLACEHOLDER (repo has
       no remote) — point it at the real release host before shipping.
+  Signed installer — DECLINED (user decision 2026-09-24): NO code-signing
+      certificate will be purchased. Installer stays unsigned (SmartScreen
+      "unrecognized app" interstitial on first launch is accepted). Do not
+      reopen this item unless the user changes distribution plans.
       SEA.exe DROPPED — Tauri installer (24.6 MB) supersedes it as the
       primary desktop deliverable; SEA script archived for reference only.
   User test-drives still open: (a) the UI (context persists across
