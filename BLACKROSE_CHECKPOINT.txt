@@ -468,6 +468,16 @@ NEXT STEP:
       name+model) + drag-and-drop audio (POST /api/upload → auto transcribe)
       + launch chooser (continue latest / pick recent 8 / new chat; also fixed
       duplicate btn-new id that left Clear conversation button dead).
+  Tauri auto-updater + crash reporting — DONE (2026-09-24, inner commit
+      449104e): tauri-plugin-updater wired (background check on launch,
+      updater:default capability, endpoint+pubkey in tauri.conf.json,
+      createUpdaterArtifacts=true); signing keypair at ~/.tauri/blackrose.key
+      (OUTSIDE the repo — never commit it; pubkey baked into config);
+      build-desktop.ts refuses to ship without the key; Rust panic hook →
+      %LOCALAPPDATA%/BlackRose/crash-reports/ (local, no telemetry);
+      window.__blackroseUpdate in the UI. cargo check clean; typecheck+suite
+      green. NOTE: updater endpoint is a GitHub-releases PLACEHOLDER (repo has
+      no remote) — point it at the real release host before shipping.
       SEA.exe DROPPED — Tauri installer (24.6 MB) supersedes it as the
       primary desktop deliverable; SEA script archived for reference only.
   User test-drives still open: (a) the UI (context persists across
