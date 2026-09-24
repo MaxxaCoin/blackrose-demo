@@ -462,11 +462,12 @@ NEXT STEP:
       secure credential storage, background sync, and an explicit conflict
       policy. Do not expose the current HTTP bridge to the public internet;
       its current LAN-only design is not a mobile-sync security boundary.
-  UI remodel — core DONE (2026-09-23, inner commit 9393ad2): route-status
+  UI remodel — DONE (2026-09-24, inner commits 9393ad2 + 4e5bb6d): route-status
       tray live (green=ok, red=degraded quota-out, yellow=down needs key,
       gray=unknown; /api/health routes[]; src/llm/routeHealth.ts keyed by
-      name+model) + drag-and-drop audio (POST /api/upload → auto transcribe).
-      Remaining: launch choice (continue previous conversation / new chat).
+      name+model) + drag-and-drop audio (POST /api/upload → auto transcribe)
+      + launch chooser (continue latest / pick recent 8 / new chat; also fixed
+      duplicate btn-new id that left Clear conversation button dead).
       SEA.exe DROPPED — Tauri installer (24.6 MB) supersedes it as the
       primary desktop deliverable; SEA script archived for reference only.
   User test-drives still open: (a) the UI (context persists across
