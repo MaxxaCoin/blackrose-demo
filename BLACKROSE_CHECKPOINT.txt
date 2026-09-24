@@ -478,7 +478,17 @@ NEXT STEP:
       window.__blackroseUpdate in the UI. cargo check clean; typecheck+suite
       green. NOTE: updater endpoint is a GitHub-releases PLACEHOLDER (repo has
       no remote) — point it at the real release host before shipping.
-  Signed installer — DECLINED (user decision 2026-09-24): NO code-signing
+  Installer rebuild + installed-app verification — DONE (2026-09-24):
+      stale 09-19 bundle rebuilt with ALL features (tray, dropzone, launch
+      chooser, Gemini fixes, sync, updater, crash reporter); signed build
+      via scripts/build-desktop-signed.ps1 (key content env, password from
+      BLACKROSE_SIGNING_PASSWORD — never committed). Fresh install at
+      %LOCALAPPDATA%\BlackRose verified LIVE: boot → core → tray/chooser/
+      dropzone served → 8 routes in /api/health → app exit kills core →
+      setup.exe 25.3 MB + .sig. Gotcha: NSIS remembers last install dir in
+      HKCU\Software\BlackRose\BlackRose — delete that key for a clean
+      default-location install (else old Temp test installs get upgraded).
+      Signed installer — DECLINED (user decision 2026-09-24): NO code-signing
       certificate will be purchased. Installer stays unsigned (SmartScreen
       "unrecognized app" interstitial on first launch is accepted). Do not
       reopen this item unless the user changes distribution plans.
