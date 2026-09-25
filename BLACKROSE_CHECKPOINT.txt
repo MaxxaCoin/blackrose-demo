@@ -488,6 +488,23 @@ NEXT STEP:
       setup.exe 25.3 MB + .sig. Gotcha: NSIS remembers last install dir in
       HKCU\Software\BlackRose\BlackRose — delete that key for a clean
       default-location install (else old Temp test installs get upgraded).
+  1min.ai provider — DONE (2026-09-24): new native adapter src/llm/onemin.ts.
+      API facts (live-probed): base https://api.1min.ai, POST /api/chat-with-ai,
+      auth header `API-KEY` (NOT Bearer), body {type:"UNIFY_CHAT_WITH_AI", model,
+      promptObject:{prompt}}; answer is aiRecord.aiRecordDetail.resultObject[]
+      (string[]); credit-metered (100M credit pool on this key, ~50 credits per
+      short call); there is NO /v1 OpenAI-compatible surface (/v1/models and
+      /v1/chat/completions both 404). Because the API takes ONE prompt and has NO
+      native tool-calling, the adapter flattens system+history into a transcript
+      and emulates tools via a strict ```tool_call fenced-JSON block, parsed
+      back into real tool_use blocks (parseToolCall). Env: BLACKROSE_ONEMIN_API_KEY
+      (persisted user env), _MODEL=gpt-4o-mini, _BASE_URL, _WEB_SEARCH.
+      Route chain: openai2,gemini,openai3,onemin,openai,openai1,openai4,openai5,ollama.
+      Verified live: doctor probe OK; full agent roundtrip PASS — write_file →
+      tool_result → read_file → correct final answer, file on disk (probe:
+      validation/scratch-onemin/onemin-agent-probe.mjs). +1 smoke check.
+      Caveat: text tool protocol is model-dependent; gemini/nvidia remain the
+      stronger tool-call routes, 1min sits below them in the chain.
       Signed installer — DECLINED (user decision 2026-09-24): NO code-signing
       certificate will be purchased. Installer stays unsigned (SmartScreen
       "unrecognized app" interstitial on first launch is accepted). Do not

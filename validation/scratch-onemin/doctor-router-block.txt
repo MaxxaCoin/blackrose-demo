@@ -1,0 +1,62 @@
+  } else if (provider === 'router') {
+    out.push(`  ✓ provider router — routes: ${process.env.BLACKROSE_ROUTES ?? '(unset)'}`)
+    const allNames = (process.env.BLACKROSE_ROUTES ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    const names = allNames.filter((s) => /^openai\d*$/.test(s))
+    for (const name of names) {
+      const up = name.toUpperCase()
+      const base = (process.env[`BLACKROSE_${up}_BASE_URL`] ?? 'https://openrouter.ai/api/v1').replace(/\/+$/, '')
+      const key =
+        name === 'openai'
+          ? (process.env.BLACKROSE_OPENAI_API_KEY ?? process.env.OPENAI_API_KEY)
+          : process.env[`BLACKROSE_${up}_API_KEY`]
+      if (!key) {
+        out.push(`  · route ${name} — BLACKROSE_${up}_API_KEY missing · ${base}`)
+        continue
+      }
+      const model = process.env[`BLACKROSE_${up}_MODEL`] ?? 'nvidia/nemotron-3-super-120b-a12b:free'
+      const r = await probeOpenAi(base, key, model)
+      out.push(
+        r.ok
+          ? `  ✓ route ${name} — ${base} · ${r.detail}`
+          : `  · route ${name} — ${base} · ${r.detail}`,
+      )
+    }
+    // 1min.ai: proprietary chat-with-ai endpoint (no /models list) — minimal chat probe
+    if (allNames.includes('onemin') || allNames.includes('1min')) {
+      const key = process.env.BLACKROSE_ONEMIN_API_KEY
+      const model = process.env.BLACKROSE_ONEMIN_MODEL ?? 'gpt-4o-mini'
+      const base = (process.env.BLACKROSE_ONEMIN_BASE_URL ?? 'https://api.1min.ai').replace(/\/+$/, '')
+      if (!key) {
+        out.push(`  · route onemin — BLACKROSE_ONEMIN_API_KEY missing · ${base}`)
+      } else {
+        try {
+          const r = await fetch(`${base}/api/chat-with-ai`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'API-KEY': key },
+            body: JSON.stringify({ type: 'UNIFY_CHAT_WITH_AI', model, promptObject: { prompt: 'Reply with exactly: OK' } }),
+          })
+          if (!r.ok) {
+            out.push(`  · route onemin — ${base} · HTTP ${r.status}`)
+          } else {
+            const j = (await r.json()) as { aiRecord?: { status?: string } }
+            out.push(
+              `  ${j.aiRecord?.status === 'SUCCESS' ? '✓' : '·'} route onemin — ${base} · chat probe ${
+                j.aiRecord?.status === 'SUCCESS' ? 'OK' : 'degraded'
+              } (model ${model})`,
+            )
+          }
+        } catch (e) {
+          out.push(`  · route onemin — ${base} · ${e instanceof Error ? e.message : 'probe failed'}`)
+        }
+      }
+    }
+  } else if (provider === 'openai' || /^openai\d+$/.test(provider)) {
+    const up = provider.toUpperCase()
+    const base = (process.env[`BLACKROSE_${up}_BASE_URL`] ?? 'https://openrouter.ai/api/v1').replace(/\/+$/, '')
+    const key =
+      provider === 'openai'
+        ? (process.env.BLACKROSE_OPENAI_API_KEY ?? process.env.OPENAI_API_KEY)
+        : process.env[`BLACKROSE_${up}_API_KEY`]
