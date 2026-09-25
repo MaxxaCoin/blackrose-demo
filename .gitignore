@@ -17,3 +17,7 @@ dist-build/
 __pycache__/
 Thumbs.db
 desktop.ini
+
+# release artifacts (uploaded to GitHub Releases, not source-controlled)
+validation/release-repo/
+validation/release-0.8.1/
