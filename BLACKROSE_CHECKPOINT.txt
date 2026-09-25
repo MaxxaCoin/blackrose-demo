@@ -488,7 +488,28 @@ NEXT STEP:
       setup.exe 25.3 MB + .sig. Gotcha: NSIS remembers last install dir in
       HKCU\Software\BlackRose\BlackRose — delete that key for a clean
       default-location install (else old Temp test installs get upgraded).
-  OmniRoute repair — DONE (2026-09-25): the openai2 route was dead in every
+  GitHub auto-updater — LIVE (2026-09-25, inner d0571c3, v0.8.1):
+      release repo github.com/MaxxaCoin/BlackRose (public, artifacts only —
+      one README commit; GitHub refuses releases on empty repos). Endpoint
+      baked into the app: .../releases/latest/download/latest.json. Release
+      v0.8.1 has BlackRose_0.8.1_x64-setup.exe + .exe.sig + latest.json.
+      GOTCHAS: (1) latest.json MUST be UTF-8 WITHOUT BOM (PowerShell
+      Out-File -Encoding utf8 adds one and Rust's parser rejects it); (2) GitHub
+     's CDN caches release assets for a few minutes after a --clobber upload —
+      verify with a cache-busting ?cb=<ms> query; (3) a repo needs >=1 commit
+      before `gh release create` works (HTTP 422 "Repository is empty").
+      BUG FIXED: the update message was eval'd while the SPLASH page was
+      showing, which has no __blackroseUpdate handler, so it was silently
+      dropped; the message is now parked in Tauri state (PendingUpdate) and
+      re-emitted for 30s after the core UI loads, deduped in the UI by
+      __lastUpdateMsg. Verified live with a temporary 0.9.0 manifest — the
+      installed 0.8.1 displayed "⬆ update available: v0.9.0" (screenshot).
+      RELEASE RECIPE: bump version in tauri.conf.json + package.json +
+      Cargo.toml, npm run build:exe, $env:BLACKROSE_SIGNING_PASSWORD=... then
+      scripts\build-desktop-signed.ps1, write BOM-less latest.json (version,
+      notes, pub_date, platforms.windows-x86_64.{signature,url}), then
+      `gh release upload v<ver> <exe> <sig> latest.json --clobber`.
+      OMNIROUTE REPAIR — DONE (2026-09-25): the openai2 route was dead in every
       doctor run. Root cause was NOT BlackRose: (1) OmniRoute's server process
       was hung (port bound, requests never answered); (2) the "BlackRose" combo
       referenced RETIRED models (nvidia/llama-3.3-70b-instruct,
