@@ -488,7 +488,23 @@ NEXT STEP:
       setup.exe 25.3 MB + .sig. Gotcha: NSIS remembers last install dir in
       HKCU\Software\BlackRose\BlackRose — delete that key for a clean
       default-location install (else old Temp test installs get upgraded).
-  1min.ai provider — DONE (2026-09-24): new native adapter src/llm/onemin.ts.
+  OmniRoute repair — DONE (2026-09-25): the openai2 route was dead in every
+      doctor run. Root cause was NOT BlackRose: (1) OmniRoute's server process
+      was hung (port bound, requests never answered); (2) the "BlackRose" combo
+      referenced RETIRED models (nvidia/llama-3.3-70b-instruct,
+      groq/llama-3.3-70b-versatile) so every call 400'd. Fixes: start OmniRoute
+      with its own CLI (`npx omniroute serve`, needs STORAGE_ENCRYPTION_KEY from
+      ~/.omniroute/.env) — do NOT run dist/server-ws.mjs by hand, it binds the
+      default port 3000 (the dashboard) instead of 20128. Created a new combo
+      `BlackRose2` (priority: nvidia/nemotron-3-super-120b-a12b,
+      nvidia/gpt-oss-120b, groq/openai/gpt-oss-120b, openrouter/openai/gpt-oss-120b);
+      old "BlackRose" combo kept for reference. BLACKROSE_OPENAI2_MODEL=BlackRose2
+      (base stays http://127.0.0.1:20128/v1). /v1/models 401s (auth-gated) but
+      /v1/chat/completions works — doctor's chat-probe fallback handles this.
+      Verified: doctor all-green; installed app answered via OmniRoute as route #1.
+      Installer rebuilt + reinstalled (25.3 MB, .sig) with 1min.ai included;
+      installed app shows all 9 routes; app exit kills the core.
+      1min.ai provider — DONE (2026-09-24): new native adapter src/llm/onemin.ts.
       API facts (live-probed): base https://api.1min.ai, POST /api/chat-with-ai,
       auth header `API-KEY` (NOT Bearer), body {type:"UNIFY_CHAT_WITH_AI", model,
       promptObject:{prompt}}; answer is aiRecord.aiRecordDetail.resultObject[]
