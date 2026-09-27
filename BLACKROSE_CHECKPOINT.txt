@@ -430,6 +430,43 @@ VERIFIED (exact tests and results, evidence in validation/):
       Driver: validation/scratch-folder/driver-folder.mjs.
     * NOTE: not approval-gated, matching the existing knowledge tools — it
       only reads files the agent may already read ("reads are free") and
+- UI CAPABILITY INSPECTOR — real panels for capabilities that already existed
+  (2026-09-27, THIS SESSION):
+    * CONTEXT: the original Phase-8 UI request asked for a ~20-destination nav
+      (Missions, Agents, Skills, Learning, Knowledge, Models, Tools, Computer,
+      Browser, Settings…). Only 4 of the requested buttons existed. The gap was
+      NOT a UI problem: the agent could already reach skills, schedules,
+      knowledge, project notes, memory and background jobs — but ONLY through
+      the chat loop. That other AI's warning ("integrate rather than fake UI
+      buttons") was right, so nothing was faked.
+    * `GET /api/tools` → every registered tool + `readOnly` flag (38 tools, 9
+      viewable). `POST /api/tool` → runs ONE tool from a FIXED read-only
+      allowlist (READONLY_TOOLS in ui/web/server.ts). Deliberately an explicit
+      allowlist, not a heuristic: widening what the web UI can do must be a
+      deliberate, reviewable act.
+    * New sidebar groups + a panel overlay: Skills (skills, missions, jobs),
+      Knowledge (sources, knowledge search, memory search, project notes),
+      Tools (catalogue).
+    * REFUSED ON PURPOSE: write_file, run_command, gui_action, spawn_agent,
+      learn_*, memory_save, skill_save, schedule_task… are unreachable from the
+      UI. They stay in the chat loop where the approval dialog guards them.
+      Verified live: run_command → HTTP 403, gui_action → ok:false.
+    * Verified: 114 checks PASS (was 108) + regression 0 fail + typecheck clean
+      + build:exe clean (55 modules). 6 new checks, including the security-
+      critical one (allowlist refuses state-changing tools).
+    * LIVE probe: 38-tool catalogue, knowledge_list + knowledge_search return
+      real data (score 0.73 hit), run_command/gui_action refused.
+      Driver: validation/scratch-inspector/probe-inspector.mts.
+    * GOTCHA (cost me two failed runs): the page is a TypeScript TEMPLATE
+      LITERAL, so a JS newline must be written '\\n' in assets.ts. A single
+      '\n' emits a REAL newline into the served script and breaks parsing —
+      including inside a comment. Symptom: "ui page inline script parses as
+      valid JavaScript" fails. Extract with node --check to locate it fast.
+    * STILL MISSING vs the original nav (honest): Agents, Learning, Models,
+      Computer, Browser, Settings/API-keys, Logs, Status. These need real
+      backends, not buttons — the in-app key manager and a browser surface are
+      the obvious next candidates.
+
       writes solely to its own knowledge dir.
 
       unchanged and still verified.
