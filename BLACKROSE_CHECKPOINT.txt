@@ -1,32 +1,24 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 ============================================
-DATE / TIME: 2026-09-20 (local; sessions 09-17 → 09-20)
+DATE / TIME: 2026-09-27 (local; sessions 09-17 → 09-27)
 AI / AGENT: Cline (act mode)
-   Live free-model validation completed 2026-09-20 — all core workflows
-   verified on the router chain (OmniRoute → NVIDIA → OpenRouter → Groq
-   → HF → Cloudflare → Ollama).
+   Grouped-sidebar desktop controls shipped and verified in an installed
+   signed 0.8.1 build; the Bytez provider experiment was investigated,
+   found dead, and fully reverted.
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ db39729 (clean; sidebar + listen DONE
-                    + OmniRoute/free-first router chain + native Gemini adapter
-                    + Cloudflare openai5 + route-tray spec + drag-and-drop spec;
-                    git index/ref REPAIRED on 09-18 after an interrupted-write
-                    corruption, see PROBLEMS FOUND)
-  Outer workspace:  committed through fecc428 (audit 09-20: header restored,
-                    artifacts moved to validation/, drag-and-drop deferred,
-                    Multi-device + UI remodel added to Phase 8 final phases,
-                    SEA.exe DROPPED — Tauri installer supersedes it, OmniRoute+CF live)
-DATE / TIME: 2026-09-20 (local; sessions 09-17 → 09-20)
-AI / AGENT: Cline (act mode)
-   Live free-model validation completed 2026-09-20 — all core workflows
-   verified on the router chain (OmniRoute → NVIDIA → OpenRouter → Groq
-   → HF → Cloudflare → Ollama).
-SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 8ebb234 (clean; sidebar + listen DONE
-                    + OmniRoute/free-first router chain + doctor chat-ping +
-                    Cloudflare openai5 + route-tray spec; git index/ref
-                    REPAIRED on 09-18 after an interrupted-write corruption,
-                    see PROBLEMS FOUND)
-  Outer workspace:  committed through c2853f4 (audit 09-20: header restored, artifacts moved to validation/, drag-and-drop deferred, OmniRoute+CF live)
+  Inner code repo:  cline/blackrose @ a118f32 (clean; no remote by design)
+                      a118f32  ui: grouped sidebar + working
+                               export/import/update/shutdown controls
+                      bd5854d  README: GitHub release recipe
+                      d0571c3  Release 0.8.1: live GitHub auto-updater
+  Outer workspace:  @ 465ac95 (release binaries intentionally untracked;
+                    MaxxaCoin/BlackRose is the public artifacts-only
+                    release repo).
+  REPAIR: the 2026-09-20 header had been duplicated verbatim, carrying two
+    conflicting inner commit ids (db39729 and 8ebb234) — the same
+    interrupted-write class of damage as the 09-18 git index corruption.
+    Both stale blocks are removed; this header replaces them.
+
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
@@ -376,6 +368,34 @@ VERIFIED (exact tests and results, evidence in validation/):
     * Graceful fallback to hash embedder (60s probe cache) — `BLACKROSE_EMBED=off` forces hash
     * All 79 smoke checks + 16 regression tests PASS
 
+- GROUPED SIDEBAR + DESKTOP CONTROLS (2026-09-27, THIS SESSION, inner a118f32):
+    * Sidebar regrouped into six labelled groups; all six groups and the
+      corrected stop/shutdown icon visually verified in the installed app.
+    * Export / Import / Check for Updates / Shutdown wired to the core
+      (`POST /api/export`, `/api/import`, `/api/app_shutdown`) — the
+      `/api/app_shutdown` route was a one-line core change and that was the
+      actual blocker; the Tauri side already had the plumbing.
+    * Installed signed 0.8.1 tested end-to-end: export restored/imported
+      33 files; update check reported "up to date"; shutdown exited
+      BlackRose AND left no orphaned core node.exe.
+    * Committed: assets.ts, server.ts, smoke.ts, main.rs, build.rs,
+      capabilities/remote-updater.json, .gitignore.
+    * GOTCHA: the served UI is generated dist/blackrose.mjs — run
+      `npm run build:exe` before packaging or the desktop app serves a
+      stale page.
+- BYTEZ PROVIDER — INVESTIGATED, REJECTED, FULLY REVERTED (2026-09-27):
+    * The supplied key DID authenticate, but the account catalog was empty
+      and every documented / on-demand model id returned HTTP 404.
+    * Bytez's "free" tier is metered credits, not zero-cost models —
+      it is not a genuine free provider for this project.
+    * Only commit 048b8dc carried it; removed via a local hard reset back
+      to a118f32. Verified NO Bytez references survive in source, env vars,
+      routes, persisted keys, or probe scripts (probe scripts deleted).
+    * DECISION: do not re-add a known-dead route. Only revisit if a
+      confirmed runnable model id is supplied. The nine-route chain is
+      unchanged and still verified.
+
+
 
 PROBLEMS FOUND:
   - Web UI /api/ask was stateless — every chat turn forgot the previous ones
@@ -444,6 +464,26 @@ BLOCKED BY:
   none
 
 NEXT STEP:
+  >> CURRENT PRIORITIES (2026-09-27 — supersedes the stale items below, which
+     are retained as history):
+  1. SHIP v0.9.0. The installed app is 0.8.1 built from d0571c3; the grouped
+     sidebar + export/import/update/shutdown work exists only in a118f32 and
+     has never been released. Recipe is documented above ("RELEASE RECIPE")
+     and in the README (bd5854d): bump tauri.conf.json + package.json +
+     Cargo.toml, `npm run build:exe`, then build-desktop-signed.ps1 with
+     BLACKROSE_SIGNING_PASSWORD, then a BOM-less latest.json, then
+     `gh release upload v0.9.0 <exe> <sig> latest.json --clobber`.
+  2. THEN verify the update INSTALL path (the only unverified feature). The
+     update NOTICE path is already proven — 0.8.1 displayed "update available:
+     v0.9.0" against a temporary manifest. What has never run end-to-end is
+     download -> NSIS closes the app -> relaunch -> process cleanup, which is
+     exactly what the `update_install` command and the NSIS hooks in build.rs
+     exist for. Publishing a real 0.9.0 in step 1 enables this immediately.
+  3. Bytez stays removed unless a confirmed runnable model id is supplied.
+  After any further edits: `npm run typecheck`, `npm test`, `cargo check`,
+  `npm run build:exe`.
+  --- superseded history follows ---
+
   1. Keep the current `.aistate` hardening changes uncommitted only until the
      user reviews them; then make one focused inner-repository commit covering
      `state/aistate.ts`, bridge sync reporting, smoke coverage, and README.
