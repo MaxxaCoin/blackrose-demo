@@ -393,6 +393,45 @@ VERIFIED (exact tests and results, evidence in validation/):
       routes, persisted keys, or probe scripts (probe scripts deleted).
     * DECISION: do not re-add a known-dead route. Only revisit if a
       confirmed runnable model id is supplied. The nine-route chain is
+    * DECISION: do not re-add a known-dead route. Only revisit if a
+      confirmed runnable model id is supplied. The nine-route chain is
+      unchanged and still verified.
+- BULK KNOWLEDGE INGESTION — `learn_folder` (2026-09-27, THIS SESSION):
+    * Learns every text/code doc under a directory in ONE call (previously the
+      only options were one-file-at-a-time: learn_file/pdf/docx/transcript/url).
+    * Explicit-stack walk (no call-stack blowup on deep trees); extension
+      allowlist AND an independent NUL-byte sniff, so a lying extension
+      cannot smuggle a binary through; never follows symlinks/junctions
+      (they can escape the named tree and can cycle).
+    * Skips deps/build/VCS by default (node_modules, .git, dist, target,
+      __pycache__, …) plus dot-dirs. Caps: maxFiles 300, maxBytes 20 MB,
+      MAX_LEARN_BYTES 2 MB/file. A cap hit is ALWAYS reported
+      ("STOPPED EARLY") — a partial ingest is never silent.
+    * Whole run indexes in ONE openStore/vectorsFor/saveStore pass instead of
+      one per document (saveKnowledge was refactored into writeKnowledgeFile +
+      indexKnowledge to make this possible; saveKnowledge is unchanged for
+      every existing caller).
+    * PDFs/DOCX deliberately EXCLUDED in v1: learn_pdf auto-OCRs scanned PDFs
+      by shelling out to the Windows OCR engine, which is unpredictable to run
+      over a whole tree. They remain learnable individually. The shared
+      extractor makes adding them later a small change.
+    * BUG FIXED EN ROUTE — silent knowledge loss: filenames came from
+      slug(source) truncated to 80 chars, so two sources sharing that prefix
+      wrote the SAME knowledge JSON and the second destroyed the first. Now a
+      hash of the FULL source is appended when truncating. Filenames for
+      already-learned short sources are unchanged (backward compatible).
+    * Verified: 108 smoke checks PASS + regression fail 0 + typecheck clean +
+      build:exe clean (54 modules). 11 new checks cover tree ingest, recursion,
+      dep/VCS skipping, binary/extension skipping, file-path and missing-dir
+      rejection, the maxFiles cap, empty trees, and the slug-collision fix.
+    * LIVE probe against the real tree: `learn_folder` on cline/blackrose/src
+      → 60 files, 516 chunks, 0.40 MB in 608 ms; a semantic query about
+      transient-error classification correctly returned llm/resilient.ts.
+      Driver: validation/scratch-folder/driver-folder.mjs.
+    * NOTE: not approval-gated, matching the existing knowledge tools — it
+      only reads files the agent may already read ("reads are free") and
+      writes solely to its own knowledge dir.
+
       unchanged and still verified.
 
 
