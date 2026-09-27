@@ -21,3 +21,7 @@ desktop.ini
 # release artifacts (uploaded to GitHub Releases, not source-controlled)
 validation/release-repo/
 validation/release-0.8.1/
+
+# probe scratch state (generated knowledge/vector output — the driver script is
+# kept as evidence, its throwaway knowledge base is not)
+validation/scratch-*/state/
