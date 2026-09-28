@@ -1,23 +1,48 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 ============================================
-DATE / TIME: 2026-09-27 (local; sessions 09-17 → 09-27)
+DATE / TIME: 2026-09-28 (local; sessions 09-17 → 09-28)
 AI / AGENT: Cline (act mode)
    Grouped-sidebar desktop controls shipped and verified in an installed
    signed 0.8.1 build; the Bytez provider experiment was investigated,
    found dead, and fully reverted.
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ a118f32 (clean; no remote by design)
-                      a118f32  ui: grouped sidebar + working
-                               export/import/update/shutdown controls
+  Inner code repo:  cline/blackrose @ f207c56 (clean; no remote by design)
+                      f207c56  feat: push-to-talk mic button — /api/listen
+                               endpoint + composer mic (offline local STT)
+                      4eb2a50  feat: single-instance guard — one window +
+                               one core, updater restart race fixed
+                      20f8387  ui: drop zone accepts any file type and
+                               reports the saved path
                       bd5854d  README: GitHub release recipe
                       d0571c3  Release 0.8.1: live GitHub auto-updater
-  Outer workspace:  @ 465ac95 (release binaries intentionally untracked;
+  Outer workspace:  @ <see git log> (release binaries intentionally untracked;
                     MaxxaCoin/BlackRose is the public artifacts-only
                     release repo).
+  SESSION NOTE (2026-09-28): the 09-27 session was cut off by gateway
+    rate limits (free-models-per-day) mid-run, but its work was COMPLETE
+    and verified: full smoke suite PASSED, 0.9.0 NSIS installer + updater
+    signature rebuilt (validation/build-si-090.out). This session's new
+    work is the mic button (see MIC BUTTON below).
   REPAIR: the 2026-09-20 header had been duplicated verbatim, carrying two
     conflicting inner commit ids (db39729 and 8ebb234) — the same
     interrupted-write class of damage as the 09-18 git index corruption.
     Both stale blocks are removed; this header replaces them.
+
+MIC BUTTON (2026-09-28, f207c56):
+  The user asked "where's my mic?" — the `listen` tool existed since 09-19
+  but had NO UI surface. Shipped: a 🎤 button in the composer (between the
+  textarea and Send) → POST /api/listen (new dedicated endpoint) →
+  runListenMic() (extracted from voice.ts, shared by the tool and the
+  endpoint) → transcript inserted into the composer (NOT auto-sent, same UX
+  as the drop zone). Consent model: the click IS the consent, so /api/listen
+  deliberately bypasses /api/tool's read-only allowlist and the approval
+  dialog (documented in server.ts). Offline local Windows dictation only —
+  audio never leaves the machine. +2 smoke checks (mic button wired;
+  /api/listen returns a structured result, exercised live with a 1s
+  window). GOTCHA (repeat of the 09-27 template-literal trap): an escaped
+  apostrophe `\'` inside the assets.ts template literal is CONSUMED when
+  the template evaluates, emitting broken page JS — avoid apostrophes in
+  page strings entirely (check-ui-parse.mjs caught this one too).
 
 
 CURRENT PHASE:

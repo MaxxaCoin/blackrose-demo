@@ -1,0 +1,25 @@
+✔ ..\..\validation\regression-mic.out (248.9381ms)
+✔ final assistant answer survives session persistence and a follow-up call (19.4182ms)
+✔ tool conversation retains exactly one final assistant message (2.1478ms)
+✔ state import rejects unsafe path "../state-other/escaped.md" before writing any entries (200.4335ms)
+✔ state import rejects unsafe path "memory/../../state-other/escaped.md" before writing any entries (181.598ms)
+✔ state import rejects unsafe path "memory/..\\..\\state-other/escaped.md" before writing any entries (204.0542ms)
+✔ state import rejects unsafe path "memory/../sessions/escaped.json" before writing any entries (214.8093ms)
+✔ state import rejects unsafe path "mcp.json" before writing any entries (236.8957ms)
+✔ state import rejects unsafe path "memory/note.md:stream" before writing any entries (271.4801ms)
+✔ state import rejects unsafe path "memory/trailing./note.md" before writing any entries (192.5422ms)
+✔ state import rejects unsafe path "memory//note.md" before writing any entries (204.4939ms)
+✔ state import rejects an absolute path (243.413ms)
+✔ state import rejects junction/symlink parents pointing outside the state root (209.5516ms)
+✔ state import validates all entry contents before modifying existing state (186.0463ms)
+✔ full state roundtrip supports nested files and a relative destination (210.9922ms)
+✔ --resume is a mode flag: it starts the REPL instead of being sent as a prompt (671.2493ms)
+✔ web UI with a token: unauthenticated requests are rejected and the token grants access (154.5647ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4174.8521
