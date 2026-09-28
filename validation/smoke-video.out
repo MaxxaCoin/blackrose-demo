@@ -1,0 +1,135 @@
+  PASS — loop finished with a final text
+  PASS — file was written by tool_use
+  PASS — edit_file applied
+  PASS — history contains tool_result blocks
+  PASS — router falls back when primary fails
+  PASS — ollama adapter recovers a text-embedded tool call (and leaves prose/unknown tools alone)
+  PASS — openai adapter: native tool_calls, text-JSON recovery, prose/unknown untouched
+  PASS — onemin adapter: API-KEY wire format, flattened prompt, fenced-JSON tool_use, error mapping
+  PASS — route-status tray: router records per-route ok/degraded/down states
+  PASS — transcribe_audio: multipart to /audio/transcriptions, transcript back, sidecar + ingest
+  PASS — transcribe_audio rejects unsupported extensions without any network call
+  PASS — learn_file chunks a document
+  PASS — learn_folder ingests a whole tree
+  PASS — learn_folder recurses into nested directories
+  PASS — learn_folder skips dependency + VCS directories
+  PASS — learn_folder skips binaries and unsupported extensions
+  PASS — learn_folder results are searchable
+  PASS — learn_folder rejects a file path
+  PASS — learn_folder reports a missing directory
+  PASS — learn_folder honours maxFiles and reports the stop
+  PASS — learn_folder on an empty tree ingests nothing
+  PASS — long sources with a shared slug prefix do not overwrite each other
+  PASS — knowledge_search retrieves the right passage
+  PASS — project note persisted and readable
+  PASS — .aistate rejects a wrong password (AES-GCM integrity)
+  PASS — .aistate import restores memory + knowledge + projects
+  PASS — background job runs and completes
+  PASS — schedule created + persisted
+  PASS — schedule is due when never run
+  PASS — every-minutes schedule respects interval
+  PASS — scheduler fired the due task unattended (fail-closed approvals)
+  PASS — schedule removed
+  PASS — task engine: plan→execute→verify
+  PASS — read_image attaches image blocks for vision models
+  PASS — execShell captures output + exit code
+  PASS — renderDiff shows removed + added lines
+  PASS — skill saved + loaded from disk
+  PASS — skill_run dispatches to a sub-agent with args
+  PASS — spawn_agent returns the sub-agent answer
+  PASS — MCP client lists + calls external tools
+  PASS — untrusted MCP server requires approval
+  PASS — .aistate v2 incremental export packs only changes
+  PASS — .aistate delta imports and merges correctly
+  PASS — embeddings: deterministic + subword robust
+  PASS — hybrid ranking: keyword + typo-tolerant semantic
+  PASS — vector store records its embedding model + dim
+  PASS — vector index persisted under dataDir
+  PASS — memory_search finds notes (hybrid)
+  PASS — PDF text extraction (zlib stream, text operators)
+  PASS — learn_pdf ingests a real PDF into knowledge
+  PASS — learn_docx ingests a real DOCX into knowledge
+  PASS — knowledge_search finds learned DOCX passages
+  PASS — learn_xlsx ingests a real XLSX into knowledge
+  PASS — knowledge_search finds learned XLSX cells
+  PASS — learn_pptx ingests a real PPTX into knowledge
+  PASS — knowledge_search finds learned PPTX slides
+  PASS — learn_epub ingests a real EPUB into knowledge
+  PASS — knowledge_search finds learned EPUB text
+  PASS — learn_folder skips office documents by default and says so
+  PASS — learn_folder with documents:true ingests xlsx/pptx/epub/docx
+  PASS — bulk-ingested EPUB text is searchable
+  PASS — parseTranscript strips SRT cues and dedupes rolling captions
+  PASS — learn_transcript ingests WebVTT into knowledge
+  PASS — knowledge_search finds learned transcript text
+  PASS — ocr_read recognizes text in an image (Windows OCR)
+  PASS — --doctor reports provider, data inventory and vector index
+  PASS — bridge rejects requests without a token
+  PASS — bridge /health reports provider/model
+  PASS — bridge /ask runs the agent with tools
+  PASS — bridge /goal runs plan→execute→verify
+  PASS — bridge rejects an invalid token
+  PASS — bridge memory save + search roundtrip
+  PASS — bridge knowledge search
+  PASS — sync push: delta exported, imported on remote device
+  PASS — sync pull: remote edits merged back locally
+  PASS — sync pull: repeated sync with no changes is a no-op
+  PASS — sync conflict: both concurrent versions are preserved
+  PASS — bridge audit log written
+  PASS — resilient client retries transient 429s until success
+  PASS — non-transient errors fail fast (no retry)
+  PASS — isTransientError classifies transient vs fatal
+  PASS — compactHistory folds old messages into a summary
+  PASS — compactHistory is a no-op on short conversations
+  PASS — --resume finds the most recent session
+  PASS — ui serves the embedded page
+  PASS — ui ships a working update-install action (update_install → install + restart)
+  PASS — ui page inline script parses as valid JavaScript
+  PASS — loopback capability allows the update commands the page invokes
+  PASS — sidebar ships Export/Import/Check-for-update/Shut-down actions
+  PASS — sidebar ships capability-inspector groups + panel
+  PASS — inspector buttons call the read-only tool endpoints
+  PASS — loopback capability allows the sidebar System commands
+  PASS — sidebar groups are collapsible folders in order
+  PASS — installer closes the running app before writing files and relaunches after
+  PASS — export seals an encrypted .aistate snapshot
+  PASS — import restores the snapshot it just exported
+  PASS — import refuses a wrong password
+  PASS — import leaves no staged copy behind
+  PASS — ui page has launch chooser, btn-clear, and unique element ids
+  PASS — ui health reports provider/model + counts
+  PASS — ui health exposes routes[] for the route-status tray
+  PASS — ui /api/upload saves dropped audio for transcribe_audio
+  PASS — ui composer ships a mic button wired to /api/listen
+  PASS — ui /api/listen runs one local mic listen and returns a structured result
+  PASS — ui approval relay: dialog waits and Allow lets the tool run
+  PASS — ui remembers context across /api/ask calls
+  PASS — ui /api/new clears server-side conversation memory
+  PASS — ui per-tab session keys keep live conversations separate
+  PASS — ui resumes persisted history after a server restart
+  PASS — desktop shell: valid Tauri v2 config + Rust boot supervisor markers
+  PASS — desktop shell: single-instance guard registered before the updater plugin
+  PASS — desktop shell: post-install restart waits instead of racing the installer
+  PASS — desktop shell: procedural .ico generator emits a valid 4-size icon
+  PASS — ui page is served with cache-control: no-store (stale pages cannot bypass /api/new)
+  PASS — ui /api/new starts a fresh conversation while the previous one stays persisted + listed
+  PASS — listen: window is clamped to 1-15s with an env default
+  PASS — listen: output parsing is success-gated (markers only, chatter rejected)
+  PASS — listen: registered and approval-gated (a microphone is opening)
+  PASS — watch_video: metadata parsing is success-gated (one JSON line, else null)
+  PASS — watch_video: registered and approval-gated (a download + cloud STT upload)
+  PASS — watch_video: rejects non-http URLs without any network call
+  PASS — ui /api/tools lists every registered tool with its permissions
+  PASS — ui /api/tool runs the allowlisted inspectors
+  PASS — ui /api/tool refuses state-changing and machine-touching tools
+  PASS — ui knowledge search panel returns real results
+  PASS — ui /api/keys returns route list with masked statuses
+  PASS — ui /api/keys updates key, masks preview and stores on disk
+  PASS — ui /api/keys clears key and removes from memory
+  PASS — ui sessions sidebar lists conversations newest-first with titles
+  PASS — ui sessions open reattaches history (continuing an old conversation works)
+  PASS — ui /api/new keeps the previous conversation in the sidebar (non-destructive)
+  PASS — ui sessions delete archives the file and rejects unsafe ids
+
+  workspace: C:\Users\pc\AppData\Local\Temp\blackrose-smoke-ModhEc
+SMOKE TEST PASSED

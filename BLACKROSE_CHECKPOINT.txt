@@ -6,7 +6,9 @@ AI / AGENT: Cline (act mode)
    signed 0.8.1 build; the Bytez provider experiment was investigated,
    found dead, and fully reverted.
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ 262ad13 (clean; no remote by design)
+  Inner code repo:  cline/blackrose @ c2521fa (clean; no remote by design)
+                      c2521fa  feat: watch_video tool — yt-dlp download +
+                               cloud STT transcript (+save/ingest)
                       262ad13  fix: knowledge tools tolerate malformed chunk
                                files; build-desktop passes the updater signing
                                key automatically
@@ -75,10 +77,25 @@ CURRICULUM INGESTED (2026-09-28):
   BlackRose.txt (134 KB) is old design chat history, deliberately NOT
   ingested.
 
-NEXT (user-approved 2026-09-28): build a "watch reels/videos from a link"
-  tool — yt-dlp download → transcribe_audio (audio) + ocr_read (sampled
-  frames) → summarize into chat/knowledge. Public reels need no login;
-  private/age-gated need browser cookies.
+NEXT (user-approved 2026-09-28, SHIPPED same day): WATCH_VIDEO tool
+  (c2521fa) — "watch reels/videos from a link": yt-dlp download (cap 24 MB,
+  matches the STT API's 25 MB limit) → transcribe via the SAME verified
+  cloud STT path (the API takes .mp4/.webm directly, so NO ffmpeg needed)
+  → returns title/uploader/duration + transcript; save:true writes a
+  .transcript.txt sidecar into blackrose-uploads/, ingest:true learns it
+  into the knowledge base. yt-dlp lives in ~/.blackrose/bin/yt-dlp.exe
+  (auto-downloaded from the official GitHub release if missing;
+  BLACKROSE_YTDLP overrides the path; BLACKROSE_YTDLP_ARGS passes extra
+  args, e.g. --cookies-from-browser chrome). Approval-gated (web download +
+  cloud upload). LIVE-VERIFIED end-to-end with a locally served SAPI speech
+  wav: correct transcript, sidecar, 1 knowledge chunk, tmp cleaned up.
+  GOTCHAS: (1) YouTube blocks unauthenticated downloads (bot check) —
+  private/cookie-walled sources need BLACKROSE_YTDLP_ARGS cookies;
+  (2) transcribe's transcript text is extracted by splitting content on
+  '\n\n' — if the transcribe_audio content template changes, update
+  video.ts; (3) +3 smoke checks (parseDumpJson success-gating, registration,
+  URL fail-closed) — the suite stays network-free; live proof lives in
+  validation/scratch-video/watch-probe.mts.
 
 
 CURRENT PHASE:
