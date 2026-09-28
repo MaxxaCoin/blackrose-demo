@@ -97,6 +97,20 @@ NEXT (user-approved 2026-09-28, SHIPPED same day): WATCH_VIDEO tool
   URL fail-closed) — the suite stays network-free; live proof lives in
   validation/scratch-video/watch-probe.mts.
 
+IG DATASET INGESTED + REEL-WATCHING PROVEN ON REAL DATA (2026-09-28):
+  The user supplied an Apify Instagram-scraper export (198 AI-niche reels
+  from petergriffin.ai, captions/hashtags/likes/videoUrl). Transformed into
+  a likes-ranked playbook (validation/scratch-video/ig-reels-playbook.txt)
+  → learn_file into ~/.blackrose (200 chunks, verified searchable). Then
+  watch_video consumed the dataset's DIRECT IG CDN videoUrl of the #1 reel
+  (84k likes): downloaded, transcribed the actual speech ("5 Claude Code
+  Plugins…"), sidecar + 1 knowledge chunk. KEY FACT: IG CDN media URLs
+  scraped by Apify work WITHOUT cookies/yt-dlp-login (at least ~7h after
+  scraping) — so dataset→watch_video is a real pipeline. Note: STT
+  mishears "Claude Code" as "clawed code" (whisper quirk on this voice).
+  Driver: validation/scratch-video/ingest-ig-dataset.mts (transform+ingest)
+  and watch-ig-probe.mts.
+
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:

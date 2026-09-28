@@ -1,0 +1,11 @@
+{
+  "version": "0.9.0",
+  "notes": "Mic button (offline voice input), drag-and-drop for any file, single-instance guard, capability inspector, curriculum knowledge",
+  "pub_date": "2026-09-28T08:27:59.746Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRUkZqVjFFeDhlbDlVaUhaSjhWcENMelB2V2V4TGJkL3k2NUVIYW83VUJmcGVCVENieWdtUlJySXk1ZGpMSzczUTgvU2p6cGpWUEFNVnM1V3czL29RQk1hYnYvQWNUOWdnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTg0MDU0CWZpbGU6QmxhY2tSb3NlXzAuOS4wX3g2NC1zZXR1cC5leGUKQUhDUlVaUXpYMitWZHdJSnlIeE9MWjRiRVpmb3V0Q0Jzc1FtaWhPK0xibnhsZjU2alN6OXRoUmhwYmdFeGR2Q1d6S2x2QXh1dlVtdEg2THBSOUM4QkE9PQo=",
+      "url": "https://github.com/MaxxaCoin/BlackRose/releases/download/v0.9.0/BlackRose_0.9.0_x64-setup.exe"
+    }
+  }
+}
