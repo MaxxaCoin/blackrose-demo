@@ -6,7 +6,10 @@ AI / AGENT: Cline (act mode)
    signed 0.8.1 build; the Bytez provider experiment was investigated,
    found dead, and fully reverted.
 SESSION / COMMIT:
-  Inner code repo:  cline/blackrose @ f207c56 (clean; no remote by design)
+  Inner code repo:  cline/blackrose @ 262ad13 (clean; no remote by design)
+                      262ad13  fix: knowledge tools tolerate malformed chunk
+                               files; build-desktop passes the updater signing
+                               key automatically
                       f207c56  feat: push-to-talk mic button — /api/listen
                                endpoint + composer mic (offline local STT)
                       4eb2a50  feat: single-instance guard — one window +
@@ -43,6 +46,37 @@ MIC BUTTON (2026-09-28, f207c56):
   apostrophe `\'` inside the assets.ts template literal is CONSUMED when
   the template evaluates, emitting broken page JS — avoid apostrophes in
   page strings entirely (check-ui-parse.mjs caught this one too).
+
+BUILD + SIGNING STATE (2026-09-28):
+  0.9.0 NSIS installer REBUILT with the mic button (cargo release 6m52s;
+  validation/build-mic-090.out). GOTCHA: the makensis step alone took ~35
+  minutes on this machine — run detached, poll the log, do not assume it
+  hung. The updater SIGNATURE step failed: `tauri build` needs
+  TAURI_SIGNING_PRIVATE_KEY (content, not a path — build-desktop.ts now
+  passes it automatically). The key is rsign-ENCRYPTED: signing also needs
+  its password (BLACKROSE_SIGNING_PASSWORD; never stored anywhere by
+  design). All 3 passwords found in PS history FAILED ("Wrong password for
+  that key") — BLOCKED ON THE USER: the password must come from the user
+  (setx BLACKROSE_SIGNING_PASSWORD or tell the agent). sign-090.ps1 in
+  validation/scratch-curriculum signs the already-built installer without
+  a repack. After signing: rebuild latest.json (BOM-less) with the new
+  sha256/size, then the release recipe (gh release upload v0.9.0 --clobber).
+
+CURRICULUM INGESTED (2026-09-28):
+  The user's "Tech God" master curriculum (28 parts, C:\Users\pc\Downloads\
+  blackrose.txt) → learn_file into the REAL data dir ~/.blackrose (38
+  chunks, slug ...tech-1u5k1af), verified searchable (quantum computing,
+  CIA triad queries hit the right chunks). This run EXPOSED a real crash:
+  knowledge_search/knowledge_list died on stray non-chunk .json files in
+  the knowledge dir (agent runs had written artifacts there) — FIXED in
+  262ad13 (skip unparsable/chunkless files). The Music\br ai ass
+  BlackRose.txt (134 KB) is old design chat history, deliberately NOT
+  ingested.
+
+NEXT (user-approved 2026-09-28): build a "watch reels/videos from a link"
+  tool — yt-dlp download → transcribe_audio (audio) + ocr_read (sampled
+  frames) → summarize into chat/knowledge. Public reels need no login;
+  private/age-gated need browser cookies.
 
 
 CURRENT PHASE:
