@@ -47,20 +47,22 @@ MIC BUTTON (2026-09-28, f207c56):
   the template evaluates, emitting broken page JS — avoid apostrophes in
   page strings entirely (check-ui-parse.mjs caught this one too).
 
-BUILD + SIGNING STATE (2026-09-28):
+BUILD + SIGNING STATE (2026-09-28, RESOLVED):
   0.9.0 NSIS installer REBUILT with the mic button (cargo release 6m52s;
   validation/build-mic-090.out). GOTCHA: the makensis step alone took ~35
   minutes on this machine — run detached, poll the log, do not assume it
-  hung. The updater SIGNATURE step failed: `tauri build` needs
+  hung. The updater SIGNATURE step initially failed: `tauri build` needs
   TAURI_SIGNING_PRIVATE_KEY (content, not a path — build-desktop.ts now
   passes it automatically). The key is rsign-ENCRYPTED: signing also needs
-  its password (BLACKROSE_SIGNING_PASSWORD; never stored anywhere by
-  design). All 3 passwords found in PS history FAILED ("Wrong password for
-  that key") — BLOCKED ON THE USER: the password must come from the user
-  (setx BLACKROSE_SIGNING_PASSWORD or tell the agent). sign-090.ps1 in
-  validation/scratch-curriculum signs the already-built installer without
-  a repack. After signing: rebuild latest.json (BOM-less) with the new
-  sha256/size, then the release recipe (gh release upload v0.9.0 --clobber).
+  its password. RESOLVED: the user supplied the password via
+  Documents\signing_password.txt (9 chars — matches NOTHING in PS history,
+  so the history candidates were stale); sign-090.ps1 signs the
+  already-built installer WITHOUT a repack (tauri signer sign). Installer
+  + fresh .sig + BOM-less latest.json (new signature, 2026-09-28 pub_date)
+  are ready in desktop/tauri/target/release/bundle/nsis/. REMAINING FOR
+  PUBLISH (needs explicit user go-ahead): gh release upload v0.9.0
+  <exe> <sig> latest.json --clobber, then live-verify the update-install
+  path. The password file should be deleted after use.
 
 CURRICULUM INGESTED (2026-09-28):
   The user's "Tech God" master curriculum (28 parts, C:\Users\pc\Downloads\
