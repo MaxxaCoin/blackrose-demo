@@ -111,6 +111,24 @@ IG DATASET INGESTED + REEL-WATCHING PROVEN ON REAL DATA (2026-09-28):
   Driver: validation/scratch-video/ingest-ig-dataset.mts (transform+ingest)
   and watch-ig-probe.mts.
 
+UPDATE MYSTERY SOLVED + v0.9.1 (2026-09-28, ~14:45):
+  The installed app said "BlackRose is up to date" — CORRECT: the exe's
+  ProductVersion is 0.9.0 (the user installed yesterday's release at 18:05,
+  BEFORE the mic button existed). The updater can't offer the same version.
+  LESSON: verify the INSTALLED version (PowerShell VersionInfo) before
+  assuming an updater bug. Today's build is therefore released as v0.9.1
+  (package.json + tauri.conf.json + Cargo.toml bumped) so the installed
+  0.9.0 gets the real update banner with the mic button. The updater
+  endpoint (releases/latest/download/latest.json) verified live serving
+  0.9.0 — the Rust update_check command (a118f32) is sound.
+  ALSO: the batch reel-watching stalls when run DETACHED (start /b cmd /c
+  node …) — execShell's subprocess handling deadlocks in that context (two
+  yt-dlp per reel, ~0 CPU, output fully buffered until exit). The SAME tool
+  path works fine in a foreground run (reel #2 transcribed + ingested in
+  ~50s). Hardened video.ts with --socket-timeout 30 --retries 3 anyway.
+  GOTCHA for next sessions: run long tool drivers in FOREGROUND tool calls
+  (bounded timeouts), not via start /b.
+
 
 CURRENT PHASE:
   Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
