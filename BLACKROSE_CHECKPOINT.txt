@@ -138,6 +138,31 @@ pm run verify:checkpoint (scripts/verify-checkpoint.ts) fails
      "0 saved by you + 3 built-in (token-economy, think-before-spending,
      small-task-delegation)".
 
+  11. A RELEASE SHIPPED TWICE WITH A BROKEN DESKTOP UI — 0.9.9 and 0.9.10.
+      Both showed a blank page and {"error":"forbidden: cross-site request"}.
+      Read this before trusting any green test on a release build.
+      CAUSE: the CSRF guard added in item 2 also refuses the app's OWN webview.
+      main.rs navigates the shell from `tauri://localhost` to
+      `http://127.0.0.1:<port>/` (location.replace), which is cross-scheme and
+      cross-origin, so Chromium sends `Sec-Fetch-Site: cross-site` and an Origin
+      header. A browser pointed at loopback sends same-origin and never trips it,
+      so every browser-based test passed while the shipped app was unusable.
+      THE SECOND BUG (0.9.10): the first fix allowlisted origin STRINGS
+      ('http://tauri.localhost'). The real request carries the core's EPHEMERAL
+      PORT — `http://tauri.localhost:5514` — so it never matched and the app was
+      still broken. Fixed in 3f1b6bd by matching on hostname and ignoring the
+      port (isShellOrigin()).
+      THE LESSON, which is the expensive part: the tests used portless origins,
+      which genuinely DO pass, so the suite was green and I published on that
+      basis. A probe that does not reproduce the real client's exact request will
+      happily certify a broken build. What caught it was running the installed
+      app and LOOKING at it, not any test. Any guard that depends on a header
+      must be tested with the header values the real client sends — capture them,
+      do not guess them.
+      Verified in both directions, now including with-port forms: shell origins
+      200; evil.example, bare cross-site, tauri.localhost.evil.example and
+      localhost.evil.example all still 403.
+
   SECURITY STATE — READ THIS BEFORE PUBLISHING:
     * motion_token.json held a live OAuth refresh_token, committed in the OUTER
       repo in 61b9bf7. Now UNTRACKED with working copies preserved on disk, and
