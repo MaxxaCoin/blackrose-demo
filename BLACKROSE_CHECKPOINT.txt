@@ -5,19 +5,47 @@ kept only as a record of that session and its state)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-02
 AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
-  Inner code repo: cline/blackrose @ eed621e, branch main, 45 commits ahead of
-                    origin/main, NOTHING PUSHED. Version still 0.9.8 in
-                    package.json / tauri.conf.json / Cargo.toml / installed app.
+  Inner code repo: cline/blackrose @ f512cb4, branch main, PUSHED to
+                    origin/main (github.com/MaxxaCoin/blackrose-source.git), 0 ahead /
+                    0 behind. Version 0.9.8 everywhere: package.json / tauri.conf.json /
+                    Cargo.toml / installed app / GitHub release.
   Outer workspace: docs + validation evidence; no remote configured.
 
   GATES AT HEAD (re-run on a stable tree, not on a tree mid-edit):
     npx tsc --noEmit            exit 0
     node src/smoke.ts           PASSED — 213 PASS / 0 FAIL
     node --test regression      51/51
+    npm run verify:checkpoint   CHECKPOINT INTEGRITY: PASS
 
   WHAT LANDED TODAY (18 commits, most significant first):
+  1. CHECKPOINT SELF-REPAIR (2026-10-02, later in the day). This file had been
+     quietly losing itself. Two tracked copies existed -- the outer
+     BLACKROSE_CHECKPOINT.txt and cline/blackrose/docs/BLACKROSE_CHECKPOINT.txt --
+     and had diverged for weeks. The 10-02 edit that prepended the session block
+     above did TWO things at once: it orphaned the middle of item 3 so the Gemini
+     paragraph stopped mid-sentence at "12 newer" and jumped straight to item 4,
+     AND it replaced ~255 lines of the 09-28 body with an OLDER snapshot,
+     deleting the entire v0.9.1-v0.9.4 release chronicle. That included the
+     "watcher that lies" post-mortem and the build-desktop staleness bug that
+     shipped a broken 0.9.1 -- both of which explain how a release goes wrong.
+     The commit reported "147 insertions, 0 deletions", which is exactly how
+     content disappears without a reviewer noticing.
+     REPAIRED: item 3's prose rejoined; the complete 09-28 body restored from the
+     docs copy (1174 lines); both copies made byte-identical (sha256 match); the
+     third stray copy (checkpoint-repo-backup/, untracked) confirmed to hold only
+     a superseded 09-27 priorities block that the live file already marks OBSOLETE.
+     GUARD ADDED: 
+pm run verify:checkpoint (scripts/verify-checkpoint.ts) fails
+     closed on divergence, a BOM, a stale block on top, a numbering gap, a split
+     paragraph, or missing history markers. Verified it FAILS on the real
+     pre-merge file (3 failures) and PASSES on the repair -- a check that only
+     ever passes protects nothing.
+     ROOT CAUSE: line-slicing edits, not appends. Three earlier commits
+     (c2853f4, efb0316, ddc992c) each had to repair this same file's header.
+     RULE FROM NOW ON: APPEND-ONLY, one line per session block, never rewrite the
+     body, and run verify:checkpoint before committing.
 
-  1. EXECUTIVE BRAIN (B12) — da08dcc. Spec capability #1 ("maintains awareness
+  2. EXECUTIVE BRAIN (B12) — da08dcc. Spec capability #1 ("maintains awareness
      of goals, projects, missions, deadlines, priorities, decisions"). Until now
      every goal lived in a chat transcript, which made BlackRose a tool rather
      than an operating layer. src/core/executive.ts + src/tools/goals.ts:
@@ -32,7 +60,7 @@ AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
      by design — a `goals.json` would have been silently dropped from every
      export, which is the exact bug that once lost a migrated machine its skills.
 
-  2. LOOPBACK CSRF / DNS-REBINDING FIX (HIGH) — a7d2bd2. main.ts passed
+  3. LOOPBACK CSRF / DNS-REBINDING FIX (HIGH) — a7d2bd2. main.ts passed
      token='' on loopback and server.ts gated only `if (o.token)`, so the
      DEFAULT local install had NO auth. Verified live before fixing:
      /api/health, /api/keys, /api/sessions, /api/trust and POST /api/ask all
@@ -42,7 +70,7 @@ AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
      Origin, Host) before the token gate, fails closed, non-browser clients
      (which send none of those headers) still work.
 
-  3. GEMINI MULTI-KEY ROTATION + B5 FULLY RESOLVED — 79b21ae, 82ba1c2, 9bd09c1.
+  4. GEMINI MULTI-KEY ROTATION + B5 FULLY RESOLVED — 79b21ae, 82ba1c2, 9bd09c1.
      The machine holds 13 Gemini keys in the vault (1 classic AIza + 12 newer
      "AQ." shape, 53 chars). BOTH shapes authenticate fine against
      generativelanguage via x-goog-api-key; gemini.ts passes keys through
@@ -65,7 +93,7 @@ AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
      GOTCHA WORTH KEEPING: warm-embed.ts imported embedBackendLabel but never
      called configureEmbedKeys, so the one operation that most needs spare
      daily quota would have run on a single key.
-4. UNDO JOURNAL BYTE BUDGET — 8c8c1d7. Pruning was by entry COUNT only.
+  5. UNDO JOURNAL BYTE BUDGET — 8c8c1d7. Pruning was by entry COUNT only.
      The existing caps (5 MB/file, 3000 files, 200 MB/snapshot) each bound ONE
      snapshot and nothing bounded their sum, so keep=30 large snapshots is
      gigabytes. Measured here before the fix: one entry held 22.5 MB. New
@@ -73,7 +101,7 @@ AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
      until the journal fits, RE-MEASURING each round because content-addressed
      blobs are shared between entries, and never pruning below one entry.
 
-  5. assigned_secret NEVER MATCHED JSON — 751e816. Long-standing and serious.
+  6. assigned_secret NEVER MATCHED JSON — 751e816. Long-standing and serious.
      Found by pointing a NEW scanner at the real leaked file and getting a
      FALSE "clean". Two defects: (a) in `"token": "value"` a closing quote sits
      between the key name and the colon, so every quoted JSON key was invisible
@@ -82,7 +110,7 @@ AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
      "refresh_token" because `_` is a word character. Also added redaction for
      the newer "AQ." Google key shape.
 
-  6. SECRET SCANNERS — 751e816, eed621e. `npm run scan:secrets` (staged/working)
+  7. SECRET SCANNERS — 751e816, eed621e. `npm run scan:secrets` (staged/working)
      and `npm run scan:history` (every commit ever). Both reuse SECRET_PATTERNS
      from memory/redact.ts verbatim rather than keeping a second list, and print
      FINGERPRINTS ONLY. Findings are graded reference / fixture / literal and
@@ -91,12 +119,12 @@ AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
      the identifier encodeURIComponent, synthetic fixtures in smoke.ts).
      A guard that cries wolf 20 times is a guard people learn to skip.
 
-  7. Two innerHTML XSS sinks — 3b4a0d7. Provider-controlled model names and
+  8. Two innerHTML XSS sinks — 3b4a0d7. Provider-controlled model names and
      server error text reached innerHTML unsanitised. escHtml at both sites,
      plus a state whitelist so an unrecognised route state paints 'unknown'
      rather than falsely claiming a human must act.
 
-  8. Route-probe defects — f9cd84f. The prober re-derived the base URL from env
+  9. Route-probe defects — f9cd84f. The prober re-derived the base URL from env
      alone (a third copy of the rules), so keyless kilo/ovh and every openai*
      route were never probed; a gateway hiding /models returned 404 and was
      painted "down/needs a human" when the code's own intent was "unknown";
@@ -104,7 +132,7 @@ AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
      rows. Probing still only happens on the web-UI path (--ui / BlackRose.exe);
      the plain CLI has none.
 
-  9. Doc clarity — 230afb8. --doctor said "skills: 0" while /api/health said
+  10. Doc clarity — 230afb8. --doctor said "skills: 0" while /api/health said
      "skills: 3". Both were true — loadSkills merges three BUILT-IN skills the
      disk count ignores — and both were labelled just "skills". Now:
      "0 saved by you + 3 built-in (token-economy, think-before-spending,
