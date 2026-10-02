@@ -1,0 +1,16 @@
+﻿BlackRose final verification 2026-10-02 @ f512cb4
+
+== tsc ==
+
+exit=0
+== git ==
+## main...origin/main
+f512cb4 docs: record the 2026-10-02 hardening + Executive Brain pass in the roadmap
+== smoke ==
+PASS=213 FAIL=0
+SMOKE TEST PASSED
+== regression ==
+â„¹ tests 51 | â„¹ pass 51 | â„¹ fail 0
+== secret scan (history, 134 commits) ==
+scan-history: 136 commit(s), 2.0 MB of diff
+scan-history: no credentials in history (9 fixture shape(s), 5 env/identifier reference(s) ignored).
