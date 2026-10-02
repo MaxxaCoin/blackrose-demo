@@ -1,4 +1,151 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
+-------------------------------------------------------------------------------
+SESSION 2026-10-02 (NEWEST — supersedes the 2026-09-28 header below, which is
+kept only as a record of that session and its state)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-02
+AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
+  Inner code repo: cline/blackrose @ eed621e, branch main, 45 commits ahead of
+                    origin/main, NOTHING PUSHED. Version still 0.9.8 in
+                    package.json / tauri.conf.json / Cargo.toml / installed app.
+  Outer workspace: docs + validation evidence; no remote configured.
+
+  GATES AT HEAD (re-run on a stable tree, not on a tree mid-edit):
+    npx tsc --noEmit            exit 0
+    node src/smoke.ts           PASSED — 213 PASS / 0 FAIL
+    node --test regression      51/51
+
+  WHAT LANDED TODAY (18 commits, most significant first):
+
+  1. EXECUTIVE BRAIN (B12) — da08dcc. Spec capability #1 ("maintains awareness
+     of goals, projects, missions, deadlines, priorities, decisions"). Until now
+     every goal lived in a chat transcript, which made BlackRose a tool rather
+     than an operating layer. src/core/executive.ts + src/tools/goals.ts:
+     goal_add/update/list/focus/remove + decision_record/list.
+     A goal REQUIRES a `why`; a blocked goal requires a `blocked_reason`; a
+     decision records what would prove it wrong.
+     The awareness half is `briefing()`, folded into EVERY system prompt from
+     one place in buildSystemPrompt, so CLI/UI/desktop all gain it at once. It
+     is hard-capped at 8 goals because it runs on every turn.
+     STORED IN A DIRECTORY (`goals/`) ON PURPOSE: state/aistate.ts packs only
+     the dirs in STATE_DIRS, and root-level files (schedules.json) are excluded
+     by design — a `goals.json` would have been silently dropped from every
+     export, which is the exact bug that once lost a migrated machine its skills.
+
+  2. LOOPBACK CSRF / DNS-REBINDING FIX (HIGH) — a7d2bd2. main.ts passed
+     token='' on loopback and server.ts gated only `if (o.token)`, so the
+     DEFAULT local install had NO auth. Verified live before fixing:
+     /api/health, /api/keys, /api/sessions, /api/trust and POST /api/ask all
+     returned 200 with `Origin: https://evil.example`. No ACAO header existed,
+     so cross-origin READ was blocked by SOP but side-effect CSRF was live;
+     DNS rebinding would defeat even that. Now three checks (Sec-Fetch-Site,
+     Origin, Host) before the token gate, fails closed, non-browser clients
+     (which send none of those headers) still work.
+
+  3. GEMINI MULTI-KEY ROTATION + B5 FULLY RESOLVED — 79b21ae, 82ba1c2, 9bd09c1.
+     The machine holds 13 Gemini keys in the vault (1 classic AIza + 12 newer
+4. UNDO JOURNAL BYTE BUDGET — 8c8c1d7. Pruning was by entry COUNT only.
+     The existing caps (5 MB/file, 3000 files, 200 MB/snapshot) each bound ONE
+     snapshot and nothing bounded their sum, so keep=30 large snapshots is
+     gigabytes. Measured here before the fix: one entry held 22.5 MB. New
+     BLACKROSE_UNDO_MAX_JOURNAL_BYTES (512 MB default) drops oldest entries
+     until the journal fits, RE-MEASURING each round because content-addressed
+     blobs are shared between entries, and never pruning below one entry.
+
+  5. assigned_secret NEVER MATCHED JSON — 751e816. Long-standing and serious.
+     Found by pointing a NEW scanner at the real leaked file and getting a
+     FALSE "clean". Two defects: (a) in `"token": "value"` a closing quote sits
+     between the key name and the colon, so every quoted JSON key was invisible
+     — and JSON is the dominant credential format, including this project's own
+     knowledge chunks; (b) a word boundary before "token" cannot match inside
+     "refresh_token" because `_` is a word character. Also added redaction for
+     the newer "AQ." Google key shape.
+
+  6. SECRET SCANNERS — 751e816, eed621e. `npm run scan:secrets` (staged/working)
+     and `npm run scan:history` (every commit ever). Both reuse SECRET_PATTERNS
+     from memory/redact.ts verbatim rather than keeping a second list, and print
+     FINGERPRINTS ONLY. Findings are graded reference / fixture / literal and
+     only `literal` blocks — the first version reported 20 "secrets" in 134
+     commits and every one was a false positive (process.env.X_KEY references,
+     the identifier encodeURIComponent, synthetic fixtures in smoke.ts).
+     A guard that cries wolf 20 times is a guard people learn to skip.
+
+  7. Two innerHTML XSS sinks — 3b4a0d7. Provider-controlled model names and
+     server error text reached innerHTML unsanitised. escHtml at both sites,
+     plus a state whitelist so an unrecognised route state paints 'unknown'
+     rather than falsely claiming a human must act.
+
+  8. Route-probe defects — f9cd84f. The prober re-derived the base URL from env
+     alone (a third copy of the rules), so keyless kilo/ovh and every openai*
+     route were never probed; a gateway hiding /models returned 404 and was
+     painted "down/needs a human" when the code's own intent was "unknown";
+     and probe keys mismatched registerRoute keys, producing duplicate tray
+     rows. Probing still only happens on the web-UI path (--ui / BlackRose.exe);
+     the plain CLI has none.
+
+  9. Doc clarity — 230afb8. --doctor said "skills: 0" while /api/health said
+     "skills: 3". Both were true — loadSkills merges three BUILT-IN skills the
+     disk count ignores — and both were labelled just "skills". Now:
+     "0 saved by you + 3 built-in (token-economy, think-before-spending,
+     small-task-delegation)".
+
+  SECURITY STATE — READ THIS BEFORE PUBLISHING:
+    * motion_token.json held a live OAuth refresh_token, committed in the OUTER
+      repo in 61b9bf7. Now UNTRACKED with working copies preserved on disk, and
+      motion_*.json|ps1|txt, *_token.json, signing_password*.txt are ignored
+      (7ca6836). That repo has NO remote, so the secret was never published.
+      THE TOKEN STILL NEEDS REVOKING — gitignore is not revocation.
+    * The CODE repo history is VERIFIED CLEAN across all 134 commits
+      (`npm run scan:history`). No real credential was ever committed there.
+
+  STILL UNVERIFIED (do not claim otherwise):
+    * The update INSTALL path end-to-end. Only the update NOTICE path was ever
+      proven. Manual test script: validation/release-readiness.md
+    * Second-device .aistate / bridge sync — needs two machines on a LAN.
+    * A RELEASE WAS NOT BUILT OR PUBLISHED. Version is still 0.9.8 everywhere
+      and GitHub releases are at 0.9.8. Publishing a binary now would violate
+      the project's own rule ("do not claim BlackRose.exe is production ready
+      without release testing") while the install path is unproven.
+
+  OBSERVED, NOT CHANGED (config, not code — the user's call):
+    * route openai2 -> http://127.0.0.1:20128/v1 is NOT REACHABLE and sits
+      FIRST in the 9-route chain, so every failover pays a wasted round trip.
+    * route onemin probes as degraded.
+
+  TECHNIQUE NOTES (learned the hard way today):
+    * PowerShell `Out-File`/`Set-Content -Encoding utf8` add a BOM; use
+      [System.IO.File]::WriteAllText with UTF8Encoding($false).
+    * Node's `fetch` silently DROPS the Host header (forbidden per spec), so
+      any test of a Host-based check must use node:http or it proves nothing.
+    * Blobs are content-addressed, so identical test filler dedupes into one
+      blob and makes a byte-budget test silently meaningless.
+    * `git commit -m` with backticks/quotes in PowerShell mangles the message;
+      write it to a file and use `git commit -F`.
+    * smoke.ts/regression take ~55s; run detached and poll, they exceed the
+      30s command window.
+
+-------------------------------------------------------------------------------
+     "AQ." shape, 53 chars). BOTH shapes authenticate fine against
+     generativelanguage via x-goog-api-key; gemini.ts passes keys through
+     opaquely with no format validation, so no change was needed for that.
+     BUT only ONE key was ever used: gemini was the last built-in provider
+     reading a single env var while the vault, the <envVar>__KEYS extras store,
+     the key roster and routespecs.ts had always supported many. And
+     embedder.ts's embedKey() never consulted the vault AT ALL.
+     MEASURED live against batchEmbedContents with the stored keys: 10 of 13
+     serve embeddings (dim 3072), 3 answer HTTP 403 "project denied" (parked,
+     never retried). The embedder now rotates with three outcomes distinguished
+     per key — spent (try the next), rejected (park), malformed (abort rather
+     than waste the same request on 12 more keys) — and only reports degraded
+     when EVERY key is spent. Embedder key health uses its own namespace so a
+     spent embedding quota can never park a good conversational key.
+     ALSO: the embedder sent its key as ?key=... in the URL while gemini.ts
+     already documented x-goog-api-key as keeping it out of URLs. Fixed.
+     RESULT: warm-embed.ts went 360/643 -> 643/643 chunks, and `--doctor` no
+     longer prints the "! embedding quota" line. Semantic retrieval is working.
+     GOTCHA WORTH KEEPING: warm-embed.ts imported embedBackendLabel but never
+     called configureEmbedKeys, so the one operation that most needs spare
+     daily quota would have run on a single key.
 ============================================
 DATE / TIME: 2026-09-28 (local; sessions 09-17 → 09-28)
 AI / AGENT: Cline (act mode)
