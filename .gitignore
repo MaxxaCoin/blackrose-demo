@@ -25,3 +25,15 @@ validation/release-0.8.1/
 # probe scratch state (generated knowledge/vector output — the driver script is
 # kept as evidence, its throwaway knowledge base is not)
 validation/scratch-*/state/
+
+# Live credentials and device-auth material - NEVER commit these.
+# motion_token.json holds a real OAuth refresh_token. It was committed once, in
+# 61b9bf7 (2026-09-19), before this rule existed, and is untracked from
+# 2026-10-02 with the working copies left intact on disk. This repo has no
+# remote, so the secret was never published anywhere - but it must not be
+# re-added, and the token should be revoked regardless of what git reports.
+motion_*.json
+motion_*.ps1
+motion_*.txt
+*_token.json
+signing_password*.txt
