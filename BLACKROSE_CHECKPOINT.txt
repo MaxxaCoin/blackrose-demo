@@ -1,8 +1,120 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
-SESSION 2026-10-12 (NEWEST — supersedes the 2026-10-02 header below, which is
-kept only as a record of that session and its state)
+SESSION 2026-10-12 v3 (NEWEST — supersedes v2 above; v2 remains the button-hub
+afternoon record and its NEXT list was updated in place, marked DONE)
 -------------------------------------------------------------------------------
+DATE / TIME: 2026-10-12 (late afternoon)
+AI / AGENT: Cline (act mode — user: "do what you see right")
+  Doc-only session except one verify-script fix (see item 4). No src/ change;
+  version stays 0.9.27.
+  Inner repo still at 1dd36c9 (this session adds docs commits on top:
+  24994fa verify-script fix + checkpoint, 2012f3d the B12/4c doc fixes).
+
+  1. B12 CHECKLIST ROW FIXED — the one outstanding doc fix from the handoff.
+     Confirmed against the code BEFORE ticking (as §4c required): core/
+     executive.ts + tools/goals.ts ship goal_add/update/list/focus/remove,
+     decision_record/list and briefing() folded into every system prompt
+     (llm/prompt.ts); 756ca3a fixed the five audited defects; the goals/
+     DIRECTORY-not-file export rationale is in the module header. Row now
+     reads [x] 2026-10-02 (da08dcc, fixes 756ca3a) with an honest DONE note.
+  2. HANDOFF §4c REWRITTEN as "RESOLVED 2026-10-12" with the verification
+     evidence; its PART-B table row no longer says "checklist row still says
+     open". PART B is trustworthy again.
+  3. CHECKPOINT NEXT LIST UPDATED in place: v2 item a (push) marked DONE —
+     origin/main already matches HEAD, rev-list reads 0 0, tree was clean;
+     item e dropped "the B12 checklist row" from open items. No push needed.
+  4. GATES: npm run verify:checkpoint PASS (copies byte-identical, structure
+     whole). One tooling fix en route: verify-checkpoint.ts's newest-block
+     boundary (next "DATE / TIME:" after i>5) predated stacked --- headered
+     blocks and flagged v2's own header rule once v3 was prepended; it now
+     also stops at the inter-block === separator. tsc --noEmit clean. Smoke
+     and regression suites not re-run — no src/ code changed this session.
+  5. STILL OPEN (updated 2026-10-12): DONE this session — REVOKE the motion
+     OAuth refresh token. RFC 7009 revocation POSTed to
+     mcp.motion.so/oauth/revoke from the token recovered out of git history
+     (61b9bf7, outer repo, no remote) → HTTP 200; old refresh token now
+     returns 400 invalid_grant on reuse. No tokens printed; live MCP session
+     uses a different client (9692a0f9) and still authenticates.
+     REMAINING: install v0.9.27 on this machine; build + release v0.9.28
+     carrying 8fc761d/d087716/1dd36c9 (needs signing password;
+     extract-and-inspect must show TELEGRAM_HUB_BUTTONS); close B9's
+     live-token proof from a real phone; copy ~/.blackrose/backups
+     off-machine; openai2 dead route (user's call); prove the INSTALL path
+     end-to-end.
+
+===============================================================================
+SESSION 2026-10-12 v2 (NEWEST — supersedes the 2026-10-12 block below, which
+remains the record of the morning button-hub session)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-12 (afternoon)
+AI / AGENT: Cline (act mode — user: "continue with what you see right")
+  Inner code repo: cline/blackrose @ 1dd36c9, branch main — 4 commits AHEAD of
+                    origin/main, all UNPUSHED (8fc761d button hub, 907081e
+                    handoff refresh, d087716 tray probe, 1dd36c9 TokenHarbor).
+                    Working tree clean. Version 0.9.27 everywhere (no bump);
+                    installed app still 0.9.26.
+  Outer workspace: this checkpoint/handoff reconciliation is the outer change.
+
+  GATES RE-RUN 2026-10-12 ON THIS TREE:
+    npx tsc --noEmit            exit 0 (clean)
+    node src/smoke.ts           SMOKE TEST PASSED — 282 PASS / 0 FAIL
+    node --test regression + parser-hostile + telegram suites   164/164
+    scripts/scan-secrets.ts src scripts   1 flag — adjudicated false positive
+                                (item 3 below)
+    npm run verify:checkpoint   CHECKPOINT INTEGRITY: PASS
+
+
+  WHAT LANDED SINCE THE BLOCK BELOW (d087716 + 1dd36c9, most significant first):
+  1. TOKENHARBOR JOINED THE ROUTE TABLE AS openai10 (commit 1dd36c9). One spec
+     line in src/core/routespecs.ts (env BLACKROSE_OPENAI10_API_KEY, label
+     "TokenHarbor / OpenAI #10"); base URL https://tokenharbor.ai/v1, example
+     model claude-sonnet-5, key shape thk_...  README, 04-ROADMAP and
+     05-MODEL-INDEPENDENCE updated from openai1...openai9 to openai1...openai10
+     and the 05 routes table lists openai10. BLACKROSE_ROUTES itself is
+     unchanged — openai10 is AVAILABLE, not yet placed in the chain; wiring it
+     in is the user's call.
+  2. CONNECTED-ROUTES TRAY NO LONGER PAINTS A WORKING ROUTE YELLOW (d087716).
+     Gateways that hide GET /models (OmniRoute 401s it, Cloudflare 405s) were
+     recorded as "down", which showed a healthy route as needs-attention. The
+     tray now falls back to a minimal chat probe on 401/403/404/405 — the same
+     set doctor's probeOpenAi falls back from — and records "chat probe OK
+     (/models not exposed)" when generation answers. smoke.ts grew 21 lines
+     pinning the classification.
+  3. THE SECRETS SCANNER'S ONE FLAG WAS ADJUDICATED A FALSE POSITIVE.
+     scan-secrets flags src/ui/web/bookmarklet.ts:90 assigned_secret (18c):
+     the line is const token = crypto.randomBytes(TOKEN_BYTES).toString('hex')
+     — runtime GENERATION of the per-install bookmark token, not a hardcoded
+     credential. Same shape-class the 2026-10-02 block already adjudicated.
+     Nothing to revoke; no file change.
+  4. GATES RE-RUN ON THE CURRENT TREE (results above). Smoke and the four
+     suites ran backgrounded per the handoff's run_commands-timeout procedure;
+     both finished clean and no leftover node processes remained.
+  5. HANDOFF RECONCILED AGAINST REALITY (this edit). Section 0 head updated
+     8fc761d to 1dd36c9 and "1 ahead" to "4 ahead"; section 3's not-yet-
+     released list now names all three unreleased commits (button hub, tray
+     probe, openai10) pending v0.9.28; this block prepended to both
+     checkpoint copies (kept byte-identical; verify:checkpoint PASS).
+  6. NEXT — do these in order, next session:
+      a. DONE — inner repo already at HEAD `1dd36c9` and origin/main matches
+         (`git rev-list --left-right --count origin/main...HEAD` → 0 0).
+         No push needed.
+
+     b. Install/verify v0.9.27 on this machine (installed app is 0.9.26).
+     c. Build + release v0.9.28 carrying the button hub (8fc761d) plus today's
+        tray probe and openai10 (needs the user's signing password; section 6
+        of 08-SESSION-HANDOFF.md). Extract-and-inspect must show
+        TELEGRAM_HUB_BUTTONS in the payload before publishing.
+     d. Close B9's live-token proof: bind a real bot, tap every hub button
+        from a real phone.
+     e. Unchanged open items: REVOKE the motion OAuth refresh token; copy
+        ~/.blackrose/backups off-machine; the openai2 dead route still first
+        in the chain (user's call); prove the INSTALL
+        path end-to-end.
+
+===============================================================================
+SESSION 2026-10-12 (superseded by the v2 block above — kept as the morning
+button-hub session's record)
+===============================================================================
 DATE / TIME: 2026-10-12
 AI / AGENT: Cline (act mode — user asked to commit everything and refresh the handoff)
   Inner code repo: cline/blackrose @ 8fc761d, branch main — 1 commit AHEAD of
