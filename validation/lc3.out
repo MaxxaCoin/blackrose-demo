@@ -1,0 +1,4 @@
+   Compiling blackrose-desktop v0.9.19 (C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri)
+src\main.rs:687:17: warning: value assigned to `reaped_squatter` is never read
+warning: `blackrose-desktop` (bin "blackrose-desktop") generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 40.93s

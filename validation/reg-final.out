@@ -1,0 +1,26 @@
+✔ final assistant answer survives session persistence and a follow-up call (24.2097ms)
+✔ tool conversation retains exactly one final assistant message (4.7196ms)
+✔ state import rejects unsafe path "../state-other/escaped.md" before writing any entries (204.4657ms)
+✔ state import rejects unsafe path "memory/../../state-other/escaped.md" before writing any entries (177.6477ms)
+✔ state import rejects unsafe path "memory/..\\..\\state-other/escaped.md" before writing any entries (197.6591ms)
+✔ state import rejects unsafe path "memory/../sessions/escaped.json" before writing any entries (209.9252ms)
+✔ state import rejects unsafe path "mcp.json" before writing any entries (212.0467ms)
+✔ state import rejects unsafe path "memory/note.md:stream" before writing any entries (208.2843ms)
+✔ state import rejects unsafe path "memory/trailing./note.md" before writing any entries (163.5584ms)
+✔ state import rejects unsafe path "memory//note.md" before writing any entries (213.561ms)
+✔ state import rejects an absolute path (250.7105ms)
+✔ state import rejects junction/symlink parents pointing outside the state root (194.5419ms)
+✔ state import validates all entry contents before modifying existing state (185.6256ms)
+✔ full state roundtrip supports nested files and a relative destination (189.8316ms)
+✔ --resume is a mode flag: it starts the REPL instead of being sent as a prompt (840.1775ms)
+✔ an agent write can be rolled back, and the rollback itself is restorable (64.4914ms)
+✔ the secret vault seals keys per store, migrates plaintext, and fails closed on tampering (12260.0464ms)
+✔ web UI with a token: unauthenticated requests are rejected and the token grants access (122.5804ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16459.7698

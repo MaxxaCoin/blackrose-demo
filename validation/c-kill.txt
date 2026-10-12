@@ -1,0 +1,22 @@
+fix(desktop): a failed core-kill must not be swallowed on the install path
+
+audit-state row 7. Three sites did `let _ = child.kill();`, discarding the
+Result. Two of them are not stylistic:
+
+  * install_update() kills the core because the installer has to overwrite the
+    bundled node.exe. A silent kill failure there means the installer is handed
+    a still-running process, fails with "Error opening file for writing", and
+    leaves a half-installed app. The user sees a broken install they may not
+    notice until the next launch.
+  * app_shutdown() is the sidebar power button; it can report a failure and
+    previously did not.
+
+Extracted stop_core(), which returns Result and converts a kill failure into an
+explanation that names the actual consequence ("close any running BlackRose
+window and try again"). install_update now aborts before launching the
+installer rather than after it half-writes.
+
+The third site, the RunEvent::Exit handler, genuinely cannot report anything —
+the app is already exiting — so it keeps the best-effort call.
+
+Gates: cargo check clean.

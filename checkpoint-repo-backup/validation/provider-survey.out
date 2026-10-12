@@ -1,0 +1,53 @@
+PROVIDER SURVEY — all API keys in Documents (free tiers) — 2026-09-19
+=====================================================================
+Keys were read from C:\Users\pc\Documents\*.txt and used live; none are
+printed here. Goal: free cloud models FIRST, local Ollama LAST.
+
+OMNIROUTE (local router, npx omniroute, API on http://localhost:20128/v1)
+  Combo "BlackRose" = the user's free-model group.
+  - raw chat: HTTP 200 in 3.6s — combo resolved to upstream gemini-3.7-flash-low
+  - shipping adapter + resilientClient: 2-tool agent roundtrip PASS (11s)
+  - router chain: dead first route ? "? route openai failed ? falling back"
+    ? next route served FALLBACK-OK  (omniroute-probe.out ? PASS)
+  - CLI --goal via full chain: write_file + read_file ? VERIFIED
+    (omniroute-chain-e2e.out)
+  - NOTE: GET /v1/models returns 401 for this key while chat works; doctor
+    now falls back to a chat probe for such gateways (doctor-chain.out).
+
+NVIDIA NIM direct — https://integrate.api.nvidia.com/v1
+  - nvidia/nemotron-3-super-120b-a12b: HTTP 200, NATIVE tool_calls ?
+  - (the same model with ':free' is only on OpenRouter; direct API wants
+    the bare id. Most other listed models 404/410 on this account's chat
+    endpoint — the nemotron id is the working one.)
+  ? wired as route openai3.
+
+HUGGING FACE — https://router.huggingface.co/v1
+  - meta-llama/Llama-3.3-70B-Instruct: HTTP 200, NATIVE tool_calls ?
+  - 139 models listed
+  ? wired as route openai4.
+
+GOOGLE AI STUDIO (Gemini) — generativelanguage.googleapis.com
+  - OpenAI-compat chat endpoint 404s for every tested id (2.5-flash, with/
+    without models/ prefix) on this key's free tier.
+  - NATIVE generateContent: gemini-3-flash-preview HTTP 200, NATIVE
+    function calling ? (write_file with correct args).
+  ? covered via the OmniRoute combo; a native adapter (gemini.ts) is a
+    candidate for a future session, not wired today.
+
+CLOUDFLARE Workers AI — api.cloudflare.com
+  - API token valid but NOT linked to any account (GET /accounts ?
+    success=true, 0 accounts) ? cannot form the AI endpoint; skip.
+  - Even with the supplied account id, /ai/v1/models ? 405 (list restricted).
+  ? not wired; revisit if an AI-enabled token is provided.
+
+KIRA — dead (all free models in maintenance since 2026-09-17; kira-probe.out)
+ANTHROPIC (claude) — key valid but zero credits ? last-resort only.
+
+RESULTING ROUTER (User-scope env, keys never in files/commits):
+  BLACKROSE_ROUTES = openai2,openai3,openai,openai1,openai4,ollama
+    openai2 OmniRoute (combo BlackRose)   — free, aggregated, primary
+    openai3 NVIDIA direct (nemotron 120b) — free
+    openai  OpenRouter free (:free)       — free
+    openai1 Groq free (gpt-oss-120b)      — free
+    openai4 Hugging Face (llama 3.3 70B)  — free
+    ollama  qwen2.5-coder:7b              — LOCAL, last resort

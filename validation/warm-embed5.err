@@ -1,0 +1,3 @@
+  ✗ aborted — the API call fell back to br-hash-v1 (256d).
+    Nothing further was written. Likely a 429/quota window: wait a
+    minute and re-run; this script resumes from what is already stored.

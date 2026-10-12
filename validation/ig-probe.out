@@ -1,0 +1,8 @@
+scrape w/o token -> APIFY_TOKEN is not set. Get a token at https://console.apify.com -> Settings -> Integrations, then add it in the BlackRo | isError: true
+learn w/o confirm -> About to add this playbook to the knowledge base. Re-call with confirm:true to ingest it, 
+  log: saved playbook to C:\Users\pc\.blackrose\instagram-playbook.md
+learn w/ confirm -> Learned C:\Users\pc\.blackrose\instagram-playbook.md → 7 chunk(s) stored in knowledge base. | isError: false
+search -> [c-users-pc-desktop-blackrose-validation-scratch-video-ig-reels-playbook-txt#chunk1] (score 0.66)
+INSTAGRAM AI-REELS PLAYBOOK (petergriffin.ai) — scraped 2026-09-28. 198 reels, ranked by likes. Use…
+
+

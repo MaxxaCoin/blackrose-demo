@@ -1,0 +1,97 @@
+﻿✔ routeTelegramMessage recognises /start, /bind, /help, /status, /stop (5.6827ms)
+✔ routeTelegramMessage routes URLs to ingest-url (1.7315ms)
+✔ routeTelegramMessage routes plain text as submit-task (0.3378ms)
+✔ routeTelegramMessage returns unknown for empty input (1.0738ms)
+✔ TELEGRAM_VIDEO_LINK_RE matches video hosts, not plain URLs (0.8797ms)
+✔ TELEGRAM_HELP documents commands (0.5977ms)
+✔ menu buttons are icon-led, short, and route to real commands (1.47ms)
+✔ telegramMenuMarkup wraps the buttons as reply_markup (0.437ms)
+✔ telegramStatus reports unconfigured with no token (3.5422ms)
+✔ bindTelegramOwner / telegramOwnerChat roundtrip (7052.7092ms)
+✔ saveTelegramToken validates format and forget clears (2605.5789ms)
+✔ bare /task and /goal are guarded on the TYPED path too (not just buttons) (2.3625ms)
+✔ /model without a live host refuses honestly instead of faking success (2.3827ms)
+✔ plain text reaches the chat hook — the submit-task dead path (regression) (2524.3816ms)
+✔ rich layer: bold first line, blockquote body, plain round-trip (1.8304ms)
+✔ permission prompts reach the bot; no bot = fail-closed fallback signal (3.0804ms)
+✖ companion loop flag gates host approval delegation (no loop → local dialog) (2560.5679ms)
+✖ companion routing: new control commands parse without ambiguity (3.6857ms)
+✖ companion: /task is a real task, distinct from plain chat and /goal (1.2221ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 16
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15493.1167
+
+✖ failing tests:
+
+test at src\tools\telegram.test.ts:225:1
+✖ companion loop flag gates host approval delegation (no loop → local dialog) (2560.5679ms)
+  AssertionError [ERR_ASSERTION]: live loop delegates the decision to the phone
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/tools/telegram.test.ts:240:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at src\tools\telegram.test.ts:246:1
+✖ companion routing: new control commands parse without ambiguity (3.6857ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      kind: 'ls',
+  +   path: ''
+    }
+  
+      at TestContext.<anonymous> (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/tools/telegram.test.ts:252:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { kind: 'ls', path: '' },
+    expected: { kind: 'ls' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at src\tools\telegram.test.ts:261:1
+✖ companion: /task is a real task, distinct from plain chat and /goal (1.2221ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   kind: 'run-task',
+  -   kind: 'submit-task',
+      prompt: 'build the thing'
+    }
+  
+      at TestContext.<anonymous> (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/tools/telegram.test.ts:262:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { kind: 'run-task', prompt: 'build the thing' },
+    expected: { kind: 'submit-task', prompt: 'build the thing' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

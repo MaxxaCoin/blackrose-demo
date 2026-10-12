@@ -1,0 +1,69 @@
+✔ final assistant answer survives session persistence and a follow-up call (39.5138ms)
+✔ tool conversation retains exactly one final assistant message (3.237ms)
+✔ state import rejects unsafe path "../state-other/escaped.md" before writing any entries (385.7036ms)
+✔ state import rejects unsafe path "memory/../../state-other/escaped.md" before writing any entries (317.4697ms)
+✔ state import rejects unsafe path "memory/..\\..\\state-other/escaped.md" before writing any entries (299.5666ms)
+✔ state import rejects unsafe path "memory/../sessions/escaped.json" before writing any entries (331.4893ms)
+✔ state import rejects unsafe path "mcp.json" before writing any entries (292.4587ms)
+✔ state import rejects unsafe path "memory/note.md:stream" before writing any entries (264.0489ms)
+✔ state import rejects unsafe path "memory/trailing./note.md" before writing any entries (284.1804ms)
+✔ state import rejects unsafe path "memory//note.md" before writing any entries (305.8822ms)
+✔ state import rejects an absolute path (329.6442ms)
+✔ state import rejects junction/symlink parents pointing outside the state root (257.8901ms)
+✔ state import validates all entry contents before modifying existing state (296.8589ms)
+✔ full state roundtrip supports nested files and a relative destination (259.3435ms)
+✔ --resume is a mode flag: it starts the REPL instead of being sent as a prompt (999.0373ms)
+✔ an agent write can be rolled back, and the rollback itself is restorable (115.7038ms)
+✔ the secret vault seals keys per store, migrates plaintext, and fails closed on tampering (14848.704ms)
+✔ web UI with a token: unauthenticated requests are rejected and the token grants access (1734.6611ms)
+[vectors] not saving: br-hash-v1 fallback vectors would overwrite the real index. Retrieval is degraded to lexical for this session only.
+[vectors] not saving: br-hash-v1 fallback vectors would overwrite the real index. Retrieval is degraded to lexical for this session only.
+✔ the web UI rebuilds the system prompt per run, so new memories are visible (186.0494ms)
+▶ a hash-fallback embed is served but never persisted over a real vector index
+  ✔ adding a provider cannot destroy keys from a legacy plaintext store (2169.5963ms)
+  ▶ keys and providers share one store without an import cycle
+    ✔ a custom provider wins even when its name matches the openai<N> pattern (2500.4315ms)
+    ✔ a keyless custom provider sends no Authorization header (2422.1977ms)
+    ✔ removing a provider clears its mirrored environment variables (1579.5605ms)
+  ✔ keys and providers share one store without an import cycle (6504.1445ms)
+  ✔ every route name maps to its real env var, and anthropic is the exception (1234.1631ms)
+  ✔ saving the chain does not then lock the editor read-only (2663.6228ms)
+  ✔ a genuinely user-set BLACKROSE_ROUTES still overrides the stored chain (2071.6161ms)
+  ✔ the fallback chain round-trips through the vault (1022.3865ms)
+  ✔ the env var still wins over the stored chain (1359.3656ms)
+  ✔ a chain cannot contain duplicates or unusable route names (2599.2945ms)
+  ✔ deleting a provider also drops it from the chain, but keeps its keys (2524.0872ms)
+  ▶ a new provider can join the chain without disturbing the existing order
+    ✔ forgetting a source removes it and its vectors, and nothing else (34.8687ms)
+    ✔ a short or ambiguous reference deletes NOTHING and asks for detail (40.6504ms)
+    ✔ an exact source is removed even when a substring of it also exists (22.7624ms)
+    ✔ stray JSON in the knowledge dir is neither listed nor deleted (26.2298ms)
+  ✔ a new provider can join the chain without disturbing the existing order (4281.631ms)
+  ✔ a provider can be added from config, and bad input is refused (1000.3156ms)
+  ✔ a provider with two keys survives the first one hitting a limit (1435.8679ms)
+  ✔ bulk key import parses real-world formats and never echoes a key (1380.316ms)
+  ✔ key validation tells a dead key from a busy one, and leaks nothing (5.234ms)
+  ✔ secrets are redacted before anything is persisted or embedded (14.3024ms)
+✔ a hash-fallback embed is served but never persisted over a real vector index (30277.1124ms)
+✔ the vector store writes normally when the store matches the active backend (10.6131ms)
+✔ a backend flip mid-call re-embeds the cached ids instead of crashing (19.8165ms)
+[embed] Gemini daily embedding quota is exhausted (EmbedContentRequestsPerDayPerProjectPerModel-FreeTier, 1000/day). Falling back to the hash embedder — retrieval stays lexical until the quota resets. No retry: the cap is per day.
+[embed] Gemini daily embedding quota is exhausted (EmbedContentRequestsPerDayPerProjectPerModel-FreeTier, 1000/day). Falling back to the hash embedder — retrieval stays lexical until the quota resets. No retry: the cap is per day.
+✔ one corrupt file does not zero the knowledge chunk count (783.1414ms)
+✔ a large corpus is searched without embedding every document (57.6366ms)
+✔ shingles are order-sensitive; token sets are not (1.2801ms)
+✔ near-duplicate chunks are grouped, and distinct ones are left alone (12.738ms)
+✔ a redundant source is only ever absorbed into a LARGER one (4.7661ms)
+[embed] Gemini daily embedding quota is exhausted (EmbedContentRequestsPerDayPerProjectPerModel-FreeTier, 1000/day). Falling back to the hash embedder — retrieval stays lexical until the quota resets. No retry: the cap is per day.
+[embed] Gemini daily embedding quota is exhausted (EmbedContentRequestsPerDayPerProjectPerModel-FreeTier, 1000/day). Falling back to the hash embedder — retrieval stays lexical until the quota resets. No retry: the cap is per day.
+✔ the sweep reports savings and deletes nothing (505.8464ms)
+[embed] Gemini daily embedding quota is exhausted (EmbedContentRequestsPerDayPerProjectPerModel-FreeTier, 1000/day). Falling back to the hash embedder — retrieval stays lexical until the quota resets. No retry: the cap is per day.
+✔ the sweep says so plainly when there is no duplication (238.2369ms)
+ℹ tests 51
+ℹ suites 0
+ℹ pass 51
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55287.1522

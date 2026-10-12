@@ -1,0 +1,5 @@
+=== huggingface ===
+[chat] HTTP 200 in 2104ms · model=llama-3.3-70b-instruct
+[chat] tool_calls: probe_tool({"ok": "true"})
+[chat] content: ""
+HUGGINGFACE PROBE DONE

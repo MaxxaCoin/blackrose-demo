@@ -1,0 +1,16 @@
+APIFY_TOKEN set from file (not printed)
+APPROVAL: instagram_scrape -> Run the Apify Instagram Scraper on 1 target(s), 2 posts each? This spends Apify credits and can take several minutes.
+  log: starting Apify scrape of 1 target(s)…
+  log: apify run ATDITuKaum3DwyXhN: RUNNING
+  log: apify run ATDITuKaum3DwyXhN: SUCCEEDED
+file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/tools/instagram.ts:52
+  if (!res.ok) throw new Error(body?.error?.message ?? `Apify API HTTP ${res.status}`)
+                     ^
+
+Error: Insufficient permissions for the dataset. Make sure you're passing a correct API token and that it has the required permissions.
+    at apifyGet (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/tools/instagram.ts:52:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Object.run (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/tools/instagram.ts:180:19)
+    at async file:///C:/Users/pc/Desktop/BlackRose/validation/scratch-video/probe-instagram-live.mts:31:11
+
+Node.js v24.21.0

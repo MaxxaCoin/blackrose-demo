@@ -1,0 +1,11 @@
+  ↪ 2 of 3 route(s) active (skipped: this_route_does_not_exist)
+ReferenceError: keep is not defined
+    at eval (eval at main (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:2671:20), <anonymous>:47:46)
+    at String.replace (<anonymous>)
+    at inline (eval at main (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:2671:20), <anonymous>:47:6)
+    at closePara (eval at main (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:2671:20), <anonymous>:71:23)
+    at flush (eval at main (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:2671:20), <anonymous>:84:25)
+    at Object.renderRich (eval at main (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:2671:20), <anonymous>:135:3)
+    at r (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:2674:45)
+    at main (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:2682:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)

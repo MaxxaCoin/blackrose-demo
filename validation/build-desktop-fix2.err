@@ -1,0 +1,12 @@
+        Info Looking up installed tauri packages to check mismatched versions...
+   Compiling blackrose-desktop v0.9.8 (C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri)
+warning: blackrose-desktop@0.9.8: STATIC_VCRUNTIME is deprecated; use build.windows.staticVCRuntime in tauri.conf.json or tauri_build::WindowsAttributes::static_vc_runtime instead.
+    Finished `release` profile [optimized] target(s) in 9m 28s
+       Built application at: C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\BlackRose.exe
+        Info Patching C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\BlackRose.exe with bundle type information: nsis
+        Info Target: x64
+     Running makensis to produce C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\bundle\nsis\BlackRose_0.9.8_x64-setup.exe
+    Finished 1 bundle at:
+        C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\bundle\nsis\BlackRose_0.9.8_x64-setup.exe
+
+        Info Decrypting updater signing key, expect a prompt for password

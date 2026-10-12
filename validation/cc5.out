@@ -1,0 +1,16 @@
+error: expected expression, found keyword `mut`
+   --> src\main.rs:449:17
+    |
+449 |     b"WAVEfmt "&mut bytes;
+    |                 ^^^ expected expression
+
+error[E0618]: expected function, found `&'static [u8; 4]`
+   --> src\main.rs:447:5
+    |
+447 |     b"RIFF"(&mut bytes);
+    |     ^^^^^^^------------
+    |     |
+    |     call expression requires function
+
+For more information about this error, try `rustc --explain E0618`.
+error: could not compile `blackrose-desktop` (bin "blackrose-desktop") due to 2 previous errors

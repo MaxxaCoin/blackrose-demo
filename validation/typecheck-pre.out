@@ -1,0 +1,4 @@
+
+> blackrose@0.9.1 typecheck
+> node node_modules/typescript/bin/tsc --noEmit
+

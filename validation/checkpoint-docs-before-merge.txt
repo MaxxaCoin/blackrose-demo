@@ -1,0 +1,1175 @@
+BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
+============================================
+DATE / TIME: 2026-09-28 (local; sessions 09-17 → 09-28)
+AI / AGENT: Cline (act mode)
+   Grouped-sidebar desktop controls shipped and verified in an installed
+   signed 0.8.1 build; the Bytez provider experiment was investigated,
+   found dead, and fully reverted.
+SESSION / COMMIT:
+  Inner code repo:  cline/blackrose (branch main, clean) @ HEAD — run `git log`
+                    for the current tip (2026-10-02 tip: 4169201).
+                    REMOTE: github.com/MaxxaCoin/blackrose-source.git — the
+                    older "no remote by design" note below is OBSOLETE.
+                    Published installer: v0.9.8 (github.com/MaxxaCoin/BlackRose;
+                    code, tauri.conf.json, Cargo.toml, package.json and the
+                    installed app are ALL uniformly 0.9.8 — verified 2026-10-02).
+                    Earlier commit ids in this header are retained as history.
+                      c2521fa  feat: watch_video tool — yt-dlp download +
+                               cloud STT transcript (+save/ingest)
+                      262ad13  fix: knowledge tools tolerate malformed chunk
+                               files; build-desktop passes the updater signing
+                               key automatically
+                      f207c56  feat: push-to-talk mic button — /api/listen
+                               endpoint + composer mic (offline local STT)
+                      4eb2a50  feat: single-instance guard — one window +
+                               one core, updater restart race fixed
+                      20f8387  ui: drop zone accepts any file type and
+                               reports the saved path
+                      bd5854d  README: GitHub release recipe
+                      d0571c3  Release 0.8.1: live GitHub auto-updater
+  Outer workspace:  @ <see git log> (release binaries intentionally untracked;
+                    MaxxaCoin/BlackRose is the public artifacts-only
+                    release repo).
+  SESSION NOTE (2026-09-28): the 09-27 session was cut off by gateway
+    rate limits (free-models-per-day) mid-run, but its work was COMPLETE
+    and verified: full smoke suite PASSED, 0.9.0 NSIS installer + updater
+    signature rebuilt (validation/build-si-090.out). This session's new
+    work is the mic button (see MIC BUTTON below).
+  REPAIR: the 2026-09-20 header had been duplicated verbatim, carrying two
+    conflicting inner commit ids (db39729 and 8ebb234) — the same
+    interrupted-write class of damage as the 09-18 git index corruption.
+    Both stale blocks are removed; this header replaces them.
+
+MIC BUTTON (2026-09-28, f207c56):
+  The user asked "where's my mic?" — the `listen` tool existed since 09-19
+  but had NO UI surface. Shipped: a 🎤 button in the composer (between the
+  textarea and Send) → POST /api/listen (new dedicated endpoint) →
+  runListenMic() (extracted from voice.ts, shared by the tool and the
+  endpoint) → transcript inserted into the composer (NOT auto-sent, same UX
+  as the drop zone). Consent model: the click IS the consent, so /api/listen
+  deliberately bypasses /api/tool's read-only allowlist and the approval
+  dialog (documented in server.ts). Offline local Windows dictation only —
+  audio never leaves the machine. +2 smoke checks (mic button wired;
+  /api/listen returns a structured result, exercised live with a 1s
+  window). GOTCHA (repeat of the 09-27 template-literal trap): an escaped
+  apostrophe `\'` inside the assets.ts template literal is CONSUMED when
+  the template evaluates, emitting broken page JS — avoid apostrophes in
+  page strings entirely (check-ui-parse.mjs caught this one too).
+
+BUILD + SIGNING STATE (2026-09-28, RESOLVED):
+  0.9.0 NSIS installer REBUILT with the mic button (cargo release 6m52s;
+  validation/build-mic-090.out). GOTCHA: the makensis step alone took ~35
+  minutes on this machine — run detached, poll the log, do not assume it
+  hung. The updater SIGNATURE step initially failed: `tauri build` needs
+  TAURI_SIGNING_PRIVATE_KEY (content, not a path — build-desktop.ts now
+  passes it automatically). The key is rsign-ENCRYPTED: signing also needs
+  its password. RESOLVED: the user supplied the password via
+  Documents\signing_password.txt (9 chars — matches NOTHING in PS history,
+  so the history candidates were stale); sign-090.ps1 signs the
+  already-built installer WITHOUT a repack (tauri signer sign). Installer
+  + fresh .sig + BOM-less latest.json (new signature, 2026-09-28 pub_date)
+  are ready in desktop/tauri/target/release/bundle/nsis/. REMAINING FOR
+  PUBLISH (needs explicit user go-ahead): gh release upload v0.9.0
+  <exe> <sig> latest.json --clobber, then live-verify the update-install
+  path. The password file should be deleted after use.
+
+CURRICULUM INGESTED (2026-09-28):
+  The user's "Tech God" master curriculum (28 parts, C:\Users\pc\Downloads\
+  blackrose.txt) → learn_file into the REAL data dir ~/.blackrose (38
+  chunks, slug ...tech-1u5k1af), verified searchable (quantum computing,
+  CIA triad queries hit the right chunks). This run EXPOSED a real crash:
+  knowledge_search/knowledge_list died on stray non-chunk .json files in
+  the knowledge dir (agent runs had written artifacts there) — FIXED in
+  262ad13 (skip unparsable/chunkless files). The Music\br ai ass
+  BlackRose.txt (134 KB) is old design chat history, deliberately NOT
+  ingested.
+
+NEXT (user-approved 2026-09-28, SHIPPED same day): WATCH_VIDEO tool
+  (c2521fa) — "watch reels/videos from a link": yt-dlp download (cap 24 MB,
+  matches the STT API's 25 MB limit) → transcribe via the SAME verified
+  cloud STT path (the API takes .mp4/.webm directly, so NO ffmpeg needed)
+  → returns title/uploader/duration + transcript; save:true writes a
+  .transcript.txt sidecar into blackrose-uploads/, ingest:true learns it
+  into the knowledge base. yt-dlp lives in ~/.blackrose/bin/yt-dlp.exe
+  (auto-downloaded from the official GitHub release if missing;
+  BLACKROSE_YTDLP overrides the path; BLACKROSE_YTDLP_ARGS passes extra
+  args, e.g. --cookies-from-browser chrome). Approval-gated (web download +
+  cloud upload). LIVE-VERIFIED end-to-end with a locally served SAPI speech
+  wav: correct transcript, sidecar, 1 knowledge chunk, tmp cleaned up.
+  GOTCHAS: (1) YouTube blocks unauthenticated downloads (bot check) —
+  private/cookie-walled sources need BLACKROSE_YTDLP_ARGS cookies;
+  (2) transcribe's transcript text is extracted by splitting content on
+  '\n\n' — if the transcribe_audio content template changes, update
+  video.ts; (3) +3 smoke checks (parseDumpJson success-gating, registration,
+  URL fail-closed) — the suite stays network-free; live proof lives in
+  validation/scratch-video/watch-probe.mts.
+
+IG DATASET INGESTED + REEL-WATCHING PROVEN ON REAL DATA (2026-09-28):
+  The user supplied an Apify Instagram-scraper export (198 AI-niche reels
+  from petergriffin.ai, captions/hashtags/likes/videoUrl). Transformed into
+  a likes-ranked playbook (validation/scratch-video/ig-reels-playbook.txt)
+  → learn_file into ~/.blackrose (200 chunks, verified searchable). Then
+  watch_video consumed the dataset's DIRECT IG CDN videoUrl of the #1 reel
+  (84k likes): downloaded, transcribed the actual speech ("5 Claude Code
+  Plugins…"), sidecar + 1 knowledge chunk. KEY FACT: IG CDN media URLs
+  scraped by Apify work WITHOUT cookies/yt-dlp-login (at least ~7h after
+  scraping) — so dataset→watch_video is a real pipeline. Note: STT
+  mishears "Claude Code" as "clawed code" (whisper quirk on this voice).
+  Driver: validation/scratch-video/ingest-ig-dataset.mts (transform+ingest)
+  and watch-ig-probe.mts.
+
+UPDATE MYSTERY SOLVED + v0.9.1 (2026-09-28, ~14:45):
+  The installed app said "BlackRose is up to date" — CORRECT: the exe's
+  ProductVersion is 0.9.0 (the user installed yesterday's release at 18:05,
+  BEFORE the mic button existed). The updater can't offer the same version.
+  LESSON: verify the INSTALLED version (PowerShell VersionInfo) before
+  assuming an updater bug. Today's build is therefore released as v0.9.1
+  (package.json + tauri.conf.json + Cargo.toml bumped) so the installed
+  0.9.0 gets the real update banner with the mic button. The updater
+  endpoint (releases/latest/download/latest.json) verified live serving
+  0.9.0 — the Rust update_check command (a118f32) is sound.
+  ALSO: the batch reel-watching stalls when run DETACHED (start /b cmd /c
+  node …) — execShell's subprocess handling deadlocks in that context (two
+  yt-dlp per reel, ~0 CPU, output fully buffered until exit). The SAME tool
+  path works fine in a foreground run (reel #2 transcribed + ingested in
+  ~50s). Hardened video.ts with --socket-timeout 30 --retries 3 anyway.
+  GOTCHA for next sessions: run long tool drivers in FOREGROUND tool calls
+  (bounded timeouts), not via start /b.
+
+v0.9.1 PUBLISHED (2026-09-28, 15:17-15:49) — and a WATCHER THAT LIES:
+  The previous session's story ("pushing to GitHub, watch the ps1") was
+  WRONG on both counts, and the watcher would have failed silently:
+  1. publish-091-watch.ps1 never pushes CODE. It signs the installer and
+     runs `gh release create`. And there is NO git remote at all —
+     C:\Users\pc\Desktop\BlackRose\cline\blackrose\.git\config has no
+     [remote] section. `git remote -v` is empty; `git push` is impossible.
+  2. The checkpoint's "REMAINING FOR PUBLISH: gh release upload v0.9.0"
+     was STALE — v0.9.0 shipped 2026-09-27T12:40Z with all 3 assets.
+  3. The build was NOT "still running": `tauri build` had already
+     finished the NSIS bundle at 14:51:10 and then HUNG on
+     "Decrypting updater signing key, expect a prompt for password" —
+     a dead build, parked with ~0.5s CPU. It can never finish detached.
+  4. So the watcher was polling for a .sig that could never appear, and
+     would have exited "TIMEOUT" at ~16:00 having published nothing.
+     TWO copies of it were running (PIDs 9016 + 8872) — if the sig had
+     appeared they would race on the same `gh release create` tag.
+  FIX (the sign-without-repack trick from 0.9.0, reused):
+  killed the 3 dead build nodes + both watchers, then signed the
+  ALREADY-BUILT installer — sign-091.ps1 (tauri signer sign, no repack).
+  The build only stalls at signing; the artifact before that step is
+  complete. Then wrote BOM-less latest.json (version 0.9.1, fresh
+  signature) and created the release. Verified: 3 assets uploaded with
+  exact sizes, v0.9.1 is now `Latest`, and the live updater endpoint
+  returns 200 serving 0.9.1 with first byte 0x7B (no BOM).
+  LESSONS: (a) a detached build blocked on an interactive password
+  prompt is DEAD, not slow — check the .out log tail and CPU, don't
+  wait it out; (b) launch ONE watcher, never two; (c) `gh release
+  view` is the ground truth for what's actually published — don't
+  trust the checkpoint's remaining-work list; (d) if a build would sign
+  interactively, prefer signing the finished bundle in a separate step.
+  BAD HEURISTIC, don't repeat: scanning the last 256/512 bytes of an
+  NSIS exe for "Nullsoft"/"NSIS" reports False even for a KNOWN-GOOD
+  release (checked against 0.9.0) — the footer is compressed. Use the
+  MZ header, and the sig's embedded size/SHA-256, not a footer string.
+
+v0.9.2 PUBLISHED + VERIFIED INSTALLED (2026-09-28, 15:43-15:54):
+  The v0.9.1 release was BUGGY: build-desktop.ts only COPIES
+  dist/blackrose.mjs and never rebuilds it, and dist/ is gitignored. It had
+  shipped the 27-09 bundle, so the installed "0.9.1" had NONE of the 28-09
+  work (no watch_video, no mic button, no any-file drop zone, no
+  learn_xlsx/pptx/epub). LESSON: after signing/publishing, ALWAYS install
+  the installer and grep the INSTALLED core for the feature you just
+  shipped. I verified the signature and the release, not the payload.
+  FIXES (both landed, d130077):
+  - build:desktop now runs `npm run build:exe &&` first, and stage() does
+    a newestMtime(src) vs dist comparison that THROWS on a stale bundle
+    (fail-closed, same philosophy as the rest of the script).
+  Verified: fresh bundle 331KB -> 382KB, tool count 46 -> 53, and the
+  installed %LOCALAPPDATA%\BlackRose\core\blackrose.mjs contains
+  watch_video, /api/listen, instagram_scrape/learn, learn_xlsx/pptx/epub.
+
+  NEW TOOLS — instagram_scrape + instagram_learn (src/tools/instagram.ts):
+  Apify's Instagram Scraper actor -> likes-ranked caption playbook ->
+  learn_file. Split in two on purpose: the scrape spends credits and takes
+  minutes (approval-gated via askApproval), the learn step is free, so a
+  scrape can be reviewed before it enters the knowledge base. Needs
+  APIFY_TOKEN (env var — the in-app key manager is LLM-route-scoped only,
+  ROUTE_KEY_SPECS, so Apify could NOT go there). Token never echoed.
+  This complements watch_video: that is "this one reel I have a link to",
+  this is "the last 30 posts of a profile". Proven offline against the
+  real Apify dataset already on disk (198 posts) — learn half ingested 7
+  chunks and knowledge_search found them. Smoke covers ranking,
+  captionless-post dropping, junk rows, no-token fail-closed.
+
+  REELS VIA YOUR OWN BROWSER LOGIN (asked for; partially working):
+  - Public reels: watch_video works with NO cookies (reel DdWtJm_T07C,
+    the one that "failed" earlier, fetches fine — that was transient).
+  - Chrome cookies FAIL: `--cookies-from-browser chrome:Profile N` dies
+    with "Failed to decrypt with DPAPI" (yt-dlp issue 10927, Chrome app-
+    bound encryption) and, on a running Chrome, "Could not copy Chrome
+    cookie database" (issue 7271). Not fixable from our side.
+  - FIREFOX WORKS: `--cookies-from-browser firefox` returned the reel, and
+    the profile has a real `sessionid`, i.e. it IS logged in. Exported to
+    ~/.blackrose/bin/instagram-cookies.txt (15 instagram rows).
+  So for signin-walled reels use
+  `BLACKROSE_YTDLP_ARGS=--cookies-from-browser firefox` (or point
+  BLACKROSE_YTDLP at that cookies.txt). NOT yet wired into the UI — it is
+  an env var today. Cookie file is a live credential: never commit it.
+
+  Release mechanics that worked (repeat these): build:desktop detached
+  -> poll build-092.out + `rustc` CPU (a live build climbs, a dead one
+  sits near 0) -> kill at "Decrypting updater signing key, expect a
+  prompt" (the bundle IS already written) -> sign-092.ps1 (tauri signer
+  sign, no repack) -> BOM-less latest.json -> gh release create.
+
+ORPHAN CORE = "button not tappable" (found + fixed 2026-09-28, a90955a):
+  Symptom: the mic button did nothing at all, not even an error line.
+  It was NOT the mic and NOT the CSS. TWO cores were alive:
+    PID 6188 port 6483 started 15:20 (0.9.1) -> /api/listen = 404
+    PID 9776 port 7591 started 15:53 (0.9.2) -> /api/listen = 200
+  The window was attached to the OLD core, so the click hit a route that
+  did not exist. Diagnosed by POSTing /api/listen to BOTH ports directly
+  (validation/listen-test.ps1 -Port N) — 404 vs 200 split it instantly.
+  ROOT CAUSE: tauri_plugin_single_instance only prevents a second
+  BlackRose.exe. It CANNOT reap a `node core/blackrose.mjs` that outlived
+  its shell (killed shell / failed update / crash). So installing 0.9.2
+  over a running 0.9.1 left the old core serving forever.
+  FIX: reap_orphan_cores() in setup() BEFORE boot_core — kills any node.exe
+  whose command line contains THIS install's core/blackrose.mjs (narrow
+  match, never a bare "node"). Plus the mic button now names a 404 as a
+  stale core and tells the user to reopen, instead of a generic failure.
+  Lesson: when a UI button is "dead", test the endpoint directly before
+  suspecting the frontend. Two servers is the classic cause.
+  NOTE the mic itself is still silent: /api/listen returns 200
+  {"ok":true,"text":"","detail":"Heard nothing within 6s."} — the
+  recognizer is installed (en-US) and privacy is Allow, but Settings →
+  System → Sound shows a FLAT "test your microphone" meter, so no audio
+  reaches Windows at all. That is upstream of BlackRose: likely a hardware
+  mic-mute key (Fn+M) or an unpopulated 3.5mm mic jack on the Realtek
+  device. Unresolved pending a user check of the level meter.
+
+BUG SWEEP after that fix (2026-09-28 ~16:10-16:40, user away):
+  Two REAL bugs found and fixed, both mine from this session:
+  1. instagram_scrape started the Apify run with NO INPUT. Apify's run
+     endpoint is POST-only and the request body IS the actor input; I had
+     used a bare GET, so the scraper got no URLs and returned an empty
+     dataset — the tool would have looked like "worked but found nothing".
+     Fixed with apifyStartRun() POSTing { directUrls, results }.
+     Smoke now asserts the POST + directUrls and that the GET helper is
+     not what starts the run.
+  2. The dist/ staleness guard I added ran AFTER fs.copyFileSync, so a
+     stale core was still written into desktop/tauri/core/ before the
+     throw. Moved the check above the copy. Proven live by
+     validation/scratch-curriculum/probe-stale-guard.mts (rewinds dist 5
+     days, guard trips, restores it).
+  VERIFIED GOOD (no action needed): video.ts 24MB cap < 25MB STT limit and
+  cleans its tmp dir in a finally; yt-dlp has --socket-timeout/--retries and
+  a 10-min AbortSignal; shell.ts clamps timeout to 1s-300s; the UI port binds
+  127.0.0.1 only; no raw API-key patterns in ~/.blackrose (scanned json/md/
+  txt/log); schedules.json has one disabled task, no runaway; the in-app key
+  manager is route-scoped so APIFY_TOKEN cannot be set there (env var only).
+  LIVE-VERIFIED the orphan reaper: spawned a fake core on port 9911, ran the
+  reaper's exact PowerShell, both cores died; then relaunched the app and
+  confirmed exactly ONE shell + ONE core (port 8093) and /api/health 200.
+  TOOLING GOTCHAS: `node -e "import('./scripts/build-desktop.ts')"` RUNS
+  THE WHOLE BUILD (module side effects) — do not use it to test a function;
+  extract and test the predicate. And PowerShell 5.1 rejects `//` comments
+  and `$_.ProcessId` interpolation inside a single-quoted -Command string.
+
+v0.9.3 PUBLISHED + VERIFIED (2026-09-28, 16:29-16:50):
+  Carries the three fixes: orphan reaper, Apify run input, guard ordering.
+  v0.9.2 is now superseded — its instagram_scrape was broken (no input).
+  Verified the way that caught 0.9.1: INSTALL, then grep the installed core.
+  Installed core 383821 bytes and contains apifyStartRun + directUrls +
+  watch_video + /api/listen + instagram_learn + learn_xlsx.
+  REAPER PROVEN IN THE SHIPPED BINARY: started the app (core 8324), planted
+  a fake orphan core on port 9922, killed the shell, relaunched — the new
+  0.9.3 reaped 9922 automatically and left exactly ONE core (8378) and ONE
+  shell, /api/health 200. That is the original "mic button not tappable"
+  scenario, now fixed at the source rather than by hand.
+  STILL OPEN, needs the user: the microphone itself is silent (flat level
+  meter in Windows Sound settings) — hardware mute key or an unpopulated
+  3.5mm jack. Nothing in BlackRose can fix that; the button is now correct.
+
+APIFY LIVE-TESTED — THREE MORE BUGS, and v0.9.4 (2026-09-28, 16:40-17:10):
+  The user supplied a real APIFY_TOKEN. NOTHING about this feature had ever
+  been run against the real API — three bugs, all invisible to code review:
+  1. ACTOR id was 'apify/instagram-scraper'. Apify uses a TILDE:
+     'apify~instagram-scraper'. The slash form 404s with "there is no API
+     endpoint at this URL". Proved both live (slash 404 / tilde 200).
+  2. The token was appended as `${APIFY}${p}?token=…` even when `p` already
+     had a query, producing '…/items?clean=true&format=json?token=…' -> 404.
+     Added apifyUrl() which joins with '&' when the path already has '?'.
+  3. dataset ITEMS returns a BARE JSON ARRAY, but apifyGet unwrapped
+     `body.data` unconditionally — so 180 real posts became undefined and
+     the tool reported "0 post(s) but none had a caption". Now unwraps only
+     when the body is a non-array object with a `data` key.
+  Also: a dataset read failure now returns a clean isError message with the
+  run/dataset ids instead of an unhandled rejection (it crashed the process).
+  LIVE RESULT: 180 posts scraped from petergriffin.ai, ranked by likes,
+  written to ~/.blackrose/instagram-playbook.md (186 KB) and learned into
+  the knowledge base as 178 chunks — confirmed present in
+  ~/.blackrose/knowledge/c-users-pc-blackrose-instagram-playbook-md.json.
+  v0.9.4 published, installed, and the installed core verified to contain
+  apify~instagram-scraper, the array guard and the apifyUrl join.
+  APIFY_TOKEN is in the USER env scope only — verified it appears in NO
+  source file and NOWHERE in the git history (0 matches in `git log -p`).
+  THE LESSON: every integration here was written from docs and never
+  executed. A single real run found 3 bugs that 30 minutes of review missed.
+  If a tool talks to a third-party API, run it once with real credentials
+  BEFORE calling it done — and pin the discovered constants in a test.
+  Apify free plan user 'amazed_zibet_nbu'; a 180-post scrape is cheap but
+  not free, so keep the approval gate.
+
+WINDOW TITLE, and what the desktop window actually is (2026-09-28 17:12):
+  The user asked about "the webpage that opens when the app launches".
+  ANSWER: no browser opens at all. It is a Tauri/WebView2 native window
+  (MS Edge WebView2, same engine as Teams) — no address bar, no tabs. The
+  sequence is ONE window throughout:
+    1. splash: static desktop/tauri/ui/index.html bundled in the app
+    2. Rust picks a free port, spawns `node core/blackrose.mjs --ui <port>`
+    3. polls /api/health
+    4. main.rs:378 `location.replace('http://127.0.0.1:{port}/')` swaps the
+       splash for the real UI in the same webview
+  The real UI IS a web page (51.8 KB, Cache-Control: no-store) served by
+  the Node core — which is exactly why the stale-dist bug was so damaging.
+  SECURITY VERIFIED: the core binds 127.0.0.1 ONLY; a TCP connect to the
+  LAN address (192.168.137.1:9130) is refused. No shell.open anywhere, so
+  nothing external is ever launched.
+  BUG FOUND + FIXED (v0.9.5): the taskbar showed
+  "app.blackrose.desktop-siw" instead of "BlackRose". Cause: after
+  location.replace(), Tauri re-derives the title and falls back to the app
+  identifier (-siw is its silent-window marker). Both the splash and the
+  served page already say <title>BlackRose</title>, so the fix is one line:
+  win.set_title("BlackRose") AFTER the navigation (order matters, and the
+  smoke test asserts that ordering).
+  Splash is git-tracked (not a build artifact), so no stale-splash risk.
+  GOTCHA: an editor call with a repo-relative path can silently target the
+  WORKTREE copy instead of the main repo — the worktree only holds
+  BLACKROSE_CHECKPOINT.txt, so it created a stray untracked src/ there.
+  Always pass absolute paths.
+
+UI WAS "DEAD" — LAYOUT, NOT JS (v0.9.7, 2026-09-28 19:00-20:10):
+  Report: "nothing on the blackrose is being tapped, except the main bars on
+  the side bar, nothing is working, send is also not working". The sidebar
+  <details> headings worked because they are pure HTML; everything else is
+  JS-driven. That signature = a dead page, and it sent me down two wrong
+  paths first (a stale window, then a browser tab at localhost) before I
+  screenshotted the real window and LOOKED.
+  ROOT CAUSE: two compounding CSS bugs, no JS involved.
+   1. The header held a long router string plus #route-tray with
+      flex-wrap:wrap, so it grew to ~230px and swallowed the window.
+   2. `main` had min-width:0 but NOT min-height:0, so inside the flex row it
+      kept its full content height and #chat could not shrink.
+  Together the composer (attach/textarea/mic/Send) rendered BELOW the fold.
+  FIX: header flex:0 0 auto + nowrap + overflow:hidden; .badge truncates
+  with ellipsis; #route-tray nowrap; main min-height:0 + overflow:hidden;
+  #chat min-height:0; #inputbar flex:0 0 auto; body height:100vh +
+  overflow:hidden so the window never scrolls and only the chat does.
+  Verified by rendering the SERVED page headless at 1194x780 (the app's real
+  viewport) — composer, mic and Send all on screen.
+  DIAGNOSING LESSONS (all cost real time today):
+   - `Get-Process X | Select MainWindowTitle` LIES for a minimised/hidden
+     window: it returned the configured "BlackRose" title, so a poll looked
+     instant. Use GetWindowRect: a minimised window reports 159x27 at
+     (-25600,-25600). That is how I nearly "verified" a 0.2s boot.
+   - `Start-Process -WindowStyle Hidden` HIDES a GUI app's window. Never use
+     it when the user is meant to see the app.
+   - `CopyFromScreen` captures whatever is ON SCREEN at those coords, so an
+     overlapping browser was screenshotted instead of the app. Call
+     SetForegroundWindow/SW_RESTORE on the target first, and assert the
+     window rect is sane (>200px) before trusting the image.
+   - Never stop the user's running app to start a build. Builds do not need
+     it; only the INSTALL does. I killed it mid-session and the user was
+     left staring at a dead window for several minutes.
+  Earlier the same day (v0.9.7 too): drag & drop was bound to a thin
+  #drop-zone strip in the composer, so dropping anywhere else did nothing;
+  now bound to `window` with a full-page #dropveil. And the mic got
+  flex:0 0 auto + min-width plus a #voicehint line, because "where is my
+  mic" was a discoverability problem, not a missing button.
+
+
+
+
+
+CURRENT PHASE:
+  Master-instructions sequence: steps 1-2 of 10 COMPLETE. Backlog done:
+  (4) real-embedding-model, (1) OCR. COMPLETE THIS SESSION: provider switch
+  to OpenAI-protocol gateways via the `openai` adapter — factory wiring,
+  multi-gateway router chain, doctor probes, docs, AND full live validation
+  (adapter roundtrip + CLI --goal VERIFIED end-to-end). The agent now runs on
+  free cloud models with local Ollama as the last fallback. ALSO THIS SESSION:
+  web UI conversation-memory fix (chat now remembers context across messages;
+  user-reported via a real test-drive, fixed + live-verified same session).
+  AND: backlog item (2) STT shipped — transcribe_audio via Groq
+  whisper-large-v3-turbo, live-verified with a SAPI sentinel WAV + real-agent
+  E2E (which also produced the first live openai→openai1 fallback proof).
+  AND: backlog item (3) desktop shell SCAFFOLDED then DONE — the full Tauri
+  v2 shell is BUILT (24.6 MB NSIS installer with a self-contained node
+  runtime), INSTALLED and verified end-to-end twice (launch → splash → core
+  up with a live gateway chain → UI → exit kills the core).
+  AND: UI clear-conversation HARDENING shipped (🧹 archives the cleared
+  session under sessions/cleared/; page served no-store) — and the
+  project's first git-corruption incident RECOVERED losslessly (09-18 night).
+  AND (2026-09-19): Conversations SIDEBAR shipped (ChatGPT-style) — every
+  persisted chat listed, click to reopen + continue its context, ＋ New chat
+  is NON-destructive, ✕ delete archives to sessions/deleted/; +4 checks
+  (76); fixed a same-second session-id collision the new checks caught;
+  desktop bundle rebuilt and live-verified serving the sidebar.
+  AND (2026-09-19, DONE): local PUSH-TO-TALK — the `listen` tool (backlog
+  3-STT) via the LOCAL Windows dictation engine (System.Speech, offline,
+  zero downloads, audio never leaves the machine): mic or `path=<.wav>`,
+  approval-gated, fail-closed precheck; 3 smoke checks (79) + 16/16 green;
+  live probes PASS. AND (2026-09-19, DONE): OmniRoute + FREE-FIRST router
+  chain — openai2 = OmniRoute combo "BlackRose" (all free models,
+  auto-fallback inside), openai3 = NVIDIA direct, openai = OpenRouter free,
+  openai1 = Groq free, openai4 = Hugging Face, openai5 = Cloudflare Workers
+  AI (@cf/openai/gpt-oss-120b, free), ollama LAST. Verified:
+  agent roundtrip, router fallback, CLI --goal VERIFIED; all 6 cloud
+  routes healthy in --doctor (probeOpenAi now falls back to a chat ping
+  when /models is restricted — OmniRoute's /models 401s, Cloudflare's 405,
+  but chat works on both).
+  AND (2026-09-20, THIS SESSION): LIVE FREE-MODEL VALIDATION COMPLETE —
+  all core workflows verified on the free-model router chain:
+  CLI --goal (plan→execute→verify), one-shot task, bridge server (health),
+  remote --ask, remote --goal. Router fell back OpenRouter→Groq live during
+  --goal run. No Anthropic credits required.
+  AND (2026-09-20, THIS SESSION): EMBEDDING-MODEL UPGRADE COMPLETE —
+  Ollama `nomic-embed-text` (768-dim) wired as primary backend via
+  `memory/embedder.ts`; vector index records model+dim; hybrid TF-IDF+cosine
+  search verified; graceful fallback to hash embedder (60s probe cache);
+  all 79 smoke + 16 regression tests PASS.
+  "we shouldnt just rely on claude, switch to other API". KiraAI was chosen
+  first but its free tier died (all 4 free models → maintenance, verified
+  2026-09-17 via kira-probe.out). User provided OpenRouter + Groq keys; both
+  are OpenAI-protocol gateways, so the same `openai` adapter serves both.
+  Key files (NEVER commit/print/transmit contents):
+    C:\Users\pc\Documents\openrouter_api_key.txt
+    C:\Users\pc\Documents\groq_api_key.txt
+
+GATEWAY FACTS (verified live 2026-09-17):
+  - OpenRouter: https://openrouter.ai/api/v1 — 444 models, 24 free-priced,
+    20 free with tools support. Attribution headers (HTTP-Referer/X-Title)
+    sent automatically when the base URL is openrouter.ai.
+  - CHOSEN primary: nvidia/nemotron-3-super-120b-a12b:free (native
+    tool_calls PASS, 262k ctx). NOTE: upstream occasionally returns
+    "Upstream error from Nvidia: Service temporarily overloaded" — transient,
+    handled by resilientClient retry (seen + retried successfully live).
+  - CHOSEN secondary (openai1): Groq https://api.groq.com/openai/v1 —
+    openai/gpt-oss-120b (native tool_calls PASS, ~1s responses, 131k ctx).
+  - OpenRouter quirks seen in the free pool: gemma-4 free was 429-limited
+    upstream; thinkingmachines/inkling* :free is 403 "only available on
+    agentic harnesses". Avoid both as defaults.
+  - Groq also hosts whisper-large-v3 / whisper-large-v3-turbo → WIRED
+    2026-09-18 as `transcribe_audio` (tools/stt.ts; default
+    whisper-large-v3-turbo; falls back to the BLACKROSE_OPENAI1_* key).
+  - Ollama: qwen2.5-coder:7b + nomic-embed-text intact. qwen2.5-coder:3b
+    pull ABORTED at 69% (service restart mid-pull) — NOT present; the 7b is
+    the local route. Ollama self-updated silently (~18:27) and was briefly
+    down; embeddings smoke check failed once because of that, passed after.
+  - Ollama baseline (CPU): 22.9s wall, 5.2 tok/s — cloud gateway is ~20x
+    faster on this machine.
+
+WORK PERFORMED (this session):
+  0. 2026-09-21 `.aistate` sync hardening: expanded the isolated two-device
+     bridge simulation in `cline/blackrose/src/smoke.ts` to prove unchanged
+     repeat pulls are no-ops and to preserve both concurrent versions: the
+     receiver keeps its copy and stores the incoming copy with an
+     `.incoming-<hash>` suffix. Conflict copies are excluded from future
+     automatic deltas until reviewed. CLI push/pull output reports conflicts;
+     README documents the behavior. `npm test` and `npm run typecheck` PASS.
+     A real second-device LAN exercise remains unverified.
+  1. src/llm/factory.ts: numbered gateway routes — `openai`, `openai1`…
+     `openai9`, each with BLACKROSE_OPENAI<N>_API_KEY/_MODEL/_BASE_URL
+     (bare `openai` keeps OPENAI_API_KEY fallback). Defaults switched:
+     OpenRouter base URL + nvidia/nemotron-3-super-120b-a12b:free. Router
+     env contract accepts any openai<N> in BLACKROSE_ROUTES.
+  2. src/llm/openai.ts: optional attribution { siteUrl, siteName } headers
+     (factory sends them for OpenRouter automatically).
+  3. src/doctor.ts: probes every openai<N> route in router mode (models +
+     free list, :free ids recognized; key never printed); tip text updated
+     off KiraAI.
+  4. src/llm/ollama.ts: keep_alive '30m' default (model stays warm; was
+     losing ~20s/call to reloads).
+  5. src/smoke.ts: openai adapter fetch-stubbed checks (native tool_calls,
+     text-JSON recovery, prose/unknown untouched) — staged from previous
+     session, defaults updated.
+  6. Docs: README modes, docs/04-ROADMAP, docs/05-MODEL-INDEPENDENCE.
+  7. ENV WIRED (User scope, persists):
+     BLACKROSE_PROVIDER=router
+     BLACKROSE_ROUTES=openai,openai1,ollama
+     BLACKROSE_OPENAI_API_KEY=<openrouter key> MODEL=nvidia/nemotron-3-super-120b-a12b:free
+     BLACKROSE_OPENAI_BASE_URL=https://openrouter.ai/api/v1
+     BLACKROSE_OPENAI1_API_KEY=<groq key> MODEL=openai/gpt-oss-120b
+     BLACKROSE_OPENAI1_BASE_URL=https://api.groq.com/openai/v1
+  8. Rebuilt dist-build/ + dist (50 modules; SEA .exe still skipped — no
+     objcopy/LLVM toolchain, same as before). Rebuilt again after item 9.
+  9. UI CONVERSATION MEMORY (user bug report: "it seems to be forgetting
+     once the instruction is over" — see Documents\test run.txt; every UI
+     turn forgot the previous ones because /api/ask was stateless):
+     src/ui/web/server.ts — /api/ask now threads server-side history per
+     browser tab (page sends a random `session` id; map lives in startWebUi
+     scope, capped at 50 keys), persists each turn to dataDir/sessions, and
+     a fresh key resumes the latest persisted session (CLI --resume
+     equivalent). New POST /api/new clears the caller's context (wired to
+     the 🧹 Clear conversation button). /api/goal intentionally stays
+     stateless (a goal is a fresh plan → execute → verify run).
+     src/ui/web/assets.ts — per-tab SESSION id, context-aware request body,
+     🧹 button POSTs /api/new. src/smoke.ts — 4 new checks. README +
+     docs/04-ROADMAP updated.
+  10. SPEECH-TO-TEXT (backlog item 2, done): src/tools/stt.ts — new
+     `transcribe_audio` tool: audio/video → text via any OpenAI-protocol
+     /audio/transcriptions endpoint. Default Groq whisper-large-v3-turbo;
+     key resolution BLACKROSE_STT_API_KEY → BLACKROSE_OPENAI1_API_KEY (no
+     new env needed); model/base URL via BLACKROSE_STT_*. Approval-gated on
+     EVERY call (user audio leaves the machine). Inputs: language hint,
+     save → sidecar .transcript.txt, ingest → knowledge base. Guards:
+     extension whitelist, 25 MB limit, 429 hint, key never logged.
+     Registered in buildTools; --doctor gained an STT config line;
+     README env vars + docs/04-ROADMAP (Phase 6 tick, backlog 2 → done,
+     new "Speech-to-text" section). smoke.ts +2 checks (68 total). Bundle
+     rebuilt. NOTE: made the smoke vector-store model check backend-
+     tolerant (Ollama was DOWN again — see PROBLEMS FOUND).
+  11. DESKTOP SHELL (backlog item 3, scaffolded): desktop/tauri/ — complete
+     Tauri v2 scaffold: src/main.rs boot supervisor (free-port pick →
+     spawn `node core/blackrose.mjs --ui <port>` using bundled
+     node/node.exe or PATH node → raw-TcpStream /api/health poll (no HTTP
+     dep) → location.replace into the live UI → core killed on RunEvent
+     exit; CREATE_NO_WINDOW; USERPROFILE as workspace; 90s boot timeout
+     with fail state surfaced into the splash via eval'd
+     window.__blackroseFail). tauri.conf.json (NSIS + WebView2
+     bootstrapper, 1180x780 window), capabilities/default.json,
+     ui/index.html — DESIGNED splash (black-glass + rose-neon: breathing
+     nested-⬥ mark, grain, Cascadia boot log, sweep bar; per the
+     frontend-design skill). scripts/build-desktop.ts + npm script
+     build:desktop: stages bundle + node runtime (self-contained ~90MB),
+     GENERATES icons/icon.ico procedurally (zero-dep BMP-in-ICO writer,
+     byte layout smoke-verified), validates toolchain (vswhere/Program
+     Files scan for MSVC link.exe), builds NSIS ONLY when complete —
+     verified live: full staging + exact 3-missing-pieces report
+     (desktop-boot.out). Smoke +2 checks (70 total). README + ROADMAP
+     updated (backlog 3 → scaffolded; new "Desktop shell" section).
+  12. UI CLEAR HARDENING (commit f62faf6, follow-up to the memory fix):
+      (a) /api/new now ARCHIVES the cleared session under sessions/cleared/
+      so a reload/restart cannot resurrect it (src/session/history.ts);
+      (b) the UI page is served with cache-control: no-store so a stale
+      cached page cannot bypass /api/new (src/ui/web/server.ts);
+      (c) the icon writer moved to src/ui/ico.ts so builders import one
+      copy (scripts/build-desktop.ts −93 lines). +2 smoke checks (72).
+      Live 4-turn probe PASS (ui-clear-probe.out). NOTE: a stale compiled
+      scripts/build-desktop.js byproduct got committed in f62faf6; removed
+      from tracking in the follow-up commit (content preserved in history).
+  13. GIT REPAIR (this session, after the 09-18 session died mid-write):
+      .git/index and refs/heads/main were zero-filled, reflog tail NULed
+      → "bad signature 0x00000000" / "branch appears broken". Recovered
+      WITHOUT loss: ref restored from logs/HEAD → f62faf6 (object verified
+      via cat-file), corrupt index deleted, `git reset` rebuilt it, fsck
+      clean, the working-tree-deleted build-desktop.js restored via
+      checkout (byte-identical to the committed blob), full suite re-run
+      green on the repaired repo (npmtest-postrepair.out).
+  14b. CONVERSATIONS SIDEBAR (2026-09-19): ChatGPT-style session history in
+      the UI + desktop app — `GET /api/sessions`,
+      `POST /api/sessions/open` (binds a session to the browser tab so the
+      next /api/ask continues it), `POST /api/sessions/delete` (archives to
+      sessions/deleted/); `/api/new` is now NON-destructive (＋ New chat
+      keeps the previous chat listed); sidebar renders list + active row;
+      page renders the latest thread on load; ids validated against path
+      traversal. Fixed a REAL collision bug the new checks caught: session
+      file ids were second-precision, so two conversations created in the
+      same second overwrote each other — ids now carry a random suffix
+      (src/session/history.ts sessionFileId). +4 smoke checks (76 total).
+      Bundle + installer rebuilt; sidebar live-verified in the installed
+      desktop app (page markers + /api/sessions listing real past chats).
+  15. LOCAL PUSH-TO-TALK (backlog 3-STT) — WIP, UNVERIFIED:
+      src/tools/voice.ts gained `listen` + `localSttAvailable()`; registered
+      in tools/index.ts; doctor prints a `listen — … READY/UNAVAILABLE`
+      line. Route chosen: the LOCAL Windows dictation engine
+      (System.Speech.Recognition via PowerShell 5.1 — same zero-dependency
+      pattern as `say`/`ocr`), because it needs NO downloads, works offline
+      and keeps audio on the machine; cloud whisper (`transcribe_audio`)
+      stays for files/accuracy. Mic probe on this machine: 1 recognizer
+      (en-US, MS Speech Recognizer 8.0) → route viable. Approval-gated on
+      every call (a mic is opening). Typecheck clean. NOT YET: smoke check,
+      live mic run, README/ROADMAP docs, bundle/installer rebuild.
+  14. DESKTOP BUILD ADVANCE (2026-09-18 night, backlog 3): the toolchain
+      was completed on this machine — VS 2022 Community MSVC link.exe
+      appeared, @tauri-apps/cli 2.11.4 installed, Rust 1.98.1
+      stable-msvc via rustup (user-scope, ~576 MB). Two real bugs fixed
+      en route: (a) scripts/build-desktop.ts spawned 'npx.cmd' → Node
+      EINVAL (CVE-2024-27980 hardening) died SILENTLY — now spawns
+      process.execPath on node_modules/@tauri-apps/cli/tauri.js (main.js
+      is a library export, NOT a runnable script) + fails loud; (b)
+      tauri.conf.json frontendDist was '../ui' (resolved to desktop/ui,
+      nonexistent) — corrected to './ui'. Result: the tauri CLI engages,
+      cargo fetched the full dep tree and is COMPILING the release build
+      (desktop-build4.out; first 3 attempts archived as desktop-build1/2/3
+      .out). The Rust compile is therefore UNVERIFIED at checkpoint time —
+      first thing next session: read desktop-build4.out tail; if NSIS
+      installer exists under desktop/tauri/target/release/bundle/nsis/,
+      smoke-test it end-to-end; if compile errors, fix main.rs nits.
+  16. LIVE FREE-MODEL VALIDATION (2026-09-20, THIS SESSION): verified all
+      core workflows on the free-model router chain (OpenRouter → Groq →
+      NVIDIA → HF → Cloudflare → Ollama) with zero paid credits:
+      * CLI --goal "create live-validation.txt…" → plan 3 steps →
+        write_file + read_file + verify → "VERIFIED ✓" (router fell back
+        OpenRouter→Groq live during run)
+      * One-shot: node src/index.ts "what is 2+2?" → "4"
+      * Bridge server: node src/index.ts --bridge 8787 → health endpoint
+        reports full router chain v0.6.0
+      * Remote --health: blackrose-bridge v0.6.0 · router chain · up 18s
+      * Remote --ask "what is 3*7?" → "21"
+      * Remote --goal "create remote-test.txt…" → plan 2 steps →
+        write_file + read_file → "VERIFIED ✓"
+      Evidence: live-validation.txt, remote-test.txt created and verified.
+
+VERIFIED (exact tests and results, evidence in validation/):
+  - npm run typecheck — clean.
+  - npm test — SMOKE TEST PASSED (70 checks: openai adapter + 4 UI memory +
+    2 STT + 2 desktop-shell checks; vector-store check backend-tolerant)
+    + regression 16/16 (npmtest-desktop.out).
+  - openrouter-models.out / groq-models.out — live /models on both gateways.
+  - toolprobe-1.out — native tool_calls + plain chat PASS on both chosen
+    models (nemotron free 1.1s, groq gpt-oss-120b 1.05s).
+  - live-agent-probe.out — the SHIPPING adapter (src/llm/openai.ts) wrapped
+    in resilientClient: 2-tool agent roundtrip (write_file → disk verified →
+    read_file → correct final answer) PASS on OpenRouter (one transient
+    Nvidia overload auto-retried) and Groq.
+  - doctor-gateway.out — --doctor shows routes openai,openai1,ollama and
+    probes both gateways live (444 models / 13 models).
+  - goal-gateway.out — REAL CLI end-to-end:
+    node src/index.ts --goal "create gateway-check.txt … then read back" →
+    plan 2 steps → write_file + read_file executed → "Verification: VERIFIED"
+    → lesson saved to memory. Router chain worked as configured.
+  - ui-context-probe.out — REAL UI server (node src/index.ts --ui 8790,
+    throwaway BLACKROSE_DATA_DIR) + real gateway chain, two /api/ask turns:
+    turn 1 "remember codeword CRIMSONFALCON" → "OK"; turn 2 "what codeword?"
+    → "CRIMSONFALCON" → UI-CONTEXT PASS. The exact user-reported regression,
+    fixed and proven end-to-end.
+  - stt-probe.out — live STT roundtrip through the SHIPPING tool: Windows
+    SAPI synthesized a sentinel WAV (267 KB) → Groq whisper-large-v3-turbo →
+    "Black Rose speech to text Sentinel. The quick brown fox jumps over the
+    lazy dog." → sidecar written, knowledge_search hit (score 0.68) →
+    STT PROBE PASS.
+  - stt-agent.out — REAL agent E2E: one-shot CLI ask; the model picked
+    transcribe_audio by itself and quoted the sentinel exactly. The primary
+    route threw "Upstream error from Nvidia: Service temporarily overloaded"
+    and the router fell back openai→openai1 live — FIRST end-to-end proof
+    of that handoff (was in NOT VERIFIED before this session).
+  - desktop-boot.out — build:desktop verified live UP TO the toolchain:
+    bundle + node runtime + procedural icon staged correctly, then the
+    exact fail-closed report (missing: Rust, MSVC link.exe,
+    @tauri-apps/cli — each with a fix), NO binary built. Icon render
+    visually confirmed (validation/icon-preview.png).
+  - ui-clear-probe.out — LIVE 4-turn probe: page sends cache-control
+    no-store; codeword MOONLITROSE set → recalled → forgotten after 🧹
+    (/api/new) → still gone from a fresh tab → UI-CLEAR PASS.
+  - npmtest-uiclear.out — suite after the ui-clear commit: 72 checks PASS
+    + regression 16/16.
+  - npmtest-postrepair.out — the SAME suite re-run on the REPAIRED repo
+    (post git recovery, 2026-09-18 night): 72 checks PASS + regression
+    16/16 + typecheck clean → the repair restored a fully healthy tree.
+  - desktop-build4.out — FIRST REAL TAURI RELEASE BUILD: cargo finished
+    in 18m35s → target/release/BlackRose.exe → NSIS bundled.
+  - desktop-build5.out — rebuild after adding bundle.resources; new
+    installer 24,611,446 bytes (1,066,069 before).
+  - desktop-installer-smoke.out — END-TO-END installer verification
+    (2026-09-19, two runs): silent install exit 0 → correct layout
+    (BlackRose.exe 3.3MB + core/blackrose.mjs + node/node.exe 93.5MB) →
+    launch → window 'BlackRose' alive → core child (node) spawned →
+    /api/health 200 with the live router chain (nemotron:free →
+    gpt-oss-120b → qwen2.5-coder:7b) + real ~/.blackrose state →
+    UI page 200 (10,782 bytes, no-store) → WM_CLOSE → app exits AND the
+    core child is killed (verified both runs). Backlog 3 CLOSED.
+  - npmtest-sessions4.out — Conversations sidebar suite: 76 checks PASS
+    (list newest-first + titles, open reattaches context, non-destructive
+    new chat, delete + unsafe-id rejection) + regression 16/16 + typecheck
+    clean. (npmtest-sessions.out had a transient bridge 'bad port' flake,
+    green on rerun; sessions2/3 caught + fixed the same-second id collision.)
+  - buildexe-sessions.out — bundle (52 modules) + desktop rebuild; new
+    installer 24,609,201 bytes.
+  - Live desktop re-verification (in-session): fresh silent install →
+    app boot → page 200 WITH sidebar markers (session-list/Conversations/
+    btn-new) → /api/sessions 200 listing real past chats (e.g. 'what
+    codeword did I give you?') → close → app+core exited cleanly.
+  - typecheck-listen.out — `npm run typecheck` clean after the `listen`
+    tool WIP (the only verification so far for that tool).
+  - Local-recognizer probe (ad-hoc PowerShell): COUNT=1 —
+    'en-US | Microsoft Speech Recognizer 8.0 for Windows (English - US)'
+    → the local dictation route exists on this machine.
+  - local-stt-probe.out — LIVE local STT: SAPI TTS synthesized a sentinel
+    WAV → the shipping `listen` tool transcribed it OFFLINE via the Windows
+    dictation engine → sentinel words recognized ('black', 'local speech',
+    'sentinel') → LOCAL-STT PASS. mic-probe.out — the mic path opens the
+    default audio device and listens cleanly (silence handled, non-error).
+  - npmtest-listen3.out — suite after listen: 79 checks PASS + regression
+    16/16 + typecheck clean.
+  - omniroute-probe.out — LIVE OmniRoute combo \"BlackRose\": raw chat HTTP
+    200 (upstream gemini-3.7-flash-low, 3.6s) → shipping adapter 2-tool
+    agent roundtrip PASS (11s) → router chain fell back from a dead first
+    route and served FALLBACK-OK → OMNIROUTE PROBE PASS.
+  - omniroute-chain-e2e.out — REAL CLI --goal over the full chain
+    (openai2,openai3,openai,openai1,openai4,openai5,ollama): write_file + read_file
+    → \"goal status: VERIFIED ✓\" (no fallback logged → served by openai2).
+  - doctor-chain.out — all 5 cloud routes healthy live: openai2 \"chat probe
+    OK (model gemini-3.7-flash-low)\", openai3 NVIDIA 82 models, openai
+    OpenRouter 447, openai1 Groq 13, openai4 Hugging Face 139.
+  - provider-survey.out — per-key free-tier survey (Gemini native
+    function-calling works but OpenAI-compat chat 404s; NVIDIA direct works;
+  - Cloudflare verdict CHANGED: with the account-linked token + account id,
+    text-generation models work (HTTP 200) and @cf/openai/gpt-oss-120b has
+    native function calling ✓ (probe-cf2.out) → wired as openai5; live in
+    --doctor (doctor-chain3.out). Kira dead; Anthropic 0 credit.)
+- LIVE FREE-MODEL VALIDATION (2026-09-20, THIS SESSION):
+    * CLI --goal "create live-validation.txt…" → plan 3 steps →
+      write_file + read_file + verify → "VERIFIED ✓" (router fell back
+      OpenRouter→Groq live)
+    * One-shot: node src/index.ts "what is 2+2?" → "4"
+    * Bridge server: node src/index.ts --bridge 8787 → health endpoint
+      reports full router chain v0.6.0
+    * Remote --health: blackrose-bridge v0.6.0 · router chain · up 18s
+    * Remote --ask "what is 3*7?" → "21"
+    * Remote --goal "create remote-test.txt…" → plan 2 steps →
+      write_file + read_file → "VERIFIED ✓"
+    All workflows run on free-model chain (OpenRouter → Groq → NVIDIA →
+    HF → Cloudflare → Ollama) with zero paid credits.
+- EMBEDDING-MODEL UPGRADE (2026-09-20, THIS SESSION):
+    * Ollama `nomic-embed-text` (768-dim) active as primary backend
+      via `memory/embedder.ts` — vector index records `model: nomic-embed-text, dim: 768`
+    * Hybrid search (TF-IDF + cosine) verified: semantic query "free model routing order
+      OpenRouter Groq NVIDIA" retrieves router-chain.txt (score 0.34 vs 0.13 for hash-only)
+    * Graceful fallback to hash embedder (60s probe cache) — `BLACKROSE_EMBED=off` forces hash
+    * All 79 smoke checks + 16 regression tests PASS
+
+- GROUPED SIDEBAR + DESKTOP CONTROLS (2026-09-27, THIS SESSION, inner a118f32):
+    * Sidebar regrouped into six labelled groups; all six groups and the
+      corrected stop/shutdown icon visually verified in the installed app.
+    * Export / Import / Check for Updates / Shutdown wired to the core
+      (`POST /api/export`, `/api/import`, `/api/app_shutdown`) — the
+      `/api/app_shutdown` route was a one-line core change and that was the
+      actual blocker; the Tauri side already had the plumbing.
+    * Installed signed 0.8.1 tested end-to-end: export restored/imported
+      33 files; update check reported "up to date"; shutdown exited
+      BlackRose AND left no orphaned core node.exe.
+    * Committed: assets.ts, server.ts, smoke.ts, main.rs, build.rs,
+      capabilities/remote-updater.json, .gitignore.
+    * GOTCHA: the served UI is generated dist/blackrose.mjs — run
+      `npm run build:exe` before packaging or the desktop app serves a
+      stale page.
+- BYTEZ PROVIDER — INVESTIGATED, REJECTED, FULLY REVERTED (2026-09-27):
+    * The supplied key DID authenticate, but the account catalog was empty
+      and every documented / on-demand model id returned HTTP 404.
+    * Bytez's "free" tier is metered credits, not zero-cost models —
+      it is not a genuine free provider for this project.
+    * Only commit 048b8dc carried it; removed via a local hard reset back
+      to a118f32. Verified NO Bytez references survive in source, env vars,
+      routes, persisted keys, or probe scripts (probe scripts deleted).
+    * DECISION: do not re-add a known-dead route. Only revisit if a
+      confirmed runnable model id is supplied. The nine-route chain is
+    * DECISION: do not re-add a known-dead route. Only revisit if a
+      confirmed runnable model id is supplied. The nine-route chain is
+      unchanged and still verified.
+- BULK KNOWLEDGE INGESTION — `learn_folder` (2026-09-27, THIS SESSION):
+    * Learns every text/code doc under a directory in ONE call (previously the
+      only options were one-file-at-a-time: learn_file/pdf/docx/transcript/url).
+    * Explicit-stack walk (no call-stack blowup on deep trees); extension
+      allowlist AND an independent NUL-byte sniff, so a lying extension
+      cannot smuggle a binary through; never follows symlinks/junctions
+      (they can escape the named tree and can cycle).
+    * Skips deps/build/VCS by default (node_modules, .git, dist, target,
+      __pycache__, …) plus dot-dirs. Caps: maxFiles 300, maxBytes 20 MB,
+      MAX_LEARN_BYTES 2 MB/file. A cap hit is ALWAYS reported
+      ("STOPPED EARLY") — a partial ingest is never silent.
+    * Whole run indexes in ONE openStore/vectorsFor/saveStore pass instead of
+      one per document (saveKnowledge was refactored into writeKnowledgeFile +
+      indexKnowledge to make this possible; saveKnowledge is unchanged for
+      every existing caller).
+    * PDFs/DOCX deliberately EXCLUDED in v1: learn_pdf auto-OCRs scanned PDFs
+      by shelling out to the Windows OCR engine, which is unpredictable to run
+      over a whole tree. They remain learnable individually. The shared
+      extractor makes adding them later a small change.
+    * BUG FIXED EN ROUTE — silent knowledge loss: filenames came from
+      slug(source) truncated to 80 chars, so two sources sharing that prefix
+      wrote the SAME knowledge JSON and the second destroyed the first. Now a
+      hash of the FULL source is appended when truncating. Filenames for
+      already-learned short sources are unchanged (backward compatible).
+    * Verified: 108 smoke checks PASS + regression fail 0 + typecheck clean +
+      build:exe clean (54 modules). 11 new checks cover tree ingest, recursion,
+      dep/VCS skipping, binary/extension skipping, file-path and missing-dir
+      rejection, the maxFiles cap, empty trees, and the slug-collision fix.
+    * LIVE probe against the real tree: `learn_folder` on cline/blackrose/src
+      → 60 files, 516 chunks, 0.40 MB in 608 ms; a semantic query about
+      transient-error classification correctly returned llm/resilient.ts.
+      Driver: validation/scratch-folder/driver-folder.mjs.
+    * NOTE: not approval-gated, matching the existing knowledge tools — it
+      only reads files the agent may already read ("reads are free") and
+- UI CAPABILITY INSPECTOR — real panels for capabilities that already existed
+  (2026-09-27, THIS SESSION):
+    * CONTEXT: the original Phase-8 UI request asked for a ~20-destination nav
+      (Missions, Agents, Skills, Learning, Knowledge, Models, Tools, Computer,
+      Browser, Settings…). Only 4 of the requested buttons existed. The gap was
+      NOT a UI problem: the agent could already reach skills, schedules,
+      knowledge, project notes, memory and background jobs — but ONLY through
+      the chat loop. That other AI's warning ("integrate rather than fake UI
+      buttons") was right, so nothing was faked.
+    * `GET /api/tools` → every registered tool + `readOnly` flag (38 tools, 9
+      viewable). `POST /api/tool` → runs ONE tool from a FIXED read-only
+      allowlist (READONLY_TOOLS in ui/web/server.ts). Deliberately an explicit
+      allowlist, not a heuristic: widening what the web UI can do must be a
+      deliberate, reviewable act.
+    * New sidebar groups + a panel overlay: Skills (skills, missions, jobs),
+      Knowledge (sources, knowledge search, memory search, project notes),
+      Tools (catalogue).
+    * REFUSED ON PURPOSE: write_file, run_command, gui_action, spawn_agent,
+      learn_*, memory_save, skill_save, schedule_task… are unreachable from the
+      UI. They stay in the chat loop where the approval dialog guards them.
+      Verified live: run_command → HTTP 403, gui_action → ok:false.
+    * Verified: 114 checks PASS (was 108) + regression 0 fail + typecheck clean
+      + build:exe clean (55 modules). 6 new checks, including the security-
+      critical one (allowlist refuses state-changing tools).
+    * LIVE probe: 38-tool catalogue, knowledge_list + knowledge_search return
+      real data (score 0.73 hit), run_command/gui_action refused.
+      Driver: validation/scratch-inspector/probe-inspector.mts.
+    * GOTCHA (cost me two failed runs): the page is a TypeScript TEMPLATE
+      LITERAL, so a JS newline must be written '\\n' in assets.ts. A single
+      '\n' emits a REAL newline into the served script and breaks parsing —
+      including inside a comment. Symptom: "ui page inline script parses as
+      valid JavaScript" fails. Extract with node --check to locate it fast.
+    * STILL MISSING vs the original nav (honest): Agents, Learning, Models,
+      Computer, Browser, Settings/API-keys, Logs, Status. These need real
+      backends, not buttons — the in-app key manager and a browser surface are
+      the obvious next candidates.
+
+      writes solely to its own knowledge dir.
+
+      unchanged and still verified.
+
+
+
+PROBLEMS FOUND:
+  - Web UI /api/ask was stateless — every chat turn forgot the previous ones
+    (caught by user test-drive 2026-09-17, Documents\test run.txt). First
+    fix attempt put the conversations Map inside the http request handler
+    (recreated per request → still forgets); the new smoke checks caught it
+    before ship. State must live in startWebUi scope.
+  - Ollama went DOWN again during the STT work (same silent-update pattern
+    as 2026-09-17): the smoke vector-store check then failed because it
+    assumed Ollama embeddings — made it backend-tolerant (recorded model
+    must equal the backend actually used, hash fallback included).
+  - pathToFileURL(import.meta.url) double-encodes (it expects a PATH, not
+    a URL string) → the desktop script's root path was garbage and staging
+    "failed"; build-exe.ts already had the right pattern: new
+    URL(import.meta.url).pathname. Use that.
+  - KiraAI free tier: dead (all free models in maintenance) — pivot justified.
+  - Free OpenRouter models: transient upstream overloads/429s happen;
+    resilientClient handles them (verified live); expect occasional retries.
+  - Ollama auto-update restarted the service mid-session, aborting the 3b
+    pull at 69% and briefly dropping the embed backend.
+  - Inner repo git CORRUPTED (2026-09-18, during/after the ui-clear
+    commit): interrupted write zero-filled .git/index and
+    refs/heads/main (NUL tail in logs/HEAD) → "bad signature 0x00000000"
+    / "branch appears broken". The commit object itself survived (objects
+    are content-addressed; cat-file + fsck verified it). Recovery recipe
+    that worked: (1) read .git/logs/HEAD → last commit hash; (2) verify
+    `git cat-file -t <hash>`; (3) write the hash into refs/heads/<branch>
+    (LF only, no CR); (4) delete .git/index → `git reset` (rebuilds);
+    (5) `git fsck`; (6) restore tree damage with `git checkout -- <file>`;
+    (7) re-run the suite. A stale build-desktop.js byproduct was also
+    committed by that dying session and removed right after.
+  - The FIRST NSIS bundle shipped WITHOUT the core/node payload (1.0 MB
+    installer; only BlackRose.exe + uninstall.exe inside) — tauri.conf.json
+    had no bundle.resources, so the staged files were never packaged. The
+    installer smoke caught it; fixed by adding "resources":
+    ["core/blackrose.mjs", "node/node.exe"]. ALWAYS verify what an
+    installer actually installs, never trust a successful build.
+
+DECISIONS:
+  - One generic `openai` provider with numbered variants (openai1…9) — many
+    gateways, one code path, env-driven; no per-vendor adapters.
+  - Local push-to-talk provider = the LOCAL Windows dictation engine
+    (System.Speech.Recognition via PowerShell 5.1): zero downloads, offline,
+    audio never leaves the machine, and it matches the existing zero-dep
+    `say`/`ocr` pattern. Cloud whisper stays for files/accuracy. (Whisper.cpp
+    / Vosk rejected for now: they need binary+model downloads or native
+    builds — revisit only if dictation accuracy proves insufficient.)
+  - Conversations sidebar semantics (user-approved): ＋ New chat is
+    NON-destructive; delete is an explicit, recoverable archive to
+    sessions/deleted/. /api/new no longer archives (the old 🧹 behavior was
+    replaced deliberately).
+  - Chain: OpenRouter (free) → Groq (free) → Ollama (local) — implements the
+    master-instructions "Free → Local → Paid" routing at zero cost.
+  - Keys stay in Documents/*.txt AND User-scope env vars (set this session);
+    never log/commit them.
+  - Default model nvidia/nemotron-3-super-120b-a12b:free; revisit if Nvidia
+    upstream stays flaky (candidates: nex-agi/nex-n2.5-pro:free,
+    cohere/north-mini-code:free, google/gemma-4-31b-it:free).
+
+ASSUMPTIONS:
+  - Free-tier quotas on both gateways are sufficient for personal use;
+    OpenRouter free models are rate-limited per-day — if exhausted, the
+    router falls to Groq, then Ollama.
+
+BLOCKED BY:
+  none
+
+NEXT STEP:
+  >> CURRENT PRIORITIES (refreshed 2026-10-02 — supersedes the items below,
+     which are retained as history):
+  [DONE 2026-10-02] SHIP v0.9.0 → shipped through to **v0.9.8**. Code,
+     tauri.conf.json, Cargo.toml, package.json and the INSTALLED app are all
+     0.9.8, and the published release
+     https://github.com/MaxxaCoin/BlackRose/releases/tag/v0.9.8 carries the exe
+     + .sig + latest.json. The "installed app is 0.8.1 built from d0571c3" claim
+     in the history below is OBSOLETE (verified 2026-10-02 via BlackRose.exe
+     VersionInfo).
+  1. VERIFY THE UPDATE INSTALL PATH — still the only unverified feature. The
+     update NOTICE path is proven (0.8.1 displayed "update available: v0.9.0"
+     against a temporary manifest). What has NEVER run end-to-end is
+     download -> NSIS closes the app -> relaunch -> process cleanup, which is
+     exactly what the `update_install` command and the NSIS hooks in build.rs
+     exist for. Minimal recipe: validation/verify-runtime-release.md §(c).
+  2. MULTI-DEVICE `.aistate` SYNC — code complete and smoke-verified, still
+     blocked on a real 2nd device (no change).
+  3. DOCS SYNC — DONE 2026-10-02: roadmap B5/B25/SEA checkboxes corrected,
+     README versions + live updater endpoint + ollama removal, 03-ARCHITECTURE
+     test counts, 05-MODEL-INDEPENDENCE "until B25 lands". Stale version
+     strings in the history below are retained deliberately.
+     THIS SESSION ALSO SHIPPED CODE (each with green tsc + smoke 203 + regression 51):
+     - B5 silence fixed: quota-exhaustion tracked in-process, surfaced on
+       /api/health + sidebar + --doctor (commit 4169201).
+     - Portable identity: skills/ now travels with .aistate (4555c63); root
+       files stay rejected on import by design (regression-tested boundary).
+     - knowledge_list sorts newest-first and paginates with explicit partial
+       counts; learned-sources panel renders rows, route tray opens by default
+       (fd9023d, 38a4a78).
+     Independent 5-agent audit of the whole project landed in
+     validation/audit-capabilities.md, audit-docs-drift.md,
+     verify-runtime-release.md, design-ui-audit.md, scout-cline-sdk.md.
+  4. Bytez stays removed unless a confirmed runnable model id is supplied.
+  After any further edits: `npm run typecheck`, `npm test`, `cargo check`,
+  `npm run build:exe`.
+  --- superseded history follows ---
+
+  1. Keep the current `.aistate` hardening changes uncommitted only until the
+     user reviews them; then make one focused inner-repository commit covering
+     `state/aistate.ts`, bridge sync reporting, smoke coverage, and README.
+  2. When a second Windows/Mac/Linux computer is available, perform the first
+     real LAN exercise on a trusted private network: configure the same
+     `BLACKROSE_STATE_PASSWORD` on both devices, start the primary bridge with
+     a stable `BLACKROSE_BRIDGE_TOKEN` and `BLACKROSE_BRIDGE_HOST=0.0.0.0`,
+     verify `--health` from the second device, then test pull, independent
+     edits, conflict-copy preservation, and push. Do not expose the bridge to
+     the public internet.
+  3. Record the exact two-device commands and outcomes in this checkpoint.
+     A mobile phone can presently perform only a LAN bridge reachability check,
+     not `.aistate` synchronization.
+  Future mobile companion / .aistate sync (deferred, requires explicit
+      approval): add a native mobile client with device pairing, HTTPS,
+      secure credential storage, background sync, and an explicit conflict
+      policy. Do not expose the current HTTP bridge to the public internet;
+      its current LAN-only design is not a mobile-sync security boundary.
+  UI remodel — DONE (2026-09-24, inner commits 9393ad2 + 4e5bb6d): route-status
+      tray live (green=ok, red=degraded quota-out, yellow=down needs key,
+      gray=unknown; /api/health routes[]; src/llm/routeHealth.ts keyed by
+      name+model) + drag-and-drop audio (POST /api/upload → auto transcribe)
+      + launch chooser (continue latest / pick recent 8 / new chat; also fixed
+      duplicate btn-new id that left Clear conversation button dead).
+  Tauri auto-updater + crash reporting — DONE (2026-09-24, inner commit
+      449104e): tauri-plugin-updater wired (background check on launch,
+      updater:default capability, endpoint+pubkey in tauri.conf.json,
+      createUpdaterArtifacts=true); signing keypair at ~/.tauri/blackrose.key
+      (OUTSIDE the repo — never commit it; pubkey baked into config);
+      build-desktop.ts refuses to ship without the key; Rust panic hook →
+      %LOCALAPPDATA%/BlackRose/crash-reports/ (local, no telemetry);
+      window.__blackroseUpdate in the UI. cargo check clean; typecheck+suite
+      green. NOTE: updater endpoint is a GitHub-releases PLACEHOLDER (repo has
+      no remote) — point it at the real release host before shipping.
+  Installer rebuild + installed-app verification — DONE (2026-09-24):
+      stale 09-19 bundle rebuilt with ALL features (tray, dropzone, launch
+      chooser, Gemini fixes, sync, updater, crash reporter); signed build
+      via scripts/build-desktop-signed.ps1 (key content env, password from
+      BLACKROSE_SIGNING_PASSWORD — never committed). Fresh install at
+      %LOCALAPPDATA%\BlackRose verified LIVE: boot → core → tray/chooser/
+      dropzone served → 8 routes in /api/health → app exit kills core →
+      setup.exe 25.3 MB + .sig. Gotcha: NSIS remembers last install dir in
+      HKCU\Software\BlackRose\BlackRose — delete that key for a clean
+      default-location install (else old Temp test installs get upgraded).
+  GitHub auto-updater — LIVE (2026-09-25, inner d0571c3, v0.8.1):
+      release repo github.com/MaxxaCoin/BlackRose (public, artifacts only —
+      one README commit; GitHub refuses releases on empty repos). Endpoint
+      baked into the app: .../releases/latest/download/latest.json. Release
+      v0.8.1 has BlackRose_0.8.1_x64-setup.exe + .exe.sig + latest.json.
+      GOTCHAS: (1) latest.json MUST be UTF-8 WITHOUT BOM (PowerShell
+      Out-File -Encoding utf8 adds one and Rust's parser rejects it); (2) GitHub
+     's CDN caches release assets for a few minutes after a --clobber upload —
+      verify with a cache-busting ?cb=<ms> query; (3) a repo needs >=1 commit
+      before `gh release create` works (HTTP 422 "Repository is empty").
+      BUG FIXED: the update message was eval'd while the SPLASH page was
+      showing, which has no __blackroseUpdate handler, so it was silently
+      dropped; the message is now parked in Tauri state (PendingUpdate) and
+      re-emitted for 30s after the core UI loads, deduped in the UI by
+      __lastUpdateMsg. Verified live with a temporary 0.9.0 manifest — the
+      installed 0.8.1 displayed "⬆ update available: v0.9.0" (screenshot).
+      RELEASE RECIPE: bump version in tauri.conf.json + package.json +
+      Cargo.toml, npm run build:exe, $env:BLACKROSE_SIGNING_PASSWORD=... then
+      scripts\build-desktop-signed.ps1, write BOM-less latest.json (version,
+      notes, pub_date, platforms.windows-x86_64.{signature,url}), then
+      `gh release upload v<ver> <exe> <sig> latest.json --clobber`.
+      OMNIROUTE REPAIR — DONE (2026-09-25): the openai2 route was dead in every
+      doctor run. Root cause was NOT BlackRose: (1) OmniRoute's server process
+      was hung (port bound, requests never answered); (2) the "BlackRose" combo
+      referenced RETIRED models (nvidia/llama-3.3-70b-instruct,
+      groq/llama-3.3-70b-versatile) so every call 400'd. Fixes: start OmniRoute
+      with its own CLI (`npx omniroute serve`, needs STORAGE_ENCRYPTION_KEY from
+      ~/.omniroute/.env) — do NOT run dist/server-ws.mjs by hand, it binds the
+      default port 3000 (the dashboard) instead of 20128. Created a new combo
+      `BlackRose2` (priority: nvidia/nemotron-3-super-120b-a12b,
+      nvidia/gpt-oss-120b, groq/openai/gpt-oss-120b, openrouter/openai/gpt-oss-120b);
+      old "BlackRose" combo kept for reference. BLACKROSE_OPENAI2_MODEL=BlackRose2
+      (base stays http://127.0.0.1:20128/v1). /v1/models 401s (auth-gated) but
+      /v1/chat/completions works — doctor's chat-probe fallback handles this.
+      Verified: doctor all-green; installed app answered via OmniRoute as route #1.
+      Installer rebuilt + reinstalled (25.3 MB, .sig) with 1min.ai included;
+      installed app shows all 9 routes; app exit kills the core.
+      1min.ai provider — DONE (2026-09-24): new native adapter src/llm/onemin.ts.
+      API facts (live-probed): base https://api.1min.ai, POST /api/chat-with-ai,
+      auth header `API-KEY` (NOT Bearer), body {type:"UNIFY_CHAT_WITH_AI", model,
+      promptObject:{prompt}}; answer is aiRecord.aiRecordDetail.resultObject[]
+      (string[]); credit-metered (100M credit pool on this key, ~50 credits per
+      short call); there is NO /v1 OpenAI-compatible surface (/v1/models and
+      /v1/chat/completions both 404). Because the API takes ONE prompt and has NO
+      native tool-calling, the adapter flattens system+history into a transcript
+      and emulates tools via a strict ```tool_call fenced-JSON block, parsed
+      back into real tool_use blocks (parseToolCall). Env: BLACKROSE_ONEMIN_API_KEY
+      (persisted user env), _MODEL=gpt-4o-mini, _BASE_URL, _WEB_SEARCH.
+      Route chain: openai2,gemini,openai3,onemin,openai,openai1,openai4,openai5,ollama.
+      Verified live: doctor probe OK; full agent roundtrip PASS — write_file →
+      tool_result → read_file → correct final answer, file on disk (probe:
+      validation/scratch-onemin/onemin-agent-probe.mjs). +1 smoke check.
+      Caveat: text tool protocol is model-dependent; gemini/nvidia remain the
+      stronger tool-call routes, 1min sits below them in the chain.
+      Signed installer — DECLINED (user decision 2026-09-24): NO code-signing
+      certificate will be purchased. Installer stays unsigned (SmartScreen
+      "unrecognized app" interstitial on first launch is accepted). Do not
+      reopen this item unless the user changes distribution plans.
+      SEA.exe DROPPED — Tauri installer (24.6 MB) supersedes it as the
+      primary desktop deliverable; SEA script archived for reference only.
+  User test-drives still open: (a) the UI (context persists across
+  (4) Embedding-model upgrade — DONE 2026-09-20: Ollama nomic-embed-text
+      (768-dim) wired via memory/embedder.ts; hybrid search verified; all tests pass.
+  sea .exe (optional): dist/BlackRose.exe via SEA still needs
+      objcopy/LLVM — but the Tauri installer now supersedes it as the
+      real desktop deliverable; decide whether to keep or drop the SEA
+      route.
+  UI polish (DEFERRED BY USER 2026-09-19): "we can modify the ui (view &
+      text later)" — e.g. a "continue previous conversation / new chat"
+      choice on launch instead of auto-opening the latest thread.
+  User test-drives still open: (a) the UI (context persists across
+  messages, 🧹 resets it), (b) audio transcription: drop any mp3/wav/m4a
+  path in chat and ask to transcribe it (approval dialog will appear),
+  (c) the NEW desktop app: double-click the installed BlackRose (or
+  desktop/tauri/target/release/bundle/nsis/BlackRose_0.8.0_x64-setup.exe
+  to install) and confirm the experience feels right.
+  Backlog picks in priority order:
+  (5) .aistate multi-device exercise (needs 2nd device).
+  UI remodel backlog (DEFERRED BY USER 2026-09-19) —
+  ROUTE STATUS TRAY (implement during the full UI remodel, not before):
+  The top tray (where the provider badge + status dot sit today) gains a
+  status box for EVERY numbered gateway route currently in BLACKROSE_ROUTES
+  (openai, openai1, openai2, … — whatever is live at that time):
+    🟩 GREEN GLOW  = the route currently answering (last /api/ask or /api/goal
+                      went through it). Only one box is green at a time.
+    🟥 RED GLOW    = the route is exhausted/quota-out — e.g. HTTP 429 or the
+                      upstream "temporarily overloaded" family; expected to
+                      recover (router already falls to the next route).
+    🟨 YELLOW      = the route needs attention on OUR side — bad/missing key
+                      (401/403), unreachable endpoint (connection refused /
+                      timeout), or an explicitly 404'd/retired model id.
+  Backend notes for the future implementer:
+    - the server already knows the answer: router.ts decides per-call, and
+      --doctor's probeOpenAi classifies reachability. Expose route state
+      without a new dependency: extend /api/health with a `routes: [{name,
+      state, detail}]` array (state = ok|degraded|down|unknown; refreshed
+      by doctor-style probing, cached ~30-60s, never blocking the UI).
+    - the page then polls /api/health and paints each box (CSS glow via
+      box-shadow + pulse animation on the ACTIVE one; tooltips show the
+      route detail string doctor already produces).
+    - classifying errors: 429/overloaded → RED; 401/403/timeout/refused/404
+      → YELLOW; last successful route → GREEN (updated on every /api/ask).
+    - scope excludes auth/token entry + cable behind the boxes: the remodel
+      as a whole handles that (see UI polish line above).
+
+  - DRAG-AND-DROP AUDIO INPUT (DEFERRED TO the future full UI remodel,
+    alongside the route-status tray above, NOT built now): today the STT
+    UX for audio-file transcription is still path-based \u2014 you provide the
+    audio file path (e.g. copy/paste or type it into chat) and the agent
+    runs `transcribe_audio` with approval (Groq whisper drop-back is the
+    verified live path; SIDECAR save + optional knowledge ingest already
+    exist/verified). The transcribe step itself was experienced as smooth/fast
+    (fast Groq whisper drop-back). Want a SMOOTH drag-and-drop + click-to-choose
+    drop zone on the chat input bar for audio files? That is a future-remodel
+    feature: accept .wav/.mp3/.m4a/.mp4/.flac/.ogg, wire to the existing
+    `transcribe_audio` tool (already verified live: approval-gated cloud STT via
+    Groq whisper, with sidecar save + optional knowledge ingest). While the
+    remodel is deferred: keep using the path-copy way for audio file
+    transcription (works smoothly, as the user confirmed today).
+
+DO NOT REPEAT:
+  - Do not re-run completed validations (gateway probes, toolprobe,
+    live-agent-probe, npm suite, build) unless code changed.
+  - Do not keep per-request state inside the http handler closure — the UI
+    conversations Map must live in startWebUi scope (per-request recreation
+    silently reintroduced the forgetting bug; smoke checks caught it).
+  - Do not make smoke checks assume Ollama is up (down again 2026-09-18,
+    silent self-update): backend-dependent checks must tolerate the hash
+    fallback (vector-store model check now does).
+  - Do not wrap import.meta.url in pathToFileURL (double-encode bug) — use
+    new URL(import.meta.url).pathname like build-exe.ts does.
+  - Do not attempt Anthropic generation before credits are added.
+  - Do not re-enable the validation-echo schedule in the real state.
+  - Do not re-pull qwen2.5-coder:3b without asking (7b works; pull died at
+    69% once already and eats disk+bandwidth for ~1h).
+  - Do not use KiraAI defaults (kiraai.vn base URL / deepseek-v4-flash-free)
+    — removed from the code; free tier is in maintenance.
+  - Do not select thinkingmachines/inkling*:free (403 agentic-harness-only)
+    or gemma-4:free as defaults (upstream 429s during probe).
+  - Do not build V2/V3 features without explicit user approval.
+  - Do not use `import { x as y }` syntax in src/ (bundler limitation).
+  - Do not trust PowerShell stdout blindly in WinRT wrappers — parse only
+    explicitly delimited, success-gated markers.
+  - Do NOT read/echo the contents of the key files (openrouter, groq,
+    claude, kira) into chat, logs, or commits; load them only inside the
+    program at runtime.
+  - PowerShell 5.1: avoid `??` in inline commands (parse errors); use
+    if/else. Long node runs: launch DETACHED via Start-Process (cmd /c
+    "... > out 2>&1") and poll the output file — a synchronous cmd /c
+    redirect still dies with the 30 s tool cap (seen 2026-09-18).
+  - Never interrupt git mid-write and always end a session with a clean
+    `git status` + error-free `git fsck` (the 2026-09-18 corruption came
+    from an interrupted git write; recovery recipe in PROBLEMS FOUND).
+  - Do NOT spawn .cmd shims from node scripts on modern Node (EINVAL,
+    CVE-2024-27980) — spawn process.execPath on the package's real JS bin
+    entry instead, and always check spawnSync r.error (silent death cost
+    three dead build attempts on 2026-09-18).
+  - Long cargo builds: run detached (Start-Process) and poll the LOG, not
+    process lists; deep directory size scans get slow and hit the tool cap.
+    cargo keeps compiling fine unattended — an overnight build does not
+    need a babysitting session.
+
+WARNINGS:
+  - SECURITY: on 2026-09-19 a PowerShell env dump leaked API key VALUES
+    (OpenRouter + Groq) into this session's transcript. The keys are valid
+    and stored in User-scope env + Documents/*.txt. RECOMMEND rotating both
+    (openrouter_api_key.txt, groq_api_key.txt) at the next convenient time.
+    Reminder: never Get-ChildItem env: without filtering — always
+    names-only for secrets.
+
+  - ANTHROPIC_API_KEY is valid but the account has zero credits.
+  - NEVER commit, print, or share any key file
+    (openrouter_api_key.txt, groq_api_key.txt, claude api key.txt,
+    kira_api_key.txt).
+  - Ollama on this machine is CPU-only: ~25 s cold load + slow prompt eval; a
+    slow first reply is normal, not frozen. It may self-update and drop the
+    service mid-session (seen 2026-09-17) — check /api/tags on odd failures.
+  - Scheduled/bridge runs fail closed on approvals by default (by design).
+  - Free-model availability on OpenRouter changes daily; if the default
+    model 404s/429s persistently, re-run the models probe and pick a new

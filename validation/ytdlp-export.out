@@ -1,0 +1,14 @@
+﻿[generic] Extracting URL: https://www.instagram.com/
+[generic] www.instagram: Downloading webpage
+Extracting cookies from chrome
+yt-dlp.exe : ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info
+At line:1 char:1
++ & 'C:\Users\pc\.blackrose\bin\yt-dlp.exe' --cookies 'C:\Users\pc\.bla ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERROR: Failed t...  for more info:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info
+Extracting cookies from chrome
+ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info
+ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info

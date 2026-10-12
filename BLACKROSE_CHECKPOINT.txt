@@ -162,6 +162,145 @@ pm run verify:checkpoint (scripts/verify-checkpoint.ts) fails
       Verified in both directions, now including with-port forms: shell origins
       200; evil.example, bare cross-site, tauri.localhost.evil.example and
       localhost.evil.example all still 403.
+  12. AUTO-BACKUP SHIPPED IN 0.9.22 — and why 0.9.22 was needed at all.
+      BLACKROSE_STATE_PASSWORD was ALREADY set at user level, yet no backups had
+      ever been made. That is not a config bug: the installed 0.9.21 binary
+      contains no backup code whatsoever. It only references that variable for
+      /sync and /export. The variable was set but nothing could act on it.
+      LESSON: "the env var is set" is NOT evidence the feature is live. Check
+      the shipped binary:
+        Select-String -Path "$env:LOCALAPPDATA\BlackRose\core\blackrose.mjs" -Pattern 'startAutoBackup'
+      The exported name is startAutoBackup (with writeBackup, rotateBackups,
+      backupsDir). I first went looking for `runAutomaticBackup`, which exists
+      nowhere — a name I invented. Confirm marker strings from the source
+      before concluding a payload is missing them. `backup password required`
+      appears only in src/backup.ts and is the cleanest single marker.
+      0.9.22 verified by extracting the installer with 7z and reading the
+      uncompressed core/blackrose.mjs: all four functions present, and the
+      backup-only string hits at line 10203. The 0.9.21 install has none.
+      Released 2026-10-05T07:16:41Z. Installer 25,774,040 bytes,
+      sha256 7F197F45481CA9066FB4671FFD11F4245DE9B04AB919078E7B3C351229FA6A5E,
+      confirmed by re-downloading through the ASSET API (drafts 404 on the
+      public URL) and re-hashing. Public latest.json serves 0.9.22 with a
+      signature identical to the built one.
+      STILL OPEN: 0.9.22 has never been installed or run. Automatic backup has
+      never produced a real file on this machine. The user must install it, run
+      /backup, and confirm a snapshot appears under ~/.blackrose/backups/.
+      Snapshots stay on the same disk — copy them out periodically.
+  13. THREE FAULTS FOUND BY THE USER AFTER 0.9.22 — all fixed in 0.9.23.
+      (a) SESSIONS WOULD NOT OPEN. Reported as "past sessions are not being
+          tapped (not opening)". The BACKEND was fine: /api/sessions returned
+          all 17 sessions and POST /api/sessions/open returned HTTP 200 with
+          1.25MB. Only the browser could not ask for them.
+          CAUSE: assets.ts is one big script. `const authHeaders` was declared
+          ~110 lines BELOW its first call, inside refreshSessions, which runs at
+          page load. A const is in the temporal dead zone until its line runs,
+          so every call threw ReferenceError: Cannot access 'authHeaders'
+          before initialization. The call sat inside `catch { return; }`
+          written for "offline", which hides a ReferenceError exactly as well as
+          a network failure — so the list silently stayed empty, with no error
+          anywhere. TWO faults; either alone would have hidden it.
+          FIX: moved the block above its first use; replaced both bare catches
+          with catch (e) + console.warn.
+      (b) /backup IN CHAT PRODUCED AN UNENCRYPTED ARCHIVE CONTAINING THE VAULT.
+          The user typed /backup into the CHAT. There was no chat handler, so
+          the text became a normal prompt, the model called run_command, and it
+          genuinely created
+            C:\Users\pc\backups\blackrose_backup_20261005.zip  (102MB)
+          — real, valid, UNENCRYPTED, and containing keys.enc AND vault.key
+          together. It reported the backup as a success.
+          I first called this a hallucination and was wrong. The agent has a
+          run_command tool (src/tools/shell.ts), so it really did shell out.
+          Searching OUR code for the filename and finding nothing proves
+          nothing about what the AGENT can produce. Capture evidence first.
+          WHY IT MATTERS: .aistate deliberately excludes keys.enc + vault.key
+          (DPAPI-sealed, device-bound, useless elsewhere). Bundling the pair
+          into a plaintext zip undoes that protection entirely. The user
+          deleted the file, which was correct — it held no memories of its own.
+          FIX: chat LOCAL_COMMANDS handles /backup before the model sees it and
+          calls a new POST /api/backup -> writeBackup() (full encrypted
+          snapshot). Failure is reported honestly rather than falling through,
+          because falling through WAS the bug. Plus vaultArchiveRisk() in
+          run_command refuses plaintext archives of the state dir and names
+          /backup and /export as the alternative. Deliberately narrow and
+          documented as such — trust mode is the real control.
+      (c) A '\n' I wrote inside the JS template literal became a REAL NEWLINE
+          and broke the served page. That is the collapsed-escape bug class this
+          codebase already had three instances of (see the OK_ESC scan in
+          smoke.ts). Smoke caught it immediately; now String.fromCharCode(10).
+      TESTING LESSONS, both learned the hard way here:
+        - A test importing the GUARD FUNCTION DIRECTLY passed 71/71 with the
+          guard disabled to `const refusal = null`. The function was correct and
+          the TOOL was not calling it. Added a second test that drives the real
+          tool ("the run_command TOOL actually refuses, not just its helper"),
+          which fails properly when the guard is disabled.
+        - My first vaultArchiveRisk required the command to LITERALLY NAME
+          keys.enc/vault.key — backwards. The dangerous command is the one that
+          does NOT name them, because it archives the directory they live in.
+          Caught only by testing the actual command that caused this.
+        - Backticks in a comment inside a TS template literal END the string and
+          break the build. This cost three round-trips. Keep such notes
+          backtick-free.
+      0.9.23 released 2026-10-05. Installer 25,779,546 bytes, sha256
+      c8b909c2fb24f0220be1546bab391b2d1ae7f890a26451e9ab86b5f741609216,
+      verified by re-download through the asset API and re-hashing. Payload
+      extracted with 7z and inspected: startAutoBackup, api/backup,
+      LOCAL_COMMANDS, vaultArchiveRisk all present, and authHeaders declared at
+      L12214 BEFORE its first call at L12220 — the shipped order is correct.
+      STILL OPEN: none for the backup feature. 0.9.23 was installed, the user
+      confirmed both fixes work, and /backup produced
+        C:\Users\pc\.blackrose\backups\ai-2026-10-05T09-40-59.aistate
+      (78 files, 9,422.4 KB). That file was then verified independently, which
+      is the first time the restore path has EVER been exercised on real data:
+        - magic header is BRSTATE1, not a zip signature — genuinely the
+          encrypted format, not an improvised archive.
+        - restoring with a wrong password fails closed:
+          "Decryption failed: wrong password or corrupted .aistate file".
+        - restoring with the real password into a scratch dir produced 79
+          entries: 17 sessions, 44 knowledge, plus memory/projects/
+          experiences/vectors.
+        - 78 of 79 files were BYTE-IDENTICAL (sha256) to the live state. The one
+          difference is state-manifest.json, which is export bookkeeping and is
+          documented as not AI state. Zero files missing.
+        - keys.enc / vault.key: 0 occurrences in the restored set, confirming
+          the vault exclusion works on the real backup.
+      So the loop is now proven end to end on this machine: chat /backup ->
+      encrypted full snapshot -> verified restore. The remaining caveat is that
+      snapshots still sit on the same disk; copying them off-machine is the
+      user's next step and is not something the software can do for them.
+
+14. DOCS RECONCILED AGAINST REALITY (this session, 2026-10-05). The handoff
+      doc had fallen three releases behind and was the reason three separate
+      sessions repeated work that was already done.
+      CORRECTED IN docs/08-SESSION-HANDOFF.md: "Live version v0.9.21" -> v0.9.23;
+      "HEAD 9acca92" -> 99d62fc; section 4a "Immediate: ship v0.9.22" is DONE
+      (0.9.22 shipped 2026-10-05T07:16:41Z, 0.9.23 is current); section 4b's
+      "B4 and B27 to do" is DONE (B4 = commit 8ccb7ae, B27 was already done);
+      the quoted gate figures (smoke 229, tests 86) were stale.
+      ALSO CORRECTED: the handoff's claim that "the outer dir is NOT a git repo"
+      is FALSE. C:\Users\pc\Desktop\BlackRose IS a git repo (.git present, branch
+      master, tip d046d43, and the file BLACKROSE_CHECKPOINT.txt is tracked
+      there with 506 uncommitted added lines). What is true is narrower and is
+      what the warning actually protects against: it has NO REMOTE, so a stray
+      git push fails. Same repo, wrong reason.
+      GATES RE-RUN BY ME ON THIS TREE (not quoted from the previous session):
+      npx tsc --noEmit = no output at all (clean); node src/smoke.ts = SMOKE TEST
+      PASSED, 260 PASS / 0 FAIL; regression + parser-hostile = 93/0. The earlier
+      "231/0" figure was already stale by the time it was written.
+   15. B8 AND B11 LANDED; B12's CHECKLIST ROW IS WRONG.
+      B8 Learning Inbox = d6379dd (src/tools/inbox.ts + inbox_scan; poll-based
+      mtime+size journal, reuses learn_folder, 14 smoke checks). B11 browser
+      login = 99d62fc (src/core/cookies.ts, GET+POST /api/cookies, Settings
+      picker, ytdlpCookieArgs consumed by watch_video; 16 smoke checks). I
+      verified BOTH rows in 07-BUILD-CHECKLIST.md against the commits rather
+      than assuming - both rows are accurate, including their honest limits.
+      STILL WRONG: the B12 Executive Brain row in PART B of the checklist reads
+      open. It is substantially shipped: src/core/executive.ts + src/tools/goals.ts
+      (commit da08dcc, goal_add/update/list/focus/remove, decision_record/list,
+      briefing() folded into every system prompt), later hardened by 756ca3a
+      which fixed five audited defects in it. The row was NOT edited by this
+      session: 07-BUILD-CHECKLIST.md belongs to the B8/B10/B11 agents and they
+      were editing it concurrently. Correcting that row is the next agent's job.
 
   SECURITY STATE — READ THIS BEFORE PUBLISHING:
     * motion_token.json held a live OAuth refresh_token, committed in the OUTER
@@ -1372,3 +1511,437 @@ WARNINGS:
   - Scheduled/bridge runs fail closed on approvals by default (by design).
   - Free-model availability on OpenRouter changes daily; if the default
     model 404s/429s persistently, re-run the models probe and pick a new
+========================================================================
+RELEASE 0.9.16  (2026-10-03) - PUBLISHED AND VERIFIED
+========================================================================
+Tag v0.9.16 on MaxxaCoin/BlackRose, marked Latest.
+
+Commits (blackrose-source, all pushed to origin/main):
+  6319a12  fix(desktop): authorize the approval chime for the remote origin
+  ee09e04  chore(release): bump 0.9.15 -> 0.9.16
+  be330c8  fix(release): de-hardcode 0.9.15 from the signer
+
+THE BUG: the approval chime was silent for three stacked reasons.
+  1. frontend used the wrong IPC entry point for the loopback origin
+  2. "approval_chime" missing from the generated ACL (desktop/tauri/build.rs)
+  3. "allow-approval-chime" missing from the remote-updater.json capability
+Fixing only the capability was not enough - all three were required.
+
+VERIFIED (rerunnable: validation/verify-sig916.ps1):
+  - signature VALID (minisign; trusted comment names
+    BlackRose_0.9.16_x64-setup.exe; artifact 25778368 bytes)
+  - uploaded .exe sha256 db0e080e...d8a2d9a matches local byte-for-byte
+  - live .sig identical to local
+  - payload strings present in the SHIPPED installer:
+      BlackRose.exe    allow-approval-chime, PlaySoundW, "2-tone alert ok"
+      blackrose.mjs    __TAURI_INTERNALS__.invoke, "native approval_chime failed"
+  - live latest.json: HTTP 200, 837 bytes, NO BOM, version 0.9.16
+  - live installer + sig: HTTP 200
+
+GOTCHA WORTH KEEPING: sign-release.ps1 had four hardcoded 0.9.15 literals.
+One was the .sig VERIFICATION path, so a 0.9.16 run would have silently
+validated the 0.9.15 artifact while reporting 0.9.16. Fixed in be330c8.
+
+ENCODING TRAP (cost real time, 2026-10-03): PowerShell 5.1 Get-Content
+defaults to the ANSI codepage. Reading a UTF-8 file with it and writing it
+back with WriteAllLines double-encodes every non-ASCII char: an em-dash
+becomes mojibake. Use [IO.File]::ReadAllText/WriteAllText with an explicit
+UTF8Encoding($false) for any non-ASCII file here.
+
+STILL OPEN - DO NOT CALL 0.9.16 FULLY VALIDATED:
+  - THE CHIME HAS NEVER BEEN HEARD. Authorization is proven end to end;
+    audibility is NOT. Install it, trigger an approval prompt, and confirm
+    sound while the window is minimized/backgrounded.
+  - U+FFFD replacement glyphs around S0/S1/S2 remain unrooted. Data on disk
+    is intact; display only. NOT fixed in this release.
+  - validation/signed-0916.out is genuinely double-encoded on disk (reads as
+    U+0393 where U+2713 check should be). Same family as the U+FFFD issue.
+========================================================================
+RELEASE 0.9.18  (2026-10-04) - PUBLISHED, AND AUDIBLY CONFIRMED
+========================================================================
+Tag v0.9.18 on MaxxaCoin/BlackRose, marked Latest. Commits on
+blackrose-source, all pushed to origin/main:
+
+  b2a2d3c  a separate ringtone for approval and for task-done
+  8c39f91  stop the S0/S1 sentinels corrupting rendered answers
+  edf75ab  security: session write paths accepted an unvalidated id
+  52acdfd  security: prototype-pollutable and type-confused cue preferences
+  450fd6f  docs: correct the install allowlist comment
+  6e6c88b  security: Authorization bearer headers were never redacted
+  ff61dd6  chore(release): bump to 0.9.18
+
+USER CONFIRMED ON THE INSTALLED BUILD (2026-10-04):
+  - the approval chime is audible
+  - the settings tab was inspected and is correct
+This CLOSES the "chime has never been heard" item. Every earlier release
+proved only that the command was AUTHORIZED; audibility could only ever be
+confirmed by a human. Do not re-open this as unverified.
+
+WHAT 0.9.18 ADDS
+  - A "task done" cue, separate from the approval chime. Fires ONLY when a
+    turn actually produced a final answer - never on a stopped, failed or
+    disconnected turn, because a done-chime on failures trains the user to
+    ignore the one that matters.
+  - Independent ringtones: Classic / Gentle / Urgent / Bell, chosen
+    separately for approval and for done, with "Preview both cues".
+  - Fixed answers rendering as "approximately S1" instead of the real value.
+
+THE S0/S1 BUG (rooted 2026-10-04, after two failed attempts)
+  The data on disk was always correct. S0/S1 were renderRich's OWN stash
+  sentinels: keep() wraps each generated tag in NUL+"S"+index+NUL so later
+  regexes cannot match inside markup it just produced, and the result is
+  assigned to innerHTML. The HTML parser is REQUIRED to rewrite U+0000 in the
+  input stream to U+FFFD, so any sentinel reaching innerHTML came back as
+  visible garbage, replacing the value ("2.01%") with "S1".
+  Sentinels are now Private Use Area chars (U+E000/U+E001), which pass through
+  untouched, plus a final sweep that removes any NUL/FFFD-wrapped S<digits>.
+  It cannot eat prose - "matrix S1 and S2 rows" is verified to survive.
+
+SECURITY (found by attacking the code, not reading it)
+  - Authorization: Bearer <token> was NEVER redacted. "authorization" was
+    missing from the assigned_secret key list AND the value charset could not
+    cross the space in "Bearer ". The most common way a credential is written
+    down, flowing into logs, disk and model context.
+  - Session ids unvalidated on the WRITE path. Not reachable today (the web
+    route validates on load); fixed as defence in depth.
+  - Cue preferences prototype-pollutable and type-confused.
+
+VERIFIED FOR THE RELEASE
+  - signature VALID; trusted comment names BlackRose_0.9.18_x64-setup.exe
+  - uploaded .exe sha256 7cd68b3d...1591c1 matches local byte-for-byte
+  - live latest.json HTTP 200, 755 B, NO BOM, version 0.9.18
+  - payload strings confirmed in the SHIPPED binaries (allow-done-chime,
+    done_chime, uE000S, CUES[cue + 'Tone'], synthCue, this is a stale core)
+  - smoke 221 PASS / 0 FAIL, unit 51 / 0, scan:secrets clean,
+    scan:history clean across 170 commits, npm audit 0, tsc + cargo check clean
+
+  Search for STRING LITERALS when verifying a stripped release binary.
+  Function names do not survive - searching BlackRose.exe for "fn listener_pid"
+  returns a false negative and looks like a missing fix.
+
+UPLOAD SEQUENCING (learned the hard way on 0.9.17)
+  Upload the 24 MB installer into a DRAFT, verify its sha256, THEN publish.
+  On 0.9.17 two HTTP 408s left the release live without its installer, so the
+  updater advertised a dead download for several minutes. On 0.9.18 the assets
+  were all confirmed in the draft first, then published in one step.
+  (The 0.9.19 entry that used to follow here was consumed; the current state is
+  in the 0.9.21 release block at the end of this file.)
+
+  NOTE - the "U+FFFD ... never reproduced in state" item that used to be listed
+  here is RESOLVED and is NOT still open. It was root-caused on 2026-10-05: the
+  bytes showed a UTF-16LE file read as UTF-8, and the corruption had been
+  PERSISTED into the knowledge base. See the 0.9.21 entry for the full writeup
+  and fix. Do not re-investigate it as an open mystery.
+  RELEASE 0.9.20  (2026-10-05) - PUBLISHED AND VERIFIED
+
+Tag v0.9.20 on MaxxaCoin/BlackRose, marked Latest, published
+2026-10-05T02:06:53Z. Assets: BlackRose_0.9.20_x64-setup.exe (25776664 B),
+.sig (420 B), latest.json (835 B).
+
+Commits on origin/main:
+  42de52c  chore(tauri): lock blackrose-desktop at 0.9.20
+  (source tree clean, 0 0 vs origin/main)
+
+WHAT 0.9.20 FIXES
+  - /app.js and /app.css were served BEHIND the token gate. A <script src>
+    request cannot send an Authorization header, so the script 403'd, never
+    executed, and every listener stayed unbound. The page rendered but NOTHING
+    was clickable. Static assets are now served before the token gate.
+  - CSP: script-src is now 'self' with NO unsafe-inline (where the XSS
+    protection actually lives). style-src must keep 'unsafe-inline' - a
+    style-src of 'self' blocked the 41 inline style attributes the markup
+    still uses and silently stripped layout from the desktop app.
+  - Archive inflation is bounded per-member and in total; archive reads are
+    capped at 10 s wall clock (src/memory/zip.ts).
+  - A fully parked embedder key pool now rotates instead of pinning the last
+    key (src/memory/embedder.ts).
+  - sign-release.ps1 now regenerates latest.json from the signature it just
+    produced and cross-checks it against the built installer, failing with
+    BADMANIFEST on any version/URL/artifact mismatch. This closes the class of
+    bug where a signed build finished advertising the PREVIOUS release's
+    signature.
+
+VERIFICATION
+  - installer sha256 2b184c44c636e402224a764f3aaa885451a9e6bcdda846f25fcb50e12bf4a0ea
+  - uploaded .exe sha256 matches local byte-for-byte (via release asset API)
+  - public CDN re-download of the same URL reproduces that exact sha256, so the
+    live path other users hit is verified, not just the local artifact
+  - signature: tauri secret key / minisign, trusted timestamp
+    1791133565 = 2026-10-04 17:06:05 UTC, inside the build window; trusted
+    comment names BlackRose_0.9.20_x64-setup.exe
+  - live latest.json HTTP 200, 835 B, NO BOM, version 0.9.20, URL -> v0.9.20,
+    embedded signature matches the .sig served from the CDN
+  - CSP confirmed present in the shipped binary: script-src 'self' AND
+    style-src 'self' 'unsafe-inline' both return true
+  - gates before build: tsc clean, smoke clean, regression 57 / 0
+  - USER-CONFIRMED on the installed 0.9.20: trust mode ON auto-approves, OFF
+    asks, restart defaults to OFF, UI layout intact after the CSP change
+
+TWO LESSONS WORTH KEEPING
+  - "Up to date" does not mean "current build". The updater compares against
+    the PUBLISHED release, so an unpublished build is invisible to it. Check
+    FileVersion on the INSTALLED exe before trusting any test result: this
+    build was 0.9.20 while the installed copy was still 0.9.19.
+  - The original bug report described 0.9.19 behaviour, but the CSP and token
+    gate work above was done against 0.9.20. They were both real defects, but
+    they were NOT what was being reported. Do not retro-fit a fix to an old
+    symptom report without checking which version the reporter actually ran.
+
+GOTCHA: same-version reinstall is a NO-OP
+  Re-running the 0.9.20 installer over an existing 0.9.20 install did not
+  replace the binary (mtime unchanged, sha256 0a76b935...c66db1). NSIS skips
+  when the version already matches. A real end-to-end install test needs
+  uninstalling first, or comparing something other than the installed file.
+
+NOT PROVEN BY THIS RELEASE
+  - A clean install from the public URL was never performed; only the download
+    and its hash were verified. See the no-op note above.
+  - The JS payload is embedded COMPRESSED in the binary (13 gzip + 245 brotli
+    streams), so string-literal scanning of the exe CANNOT confirm /app.js or
+    the trust strings. Only the CSP headers were readable that way. The trust
+    fix is confirmed by the user's functional test, not by string scanning.
+
+- U+FFFD AROUND S0/S1 - ROOT CAUSED AND FIXED (2026-10-05)
+    It was never a display bug. The raw bytes named it: the stored chunk was
+    UTF-16LE read as UTF-8, i.e. NUL-interleaved text with the BOM destroyed
+    into two U+FFFD. Windows PowerShell 5.1 writes UTF-16LE by default, and
+    Node's utf8 decoder is lossy BY DESIGN (a lone high byte becomes U+FFFD
+    with no error thrown), so learn_file accepted the file, chunked the
+    corruption, and PERSISTED it. That is why it never reproduced: the source
+    file is gone but the damaged copy survived in the knowledge base.
+
+    Evidence (knowledge/c-users-pc-desktop-blackrose-cline-blackrose-router-chain-txt.json,
+    saved 2026-09-20). Bytes around the damage:
+      20 22 EF BF BD EF BF BD 42 5C 75 30 30 30 30 6C 5C 75 ...
+         \__U+FFFD__/        B \ u0000      l \ u0000
+    296 interleaved NULs in a single chunk; only the 2-char BOM was lost.
+
+    TWO bugs, not one:
+      1. Silent corruption - learn_file and learn_folder read every file as
+         UTF-8. Fixed with decodeTextFile(): sniffs a BOM, else tests for the
+         strict all-odd-bytes-zero UTF-16LE pattern, and decodes properly. A
+         UTF-8 BOM is now stripped so it cannot leak into the first chunk.
+      2. Silent data loss - learn_folder sniffed for binary BEFORE decoding, and
+         UTF-16 files are full of NULs, so every PowerShell-written file was
+         SKIPPED AND NEVER INGESTED. Arguably worse than the garbling.
+
+    The sniff is deliberately strict (all odd bytes zero AND all even bytes
+    printable). A density threshold was tried first and smoke caught it: the
+    existing binary fixture [0x41,0x00,0x42,0x43,0x00] is 40% NUL by chance
+    and got misclassified as text. Pinned as a regression test.
+
+    Repaired the one damaged chunk in the live data dir (594 chars -> 296
+    clean, zero NULs, zero U+FFFD). source/kind/saved preserved. Backups at
+    <file>.bak-20261005 and %TEMP%\chain-original.json. Full-dir rescan:
+    zero U+FFFD remaining. scripts/repair-knowledge-chunk.ts is the guarded,
+    idempotent repair tool.
+
+  - CLEAN-INSTALL VERIFICATION - DONE (2026-10-05)
+    Previously unproven because a same-version reinstall is a silent no-op
+    (NSIS skips when the version already matches, binary mtime unchanged).
+    Resolved by uninstalling FIRST - BlackRose.exe was confirmed ABSENT - then
+    installing from the file downloaded off the public CDN. Result: 0.9.20,
+    6132224 b, sha256 0a76b935...c66db1, byte-identical to the pre-uninstall
+    binary. A fresh install from the live URL reproduces exactly the artifact
+    that was tested. Note the file's CreationTime reads 2026-10-04 22:34
+    because NSIS preserves the build timestamp; absence-then-presence is the
+    proof, not the timestamp.
+
+  - REVIEW OF THE FOUR UNREVIEWED AREAS (2026-10-05)
+    All four were ALREADY HARDENED. No new defects found; the value here was
+    confirming the guards actually bite rather than trusting their comments.
+    - Schedule timezone (src/tools/schedule.ts): the UTC-vs-local day-rollover
+      mismatch is already fixed in place, with the reason documented. Both
+      halves of the condition now read the local clock.
+    - LLM key-pool (src/llm/router.ts): a parked/dead key is skipped, and the
+      cursor STAYS ON the winner rather than advancing past it, so a known-dead
+      key is not the first candidate every turn.
+    - MCP buffer bounds (src/mcp/client.ts): capped at MAX_BUFFER_BYTES (8 MB)
+      and reset rather than trimmed, with the resync reasoning documented.
+    - Parser limits (src/memory/zip.ts): per-member 64 MB, aggregate 256 MB,
+      wall-clock 10 s, maxEntries 8192.
+
+    Added src/parser-hostile.test.ts (10 tests) that builds spec-valid ZIPs and
+    asserts each ceiling truncates a walk while a legitimate archive still
+    round-trips completely. One real finding:
+
+    GOTCHA WORTH KEEPING: readZip hands member names to the caller VERBATIM,
+    including "../../evil.txt". That is safe today because readZip never writes
+    to disk - the caller picks the destination - but readZip is NOT a path
+    sanitiser and must never be treated as one. Pinned by a test so anyone who
+    later adds extraction inside readZip is forced to add sanitising at the
+    same time. readZip also never throws on hostile input (garbage, truncation,
+    corrupt member sizes, lying entry counts are all skipped) - now confirmed.
+
+    gates after this work: tsc clean, smoke 230/0, tests 75/0 (65 regression +
+    10 hostile-input). npm test now runs BOTH files so the hostile-input probes
+    are part of the gate rather than a file nobody invokes.
+
+RELEASE 0.9.21  (2026-10-05) - PUBLISHED AND VERIFIED
+
+Tag v0.9.21 on MaxxaCoin/BlackRose, marked Latest, published
+2026-10-05T04:24:39Z. Assets: BlackRose_0.9.21_x64-setup.exe (25771956 B),
+.sig (420 B), latest.json (849 B).
+
+Installer sha256 255d76a0a14ec599d7d25c740158a898e307ac6aeeecafc588c0d8e7ee42d2a9
+Remote asset re-downloaded via the release API and hashed: IDENTICAL to local.
+Published as a DRAFT first, digest verified, then flipped public + Latest.
+Live latest.json: 849 B, NO BOM, version 0.9.21, URL -> v0.9.21, and the
+embedded signature matches the .sig served from the CDN.
+
+Commits on origin/main:
+  a342363  fix(release): regenerate latest.json in the build script
+  1e9c066  chore(tauri): lock blackrose-desktop at 0.9.21
+  5e22a94  chore(release): latest.json for 0.9.21
+  375eb67  fix(tauri): verify a port squatter before force-killing it
+  1f79d8f  test(parsers): hostile-input probes for the archive guards
+  37a6c3b  fix(knowledge): decode UTF-16 text instead of storing it as NUL noise
+  4f2a243  chore(scripts): add guarded one-off repair for UTF-16 knowledge chunk
+  (source tree clean, 0 0 vs origin/main)
+
+WHAT 0.9.21 FIXES  (see the U+FFFD entry below for the full root-cause writeup)
+  - learn_file / learn_folder now decode UTF-16 instead of storing it as
+    NUL-interleaved garbage, and learn_folder no longer misclassifies UTF-16
+    text as binary and silently skips it.
+  - The desktop shell no longer force-kills an arbitrary process squatting on
+    its port (see the kill-path entry below).
+
+VERIFICATION - PAYLOAD INSPECTED, NOT JUST THE INSTALLER
+  7-Zip at "C:\Program Files\7-Zip\7z.exe" DOES extract the NSIS payload; the
+  earlier "7z not found" was a resolution failure, not a missing tool.
+  Extracted BlackRose.exe: version 0.9.21, contains "refusing to kill" and
+
+RELEASE 0.9.25 - PUBLISHED AND VERIFIED (2026-10-09)
+
+Tag v0.9.25 on MaxxaCoin/BlackRose, marked Latest, published 2026-10-09.
+Assets: BlackRose_0.9.25_x64-setup.exe (25,811,395 B), .sig, latest.json
+(regenerated from the fresh .sig before publishing to avoid the stale-manifest
+failure on the previous versions). Manifest version = 0.9.25.
+
+Installer sha256 744AF7206030389C189F58B96FD1AED2D592E874B261B5D0CD35EF166C52EABC
+Remote asset re-downloaded via the release API and hashed: IDENTICAL to local.
+Live .sig and live latest.json signature both match the local build.
+v0.9.25 confirmed LATEST on MaxxaCoin/BlackRose.
+
+- Desktop main-turned-desktop relaunch: DONE.
+- Embedded core/blackrose.mjs in the installer is byte-identical to the fresh
+  dist/blackrose.mjs, verified.
+
+ADDITIONAL SCRIPT: scripts/verify-live-925.ps1 is the reusable last-step
+verifier (download + hash + sig). Note: /start-parked watch loop keeps the
+bot alive only while the exe runs (not installed). Not committed.
+
+RELEASE SHIPPED - 0.9.26 (2026-10-10)
+
+Source code committed at 7c49be0, checkpoint docs at 359ba04, version bump at
+20a80e2 - all pushed to origin/main. Version bumped to 0.9.26 in all four
+files (package.json / Cargo.toml / Cargo.lock / tauri.conf.json). Gates passed:
+typecheck clean, SMOKE PASSED, node --test 107/107. Signed build completed via
+build-desktop-signed.ps1 -> BlackRose_0.9.26_x64-setup.exe (25,815,303 bytes,
+SHA-256 37B6FD8C...) + .sig + BOM-less latest.json (regenerated, verified against
+on-disk signature). Release v0.9.26 published on MaxxaCoin/BlackRose with
+installer, .sig and latest.json assets; marked Latest (releases/latest -> v0.9.26).
+Live verification passed: downloaded assets match local build byte-for-byte
+(signature, manifest version+sig, installer SHA-256 identical). latest.json is
+left uncommitted (regenerated each build to avoid a stale manifest in the tree).
+
+  "it is not a BlackRose core" (the kill-verification fix), plus the 0.9.20 CSP
+  headers (no regression).
+  Extracted core/blackrose.mjs (843.5 KB): contains decodeTextFile, isUtf16Le,
+  and the UTF-16 rationale comments (the decode fix).
+  core/blackrose.mjs is NOT compressed on disk, so string scanning works on it.
+  By contrast the JS inside BlackRose.exe IS embedded compressed (13 gzip + 245
+  brotli streams), so string scanning the EXE proves nothing about the core.
+
+GOTCHA WORTH KEEPING - THE STALE-MANIFEST NEAR-MISS
+  build-desktop-signed.ps1 builds and signs but does NOT regenerate
+  latest.json; only sign-release.ps1 did, and it re-runs the whole build. So
+  "build first, manifest later" is a natural split that leaves latest.json
+  holding the PREVIOUS release's signature - which is exactly what happened on
+  0.9.21. The build script now regenerates the manifest from the signature it
+  just produced and asserts version, URL and signature before exiting non-zero.
+  Verified against the real 0.9.21 signature, including that a tampered
+  signature is rejected. ALWAYS check the manifest against the .sig on disk
+  before uploading - that single check is what caught this.
+
+  HOW TO RUN THE BUILD (password is never stored or passed on the command line):
+    powershell -NoProfile -Command "$s=Read-Host 'Signing password' -AsSecureString; $p=[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s)); $env:BLACKROSE_SIGNING_PASSWORD=$p; powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-desktop-signed.ps1 -OutLog C:\Users\pc\Desktop\BlackRose\validation\signed-0921.out"
+  build-desktop-signed.ps1 fails fast with a clear message when
+  BLACKROSE_SIGNING_PASSWORD is unset - that is intended, not a bug.
+
+STILL OPEN
+  - DONE, no longer open: per-provider LLM clients were reviewed on 2026-10-05.
+    Two real defects found in src/llm/openai.ts and src/llm/gemini.ts: both
+    forwarded the caller's Stop signal but imposed NO deadline of their own, so
+    a provider that accepted the connection and then went silent left the await
+    pending forever. It never throws, so resilientClient never retried it and no
+    error surfaced - the turn simply ceased. Only onemin.ts had a timeout.
+    Both now bridge a timeout onto an AbortController (default 180s,
+    overridable via timeoutMs) and distinguish a user cancellation from their
+    own timeout so Stop is never reported as a timeout. Commit eb13bb6.
+    LESSON: the first version of that regression test asserted only that a
+    signal was passed to fetch, which PASSED AGAINST THE BUGGY CODE - the
+    adapters did pass a signal, just not a deadline. A test that passes on the
+    defect it was written for is worse than no test. Assert the property you
+    care about, then confirm the test fails against the old code.
+    NOT YET REVIEWED: the shared router, keyHealth and routeHealth layers were
+    confirmed in this pass, but the wire-format details of each provider
+    (Gemini thoughtSignature round-tripping, 1min.ai's fenced-JSON tool-call
+    emulation) have been reasoned about from comments, not exercised live.
+
+  - RECLASSIFIED 2026-10-05 - this item was recorded for years as "multi-device
+    .aistate sync (backlog 5) - needs a second real machine", which was
+    misleading. It conflated two different things:
+      - OFFLINE .aistate export/import needs NO second machine, no server and no
+        network. It is COMPLETE and is now proven by test (src/parser-hostile
+        .test.ts performs a real export -> import between two temp dirs: it
+        carries memory/knowledge/SKILLS, leaks no plaintext, rejects a wrong
+        password, rejects a single flipped ciphertext byte via GCM auth, and
+        never carries the vault or root files). docs/07-BACKUP.md has been
+        re-authored from a stub into the actual move/restore guide.
+      - BRIDGE sync (`/bridge`, `/sync push|pull`) is the part that genuinely
+        needs a second real device, and THAT is what remains unverified. It is
+        code-complete and smoke-tested in an isolated two-directory simulation,
+        but never run against a real second machine on a real network.
+    So the accurate remaining statement is "bridge sync unverified against real
+    hardware", not "the user cannot move their AI to another machine". A user
+    with one computer is NOT blocked. This matters because the old wording reads
+    as a hard blocker on a capability they actually already have.
+  - Bridge sync against real hardware — CLOSED AS NOT NEEDED (user decision
+    2026-10-05): the user will not share BlackRose with anyone, and offline
+    export/import already covers moving state and backup. The code remains
+    (harmless, and working code is better deleted). Re-open only if a second
+    user ever exists. Roadmap item ticked deliberately with that reasoning
+    recorded inline, per the file's own rule that "a dropped item must not sit
+    as a live open checkbox, or it reads as unfinished work".
+
+  SINGLE-USER REALITY CHECK (2026-10-05) - what actually matters now:
+  The roadmap is now fully ticked (0 unchecked items). For a single user who
+  never shares the app, the only remaining risks are ones that affect THEM on
+  THEIR machine, not multi-device features:
+    - BACKUP DISCIPLINE. The single highest-value thing left. Offline
+      /export works and is documented (docs/07-BACKUP.md), but it is manual and
+      therefore only as good as the last time it was actually run. A scheduled
+      /delta export is the obvious next build if anything is.
+    - PROVIDER WIRE FORMATS are the least-tested surface in the codebase -
+      Gemini thoughtSignature round-tripping and 1min.ai's fenced-JSON tool
+      emulation are reasoned about from comments, never exercised live. Their
+      timeouts were only just fixed (eb13bb6) and are structurally asserted,
+      not network-tested.
+    - The release/publish loop is now proven end to end (signed build, draft
+      upload, digest verification, clean-install from the live URL).
+  - DONE, no longer open: the 23-installer / 595 MB build-output pile in
+    desktop/tauri/target/release/bundle/nsis was pruned on 2026-10-05 to the
+    three most recent (0.9.19, 0.9.20, 0.9.21) plus their .sig files, which
+    reclaimed 514 MB and left the directory at ~74 MB. Nothing under target/ is
+    tracked by git and all of it is reproducible from a build. Also removed a
+    STALE 0.9.14 latest.json that had been sitting in that folder - it was a
+    leftover build artifact, NOT a release file, and it makes a manifest-vs-disk
+    signature check fail confusingly. The authoritative manifest is always
+    cline/blackrose/scripts/latest.json.
+  - Review note: an over-broad prune filter once deleted all 24 .sig files
+    instead of the 21 intended. The .sig files for the kept versions were
+    restored from the published release URLs and the 0.9.21 signature was then
+    re-verified against scripts/latest.json (match). Worth remembering: a
+    "delete everything not in the keep list" filter is only safe if the filter
+    itself is tested against the keep list before the delete runs.

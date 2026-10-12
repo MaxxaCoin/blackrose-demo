@@ -1,0 +1,28 @@
+fix(security): session write paths accepted an unvalidated id
+
+Found in an audit sweep. Session ids become filenames:
+  path.join(sessionsDir(dataDir), `${id}.json`)
+
+loadSession and deleteSession validated the id (allowlist + a `..` check), but
+saveSession and archiveSession did NOT validate at all. That makes the write
+side of the session store one caller away from arbitrary file write: an id of
+"../../evil" lands outside the sessions folder.
+
+NOT reachable today - the web UI passes the client-supplied session id through
+loadSession before it is ever used, and sessionFileId() generates the rest - so
+this is defence in depth rather than a live hole. But the asymmetry is exactly
+the kind of trap that becomes a vulnerability the moment a second caller is
+added, and the guard belongs on the function that performs the write.
+
+unsafeId rejects path separators, NUL, "..", over-long ids and Windows reserved
+device names (con/prn/aux/nul/com1..9/lpt1..9, which would silently redirect the
+write). It is deliberately more permissive than the strict load-time allowlist
+because callers here include CLI- and env-derived ids that are not filename
+stems, so it cannot break legitimate use.
+
+Smoke check added: a traversing id is refused, nothing is written outside the
+directory, and a normal id still saves.
+
+Gates: tsc clean, smoke 220 PASS / 0 FAIL, unit 51 / 0.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>

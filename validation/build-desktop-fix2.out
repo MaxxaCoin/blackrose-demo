@@ -1,0 +1,11 @@
+BlackRose desktop shell (Tauri v2)
+  ✓ core/blackrose.mjs staged (the whole app, one file)
+  ✓ core/blackrose.mjs is current (not older than src/)
+  ✓ node/node.exe staged from C:\Program Files\nodejs\node.exe (self-contained shell)
+  ✓ icons/icon.ico generated (16/32/48/256, procedural brand mark)
+  ✓ node v24.21.0
+  ✓ rust (cargo + rustc)
+  ✓ MSVC link.exe (C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64\link.exe)
+  ✓ @tauri-apps/cli
+  ✓ updater signing key (C:\Users\pc\.tauri\blackrose.key)
+  building via @tauri-apps/cli (release, NSIS installer)…

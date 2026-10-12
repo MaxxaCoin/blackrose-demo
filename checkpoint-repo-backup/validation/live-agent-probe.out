@@ -1,0 +1,24 @@
+=== openrouter (nvidia/nemotron-3-super-120b-a12b:free) ===
+[..] turn1 tool_use :: write_file {"content":"hello from blackrose","path":"live-hello.txt"}
+[retry 1 in 881ms] OpenAI-protocol error (HTTP 200): Upstream error from Nvidia: Service temporarily overload
+[..] turn2 tool_use :: read_file {"path":"live-hello.txt"}
+[..] turn3 text: "The file `live-hello.txt` contains the text: **hello from blackrose**."
+[OK] write_file executed, file content verified on disk
+[OK] final text :: "The file `live-hello.txt` contains the text: **hello from blackrose**."
+[PASS] openrouter: tool_uses=2, full roundtrip in 8357ms
+=== groq (openai/gpt-oss-120b) ===
+[..] turn1 tool_use :: write_file {"content":"hello from blackrose","path":"live-hello.txt"}
+[..] turn2 tool_use :: read_file {"path":"live-hello.txt"}
+[..] turn3 text: "The file **live-hello.txt** contains:
+
+```
+hello from blackrose
+```"
+[OK] write_file executed, file content verified on disk
+[OK] final text :: "The file **live-hello.txt** contains:
+
+```
+hello from blackrose
+```"
+[PASS] groq: tool_uses=2, full roundtrip in 2087ms
+LIVE_AGENT_PROBE_DONE

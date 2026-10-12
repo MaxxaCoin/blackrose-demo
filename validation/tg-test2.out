@@ -1,0 +1,76 @@
+﻿✔ routeTelegramMessage recognises /start, /bind, /help, /status, /stop (4.4941ms)
+✔ routeTelegramMessage routes URLs to ingest-url (1.83ms)
+✔ routeTelegramMessage routes plain text as submit-task (0.3797ms)
+✔ routeTelegramMessage returns unknown for empty input (0.3985ms)
+✔ TELEGRAM_VIDEO_LINK_RE matches video hosts, not plain URLs (0.7101ms)
+✔ TELEGRAM_HELP documents commands (0.3028ms)
+✔ menu buttons are icon-led, short, and route to real commands (1.2223ms)
+✔ telegramMenuMarkup wraps the buttons as reply_markup (0.4807ms)
+✔ telegramStatus reports unconfigured with no token (2.7476ms)
+✔ bindTelegramOwner / telegramOwnerChat roundtrip (6389.3937ms)
+✔ saveTelegramToken validates format and forget clears (2647.3791ms)
+✔ bare /task and /goal are guarded on the TYPED path too (not just buttons) (3.5588ms)
+✔ /model without a live host refuses honestly instead of faking success (3.6664ms)
+✔ plain text reaches the chat hook — the submit-task dead path (regression) (2581.6504ms)
+✔ rich layer: bold first line, blockquote body, plain round-trip (1.3162ms)
+✔ permission prompts reach the bot; no bot = fail-closed fallback signal (1.7273ms)
+✔ companion loop flag gates host approval delegation (no loop → local dialog) (2509.2066ms)
+✖ companion routing: new control commands parse without ambiguity (4.3987ms)
+✖ companion: /task is a real task, distinct from plain chat and /goal (0.9502ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 17
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14794.4869
+
+✖ failing tests:
+
+test at src\tools\telegram.test.ts:249:1
+✖ companion routing: new control commands parse without ambiguity (4.3987ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   kind: 'run-goal',
+  -   kind: 'goal',
+      prompt: 'ship the fix'
+    }
+  
+      at TestContext.<anonymous> (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/tools/telegram.test.ts:257:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { kind: 'run-goal', prompt: 'ship the fix' },
+    expected: { kind: 'goal', prompt: 'ship the fix' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at src\tools\telegram.test.ts:264:1
+✖ companion: /task is a real task, distinct from plain chat and /goal (0.9502ms)
+  AssertionError [ERR_ASSERTION]: goal is its own verified plan-execute path
+  
+  'run-goal' !== 'goal'
+  
+      at TestContext.<anonymous> (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/tools/telegram.test.ts:269:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'run-goal',
+    expected: 'goal',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

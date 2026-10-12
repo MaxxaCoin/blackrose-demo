@@ -1,0 +1,15 @@
+BlackRose doctor
+  ✓ runtime — node v24.21.0 · win32
+  ✓ provider router — routes: anthropic,ollama
+  ✓ data dir — C:\Users\pc\.blackrose
+  · memory files: 4
+  · knowledge sources: 0
+  · sessions: 6
+  · experience months: 1
+  · skills: 0
+  · schedules: 0
+  ✓ vector index — 1 entry · model nomic-embed-text (768d)
+  · embeddings — ollama http://127.0.0.1:11434 · model nomic-embed-text (fallback: hash embedder if unavailable)
+  · ocr — Windows OCR engine (ocr_read; learn_pdf falls back to OCR for scanned PDFs)
+  · state password — unset (/sync and /export need BLACKROSE_STATE_PASSWORD)
+  tip: "credit balance is too low" → add credits at console.anthropic.com, or switch providers: BLACKROSE_PROVIDER=openai (OpenAI-protocol; OpenRouter free models by default — set BLACKROSE_OPENAI_API_KEY) or BLACKROSE_PROVIDER=ollama.

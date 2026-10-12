@@ -1,0 +1,32 @@
+fix(security): Authorization bearer headers were never redacted
+
+Found by attacking the redactor instead of reading it: 16 realistic credential
+shapes through redactSecrets, checking whether the secret survived in the output.
+
+Fifteen were caught. One was not:
+
+  Authorization: Bearer <40-char token>   -> redaction count 0, token intact
+
+`authorization` was missing from the assigned_secret key-name list, and the value
+charset [A-Za-z0-9_-./+=]{16,} cannot cross the space in "Bearer " anyway, so the
+header form could never match on either count. This is the single most common way
+a credential is written down, and it flowed on into logs, disk and model context.
+
+Fix: add `authorization` to the key alternation and allow an optional auth scheme
+(Bearer/Basic/Token/Digest/ApiKey) captured INSIDE group 1, so the replacer
+re-emits the scheme and replaces only the token. The key name is still required,
+so prose that merely mentions the word is unaffected.
+
+Re-ran the same 16 shapes plus three prose strings: all secrets redacted, all
+prose preserved. New smoke check covers `Authorization: Bearer`, `authorization=`
+and `X-Api-Key:` alongside a prose negative case.
+
+Also audited in this pass and found sound: no shell:true anywhere (install.ts
+allowlist rejects all 16 injection payloads tried); CSRF checks Sec-Fetch-Site AND
+Origin AND Referer; MCP config is not model-writable and is excluded from
+.aistate export; archive parsers are all in-memory (no zip-slip) with inflate
+capped at 256MB; exactly one unsafe block in the whole Rust, the PlaySoundW FFI.
+
+Gates: scan:secrets clean, tsc clean, smoke 221 PASS / 0 FAIL, unit 51 / 0.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>

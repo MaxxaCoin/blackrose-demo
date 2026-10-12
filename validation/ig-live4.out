@@ -1,0 +1,22 @@
+APIFY_TOKEN set from file (not printed)
+APPROVAL: instagram_scrape -> Run the Apify Instagram Scraper on 1 target(s), 2 posts each? This spends Apify credits and can take several minutes.
+  log: starting Apify scrape of 1 target(s)…
+  log: apify run FdmI3RKdx0dkmH5ih: RUNNING
+  log: apify run FdmI3RKdx0dkmH5ih: SUCCEEDED
+  log: scrape done: 180 captioned post(s) -> C:\Users\pc\.blackrose\instagram-playbook.md
+--- scrape finished in 103 s ---
+isError: false
+content head:
+INSTAGRAM PLAYBOOK — petergriffin.ai. Scraped via Apify 2026-09-28.
+180 post(s) with captions, ranked by likes. Learn what caption styles,
+hashtag sets and topics perform, then apply them.
+
+## #1 — 84,143 likes, 22,58,658 plays, 70s (2026-08-22, @petergriffin.ai)
+Hashtags: claudecode claudeai coding anthropic programming
+Caption: 5 Claude Code Plugins That Make Your Websites Look 10× Better. 🔥
+If your Claude Code websites still look like generic AI-generated templates, these five plugins can seriously upgrade your frontend workflow.
+TasteSkill helps Claude apply better design taste using premium references. Web Design Guidelines audits your UI against modern design principles and catches weak areas before you ship. AwesomeDesign gives Claude a complete design system covering colors, typography, spacing, buttons, and more.
+Then there's ImageToCode, which turns design references into usab
+
+SUCCESS: the playbook has post headings, so the actor received the URL.
+learn -> Learned C:\Users\pc\.blackrose\instagram-playbook.md → 178 chunk(s) stored in knowledge base.

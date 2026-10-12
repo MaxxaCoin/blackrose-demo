@@ -1,0 +1,11 @@
+password loaded (9 chars)
+
+Your file was signed successfully, You can find the signature here:
+C:\Users\pc\Desktop\BlackRose\cline\blackrose\desktop\tauri\target\release\bundle\nsis\BlackRose_0.9.3_x64-setup.exe.sig
+
+Public signature:
+dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRUkZqVjFFeDhlbDdZZ1lUZ3lPV2lSbFpqRko0T294YU93RkY2eHNLbXJRdFpOZGZEamRHWEN1Rmt0TDBSWUQzRGJrUFk1Q0hlL01hNlFScGpqd2hFS3hnaUsxVVFXc1E4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkwNTkzNTYzCWZpbGU6QmxhY2tSb3NlXzAuOS4zX3g2NC1zZXR1cC5leGUKYjBYbFV4M1RFckZuZGt4NEpwYWRKWEJkeWczeGZ6Nlh0TGFCZG5HWVp5TXBpNUdESVpFUHU3Y0lnT1I5Q1FYS25xSFpYcVh1SWVFa09hM0dDcE1nQXc9PQo=
+
+Make sure to include this into the signature field of your update server.
+signer exit: 0
+signed OK -> BlackRose_0.9.3_x64-setup.exe.sig (420 bytes)

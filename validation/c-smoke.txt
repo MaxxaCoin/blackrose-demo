@@ -1,0 +1,19 @@
+test: the capability split is now asserted, not just configured
+
+Moving allow-app-shutdown out of remote-updater.json into the local default
+capability (0463dab) tripped two smoke checks that asserted the old shape.
+Neither was a real defect — the checks pinned an implementation detail ("these
+two permissions live in this one file") that the security fix deliberately
+invalidated. Left alone, they would have trained everyone to "fix" a security
+improvement by reverting it.
+
+Both now assert the intent behind the split, and each also asserts the negative
+case, which the old checks never did:
+
+  * the updater commands stay remote (the page genuinely has to call them)
+  * allow-app-shutdown is ABSENT from the remote grant
+  * allow-app-shutdown is PRESENT in the local capability (the button works)
+
+A future change that re-widens the remote grant now fails the suite.
+
+Gates: tsc 0 | smoke PASSED | regression pass 51 fail 0.

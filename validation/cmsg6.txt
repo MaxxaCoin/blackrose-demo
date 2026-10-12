@@ -1,0 +1,33 @@
+feat(trust): trust mode now approves EVERYTHING
+
+Requested by the user: trust mode is only ever turned on while they are
+watching, so it should never stop to ask.
+
+askApproval() had a single decision point — `trustMode && !alwaysAsk(name)`.
+The deny-list (run_command, install, write_file, edit_file, undo, schedule_task,
+listen, screenshot, gui_action, transcribe_audio, watch_video,
+instagram_scrape, mcp_call) still stopped for a human even with trust on. That
+condition is now just `trustMode`.
+
+Trust OFF is completely unchanged: every approval-gated tool still asks. That
+remains the default and is still pinned by a behavioural test.
+
+The deny-list is KEPT rather than deleted, for two reasons: it is the checklist
+to read before turning full trust on, and it is what the UI shows. But
+effectiveAlwaysAsk() reports [] while trust is on, because a UI that claims it
+will still stop for run_command when it no longer does is worse than no
+indicator at all. The toggle now reads "EVERYTHING is auto-approved, nothing will
+ask (shell, installs, file writes, mic, screen). Only safe while you are
+watching."
+
+Two smoke tests asserted the OLD behaviour and passed while their NAMES claimed
+a safety property that no longer existed ("ALWAYS still ask", "always asks even
+in trust mode"). Those names would have told the next reader that trust mode
+still guarded the shell. Renamed to state what they actually pin: the
+classification used while trust is OFF. The behavioural test was inverted to
+assert full trust covers run_command.
+
+Each auto-approval still writes a transcript line. That line is now the ONLY
+record anything ran unattended — do not remove it.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>

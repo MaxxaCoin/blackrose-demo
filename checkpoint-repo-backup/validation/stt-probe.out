@@ -1,0 +1,11 @@
+sentinel wav: 267 KB
+--- tool output ---
+Transcript of sentinel.wav (267 KB, model whisper-large-v3-turbo):
+
+Black Rose speech to text Sentinel. The quick brown fox jumps over the lazy dog.
+
+saved → C:\Users\pc\AppData\Local\Temp\blackrose-stt-plyZkY\sentinel.transcript.txt · learned → 1 knowledge chunk(s)
+--- knowledge_search ---
+[c-users-pc-appdata-local-temp-blackrose-stt-plyzky-sentinel-wav#chunk1] (score 0.68)
+Black Rose speech to text Sentinel. The quick brown fox jumps over the lazy dog.
+STT PROBE PASS

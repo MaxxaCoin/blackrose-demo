@@ -1,0 +1,9 @@
+APIFY_TOKEN set from file (not printed)
+APPROVAL: instagram_scrape -> Run the Apify Instagram Scraper on 1 target(s), 2 posts each? This spends Apify credits and can take several minutes.
+  log: starting Apify scrape of 1 target(s)…
+--- scrape finished in 1 s ---
+isError: true
+content head:
+Apify scrape failed: We have bad news: there is no API endpoint at this URL. Did you specify it correctly?
+
+FAILED: no posts came back. The run did not receive the URLs.

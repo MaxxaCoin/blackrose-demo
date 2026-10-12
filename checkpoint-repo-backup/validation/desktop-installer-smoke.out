@@ -1,0 +1,33 @@
+BLACKROSE DESKTOP INSTALLER — END-TO-END SMOKE (2026-09-19)
+============================================================
+Build: attempt 5 (desktop-build5.out) — resources fix in tauri.conf.json
+  bundle.resources = [core/blackrose.mjs, node/node.exe]
+  Rust compile: cached from overnight run (attempt 4, 18m35s) + app crate
+  rebuilt with new embedded config; makensis re-bundled.
+
+Installer: BlackRose_0.8.0_x64-setup.exe — 24,611,446 bytes (was 1,066,069
+  before the resources fix — first bundle shipped NO core/node payload).
+
+Silent install (/S /D=scratch): exit 0, layout verified:
+  BlackRose.exe          3,313,152 bytes
+  core/blackrose.mjs       240,265 bytes
+  node/node.exe         93,580,104 bytes  (self-contained runtime)
+  uninstall.exe              79,177 bytes
+
+Launch E2E (run twice):
+  1. app window alive, title 'BlackRose' (splash ? live UI)
+  2. core child spawned: node.exe running core/blackrose.mjs --ui <port>
+     (PIDs 11208 / 6780 observed)
+  3. /api/health ? 200: {name: blackrose-ui,
+     provider: router(openai?openai?ollama), model: nvidia/nemotron-
+     3-super-120b-a12b:free ? openai/gpt-oss-120b ? qwen2.5-coder:7b,
+     memories: 5}  ? real gateway chain + real ~/.blackrose state
+  4. / ? 200, 10,782 bytes, cache-control: no-store
+  5. WM_CLOSE ? app exits, CORE CHILD KILLED on exit (RunEvent::Exit) —
+     verified both runs (PIDs 11208, 6780 gone after close)
+
+NOTE: first-run page fetch hit a transient connect refusal right after
+health 200 (timing); second run fetched both endpoints cleanly.
+
+VERDICT: DESKTOP INSTALLER SMOKE PASS — backlog 3 complete (scaffolded
+2026-09-18, built + verified live 2026-09-19).

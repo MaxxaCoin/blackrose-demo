@@ -1,0 +1,5 @@
+=== cloudflare ===
+[chat] HTTP 200 in 1652ms · model=@cf/openai/gpt-oss-120b
+[chat] tool_calls: probe_tool({"ok": true})
+[chat] content: ""
+CLOUDFLARE PROBE DONE
