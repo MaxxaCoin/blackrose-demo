@@ -35,12 +35,15 @@ AI / AGENT: Cline (act mode — user: "do what you see right")
      (61b9bf7, outer repo, no remote) → HTTP 200; old refresh token now
      returns 400 invalid_grant on reuse. No tokens printed; live MCP session
      uses a different client (9692a0f9) and still authenticates.
-     REMAINING: install v0.9.27 on this machine; build + release v0.9.28
-     carrying 8fc761d/d087716/1dd36c9 (needs signing password;
-     extract-and-inspect must show TELEGRAM_HUB_BUTTONS); close B9's
-     live-token proof from a real phone; copy ~/.blackrose/backups
-     off-machine; openai2 dead route (user's call); prove the INSTALL path
-     end-to-end.
+     REMAINING: build + release v0.9.28 carrying 8fc761d/d087716/1dd36c9
+     (needs signing password; extract-and-inspect must show
+     TELEGRAM_HUB_BUTTONS); close B9's live-token proof from a real phone;
+     copy ~/.blackrose/backups off-machine; openai2 dead route (user's
+     call). DONE this session: v0.9.27 INSTALLED from the release artifact
+     (minisign sig VALID via msigcheck, SHA-256 ADF82717..99BB, /S install,
+     registry 0.9.27, health 200 on 2811) — INSTALL path proven end-to-end.
+     NOTE: 0.9.26 HAD been installed 2026-10-10; earlier empty-registry
+     reads were wrong-hive/dev-state mistakes, not a missing install.
 
 ===============================================================================
 SESSION 2026-10-12 v2 (NEWEST — supersedes the 2026-10-12 block below, which
