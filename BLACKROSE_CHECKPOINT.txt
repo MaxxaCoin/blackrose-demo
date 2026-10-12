@@ -1,8 +1,74 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
-SESSION 2026-10-02 (NEWEST — supersedes the 2026-09-28 header below, which is
+SESSION 2026-10-12 (NEWEST — supersedes the 2026-10-02 header below, which is
 kept only as a record of that session and its state)
 -------------------------------------------------------------------------------
+DATE / TIME: 2026-10-12
+AI / AGENT: Cline (act mode — user asked to commit everything and refresh the handoff)
+  Inner code repo: cline/blackrose @ 8fc761d, branch main — 1 commit AHEAD of
+                    origin/main (UNPUSHED: the Telegram button-hub commit).
+                    Version 0.9.27 everywhere; GitHub release v0.9.27 published
+                    2026-10-12T05:48:51Z (verified live via gh this session).
+                    Installed app: 0.9.26 (upgrade to 0.9.27 pending), RUNNING
+                    (BlackRose PID observed 936).
+  Outer workspace: docs + validation evidence; no remote; committed clean
+                    (b27dc8a: 722 files — checkpoint, evidence logs, backup).
+
+  GATES RE-RUN 2026-10-12 ON THIS TREE:
+    npx tsc --noEmit            exit 0 (clean)
+    node src/smoke.ts           SMOKE TEST PASSED — 282 PASS / 0 FAIL
+    node --test telegram suites 70/70
+    node --test regression + parser-hostile  94/94
+    npm run verify:checkpoint   CHECKPOINT INTEGRITY: PASS
+
+  WHAT LANDED (most significant first):
+  1. TELEGRAM REMOTE REBUILT AS A BUTTON HUB (commit 8fc761d, inner repo).
+     The phone remote answers with categorized inline-keyboard boards instead
+     of text dumps: /help opens a hub (Chat & Tasks, Sessions, Knowledge,
+     Schedules, Fun & Polls, System); each /menu <category> shows that board;
+     /status keeps the quick-action panel; /help text still serves the plain
+     list on demand. CODE ONLY so far — the desktop bundle
+     (desktop/tauri/core/blackrose.mjs) and the installed app do NOT have it
+     until the next build + release (see NEXT item 6).
+  2. FOUR UNREACHABLE OR BROKEN TELEGRAM CONTROLS FIXED (same commit).
+     (a) /menu <category> and /fun were on buttons but never ROUTED — every
+     tap answered "Unknown command" (the complaint that started this work).
+     (b) /trust on|off never worked since introduction: the router sliced 5
+     chars off the 6-char "/trust", reading "t on" → unknown, so the Trust
+     buttons were dead on arrival.
+     (c) The Fun board's ⚽ key sent "/goal roll", which launched the
+     PLAN→EXECUTE→VERIFY goal engine with objective "roll"; it now rolls the
+     football dice.
+     (d) /help no longer dumps the whole command list as text; buttons carry
+     the navigation and /help text is the escape hatch.
+  3. A TEST NOW PINS EVERY BUTTON.
+     New regression: every callback on the hub and all category boards must
+     route to a real command, plus /menu, /fun, /goal roll and board-fallback
+     cases (src/tools/telegram.test.ts). Telegram suites 70/70.
+  4. OUTER WORKSPACE COMMITTED CLEAN (b27dc8a, 722 files).
+     Checkpoint update + ~550 validation evidence logs + checkpoint-repo-backup
+     swept in one commit, after a credential scan of every staged file (no
+     motion/token/password matches; the outer .gitignore already excludes live
+     credential filenames).
+  5. HANDOFF RECONCILED AGAINST REALITY (this edit).
+     docs/08-SESSION-HANDOFF.md orientation was three releases stale (said
+     v0.9.23 / 99d62fc): corrected to v0.9.27 / 8fc761d, installed 0.9.26,
+     smoke 282 checks, and its "what to do next" rewritten (section 4d).
+  6. NEXT — do these in order, next session:
+     a. PUSH the inner repo (origin/main is 1 behind: 8fc761d).
+     b. Install/verify v0.9.27 on this machine (installed app is 0.9.26).
+     c. Build + release v0.9.28 carrying the Telegram button hub (needs the
+        user's signing password; follow section 6 of 08-SESSION-HANDOFF.md).
+        Then close B9's "pending live token proof" by tapping every button
+        from a real phone with a live BotFather token.
+     d. Unchanged open items: update INSTALL path end-to-end; REVOKE the
+        motion OAuth refresh token (gitignore is not revocation); copy
+        ~/.blackrose/backups off-machine; the openai2 dead route still sits
+        first in the failover chain (user's call); the B12 checklist row
+        still says open though Executive Brain shipped.
+
+===========================================
+SESSION 2026-10-02 (record — superseded by the 2026-10-12 header above)
 DATE / TIME: 2026-10-02
 AI / AGENT: Cline (plan + act, autonomous — user away for the final stretch)
   Inner code repo: cline/blackrose @ f512cb4, branch main, PUSHED to
