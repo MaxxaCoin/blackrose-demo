@@ -1,5 +1,97 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-13 v5 (NEWEST — supersedes v4 below; v4 remains the v0.9.28
+release record and its NEXT/STILL-OPEN list is superseded by this block)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-13 (night)
+AI / AGENT: Cline (act mode — user: "continue")
+  RELEASE SESSION: v0.9.29 BUILT (WITH auto-continue), SIGNED, PUBLISHED, LIVE.
+  Code HEAD 2385f6c, PUSHED (origin/main == HEAD). Unlike the pre-existing
+  (stale) 0.9.29 installer, this build embeds the auto-continue feature.
+
+  1. GATES re-run on the release tree (validation/audit-029-test.out): tsc clean
+     (exit 0), full npm test 170/0 (170 pass, 0 fail, exit clean), secrets scan
+     0 credentials. The pre-existing installer was CONFIRMED STALE (its embedded
+     core/blackrose.mjs had no MAX_CONTINUATIONS / CONTINUE_MS / "turn budget
+     reached"); current dist/ had it. So the build was re-run, not shipped as-is.
+  2. ICON WORK DROPPED as requested: `git checkout -- scripts/build-desktop.ts`
+     reverted. The shipped tree/shell uses the procedural brand-mark icon as
+     before 0.9.29.
+  3. SIGNED REBUILD (Route B): build-desktop-signed.ps1 (running detached,
+     validation/signed029.out) → installer 25,832,746 bytes
+     BlackRose_0.9.29_x64-setup.exe at 21:28, .sig 420 bytes, latest.json
+     regenerated from the NEW signature (manifest == on-disk sig verified TRUE).
+  4. EXTRACT-AND-INSPECT re-proven on the BUILT installer: 7z pulls
+     core/blackrose.mjs (1,111,086 bytes) whose SHA-256 21884FCD.. is
+     byte-identical to staged desktop/tauri/core and dist/ — and it contains
+     `CONTINUE_MS = 10_000` + `turn budget reached — continuing in ...` (the
+     auto-continue feature). So auto-continue is IN the shipped bundle.
+  5. SIGNATURE VERIFIED (validation/verify-sig-029.ps1 → msigcheck): pubkey
+     derived from tauri.conf.json, outer base64 unwrapped →
+     SIGNATURE VALID / EXITCODE 0.
+  6. PUBLISHED v0.9.29 on MaxxaCoin/BlackRose, draft-first: 3 assets — installer
+     SHA-256 1D33A03E..17BB5409 (GitHub's own digest matches exactly), the .sig,
+     latest.json — then --draft=false (published 2026-10-13T16:12:07Z).
+     Re-downloaded all 3 via the (now live) v0.9.29 tag: hashes match GitHub's
+     digests and the local build; latest.json version 0.9.29, url
+     .../download/v0.9.29/..., sig == shipped .sig (TRUE).
+  7. UPDATER PATH VERIFIED against the public endpoint:
+     releases/latest/download/latest.json → served version 0.9.29; the v0.9.29
+     installer download URL returns HTTP 200 / content-length 25,832,746.
+     The updater is live on this release end-to-end (0.9.29 will auto-offer to
+     installed 0.9.28 apps).
+  8. COMMITS PUSHED: 1e99cae (feat(agent): auto-continue), 2385f6c
+     (chore(release): latest.json manifest for 0.9.29) on top of 39db1ec
+     (version bump). origin/main == HEAD.
+  9. STILL OPEN / NEXT: installed app on this machine is still 0.9.27/0.9.28 —
+     it does NOT contain auto-continue; the updater will offer 0.9.29. B9's
+     live-token proof from a real phone; backups off-machine; openai2 dead
+     route (user's call). The user should install 0.9.29 (or let the updater)
+     and confirm the auto-continue path live before closing this out.
+
+=================================================================================
+
+
+
+SESSION 2026-10-12 v4 (NEWEST — supersedes v3 above; v3 remains the doc-only
+afternoon record and its item 5 REMAINING list is superseded by this block)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-12 (night)
+AI / AGENT: Cline (act mode — user: "continue")
+  RELEASE SESSION: v0.9.28 BUILT, SIGNED, PUBLISHED and LIVE. No src/ change —
+  this is §6 executed end-to-end on the button-hub tree (code HEAD 1dd36c9).
+  Inner repo: version bumps (0.9.28 in all four files) + scripts/latest.json +
+  docs commits on top of 1dd36c9; PUSHED (origin/main == HEAD). The installed
+  app on this machine is still 0.9.27 — it does NOT contain the hub; the
+  updater will offer 0.9.28.
+
+  1. GATES re-run on the release tree 20:14–20:17 (validation/gate-*.out):
+     tsc clean, smoke, telegram suites, regression+parser-hostile, cargo 0
+     warnings, secrets scan clean. signed-0928.out: tauri NSIS build + updater
+     signature finished OK; signed.done == OK.
+  2. EXTRACT-AND-INSPECT re-proven on the BUILT installer (§6 step 5): 7z shows
+     TELEGRAM_HUB_BUTTONS (hub + category arrays, exported) at
+     core/blackrose.mjs:11529, the openai10 TokenHarbor route at :548 and the
+     chatProbe tray fix at :19895 — all three code-only commits are in the
+     shipped bundle, not just in the tree.
+  3. PUBLISHED v0.9.28 on MaxxaCoin/BlackRose, draft-first: 3 assets —
+     installer 25,828,426 bytes SHA-256 0FC53C2D..B4E13F (re-downloaded,
+     byte-size matches the local build), the .sig, and latest.json — then
+     --draft=false --latest. Published 2026-10-12T14:58:56Z.
+  4. UPDATER PATH VERIFIED against the public endpoint:
+     releases/latest/download/latest.json → HTTP 302 → the v0.9.28 asset;
+     served version 0.9.28; url points at BlackRose_0.9.28_x64-setup.exe;
+     byte-identical to scripts/latest.json; signature == the shipped .sig.
+     The updater is live on this release end-to-end.
+  5. DOCS: handoff §0/§3/§4d/§6 updated (4d.3 RESOLVED; the NEXT release is
+     v0.9.29); this block; both checkpoint copies identical; verify:checkpoint
+     PASS. STILL OPEN: install 0.9.28 on this machine (or let the updater do
+     it), then B9's live-token proof from a real phone; backups off-machine;
+     openai2 dead route (user's call).
+
+===============================================================================
+
+
 SESSION 2026-10-12 v3 (NEWEST — supersedes v2 above; v2 remains the button-hub
 afternoon record and its NEXT list was updated in place, marked DONE)
 -------------------------------------------------------------------------------
