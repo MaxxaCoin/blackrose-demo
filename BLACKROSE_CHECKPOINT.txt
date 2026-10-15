@@ -1,5 +1,44 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-15 (NEWEST — supersedes v5 below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-15
+AI / AGENT: Cline (act mode — user: "check that everything is complete, wired,
+no bugs; add telegram & ui surfaces; update checkpoint/build-checklist/handoff")
+  RUNTIME CUSTOM TOOLS (P1 Ecosystem) shipped and wired into every host; SEA
+  bundle fixed. Code HEAD 2bbb04d. NOT a release (no .exe produced — objcopy
+  missing on this machine); next release number 0.9.30.
+
+  1. FEATURE: runtime custom tools — tool_define/list/remove (176c7f3). A custom
+     tool wraps a canned shell command (argv, never a shell string) under a
+     stable name + JSON schema, persisted to <dataDir>/custom-tools.json via a
+     lock-guarded read-modify-write (same pattern as keys). approval 'ask'
+     (default, fail-closed) or 'auto'. tool_define/tool_remove are
+     approval-gated via requiresApproval → askApproval.
+  2. WIRING: e28563d calls loadCustomTools(config.dataDir) after MCP in all
+     three hosts (src/index.ts, src/bridge/main.ts, src/ui/web/main.ts). No
+     un-wired buildTools() remains (only test files smoke.ts/regression.test.ts).
+     Telegram is NOT a separate host — it runs inside index.ts and ui/ui/main.ts
+     and shares their tools array, so custom tools are already callable there.
+  3. SURFACE CLI: a15e375 — /tools annotates custom tools with approval mode.
+  4. SURFACE Telegram: 686a91f — /custom_tools (/ct) + hub button + category.
+     Routed like /schedules; list through tool_list, remove through tool_remove.
+  5. SURFACE UI: 0a38c31 — manage panel; GET /api/custom_tools (read-only list),
+     POST /api/custom_tools (define) and /remove, both gated on trust mode or a
+     bound Telegram, else fail-closed (do it in chat).
+  6. REGRESSION: 521dc9f — node:test asserts a persisted def becomes a runnable
+     ToolDef and executes. (First attempt had a run() ctx signature bug, amended.)
+  7. BUILD FIX 2bbb04d: SEA bundler dropped bare 'fs'/'path'/'util' imports and
+     collided named vs namespace; now hoists bare builtins (normalize → node:) and
+     merges per-module imports. Source normalized memory/{experiment,graph,mastery}.ts
+     + tools/experiment.ts to `import X from 'node:X'`.
+  8. VERIFY: tsc --noEmit exit 0; regression loadCustomTools passes; build:exe →
+     bundle 87 modules + --doctor executes. .exe NOT produced (objcopy absent).
+  NEXT: live UI panel check; B23 / MCP mcp_connect; release 0.9.30 on objcopy machine.
+  ※ The desktop .exe was NOT regenerated (no objcopy/llvm-objcopy on PATH). See the
+     session-handoff 2026-10-15 block. Bundle + BlackRose.cmd are valid.
+     Install LLVM or Git for Windows and re-run build:exe for a real .exe.
+===============================================================================
 SESSION 2026-10-13 v5 (NEWEST — supersedes v4 below; v4 remains the v0.9.28
 release record and its NEXT/STILL-OPEN list is superseded by this block)
 -------------------------------------------------------------------------------
