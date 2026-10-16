@@ -1,5 +1,39 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-16 Native approval dialog + Telegram delivery fix (NEWEST — supersedes
+the /custom_tools + /chat block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-16
+AI / AGENT: Cline (act mode — user: "do what you see right, make sure to check for bugs")
+
+  1. NATIVE approval dialog for the desktop shell — src/main.rs gains the
+     `approval_dialog` command (Windows FFI MessageBoxW, YESNO + warning
+     icon, fail-closed on NO/ESC/close). Permission auto-generated
+     (approval_dialog.toml) and wired into capabilities/default.json
+     (allow-approval-dialog). UI handleApproval now prefers the native box
+     and falls back to the in-app overlay on any invoke rejection.
+     Verified: cargo check clean (57.82s), tsc --noEmit exit 0.
+  2. TELEGRAM delivery fix — `delivered` no longer trusts companionLoopLive
+     alone: a failed send (bad token, offline) no longer masquerades as a
+     decided channel. The Telegram leg counts only when its card was ACCEPTED
+     by the server (telegramAsked) or a console prompt exists, so the host
+     must re-ask locally after a failed send. New test locks it.
+  3. HERMETIC test env — telegram.test.ts strips BLACKROSE_TELEGRAM_BOT_TOKEN
+     and OWNER_CHAT so a machine configured via env does not leak the secret
+     into the suite or update/send to the real bot during delegation tests.
+  4. FULL GATES GREEN — tsc --noEmit exit 0, npm test 184/184 pass (smoke +
+     regression + parser-hostile + telegram + helpers) under
+     --experimental-strip-types, cargo check clean. Arg-less `node --test`
+     surfaces a STALE dist-build vs src (build artifact — regenerated on next
+     build; not a source defect).
+  5. PUSHED — 7 commits to origin/main, confirmed
+     `git rev-list --left-right --count origin/main...HEAD` = `0 0`; local
+     HEAD == remote HEAD 8bce3c3 (native-approval commit) with the MCP + /
+     custom_tools + /chat + checkpoint chain above it.
+  6. CHECKPOINT RECONCILE — this block is mirrored to both copies and they
+     are byte-identical (sha eb1611a... before this edit); verify:checkpoint
+     re-run after this edit, then `0 0` re-confirmed.
+===============================================================================
 SESSION 2026-10-16 Telegram: /custom_tools KEPT + /chat ADDED (NEWEST — supersedes
 the MCP code-review block below)
 -------------------------------------------------------------------------------
