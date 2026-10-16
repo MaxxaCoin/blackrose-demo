@@ -1,7 +1,94 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
-SESSION 2026-10-15 (NEWEST — supersedes v5 below)
+SESSION 2026-10-16 Telegram: /custom_tools KEPT + /chat ADDED (NEWEST — supersedes
+the MCP code-review block below)
 -------------------------------------------------------------------------------
+DATE / TIME: 2026-10-16
+AI / AGENT: Cline (act mode — user: "keep custom tools but also add chat in
+  telegram, continue with other steps too")
+
+  1. RESTORED /custom_tools in src/tools/telegram.ts — commit 8ffa78f had
+     REPLACED /custom_tools with /chat. This session brought back the full
+     custom-tool surface (| list | remove <name>) so it coexists with /chat.
+  2. ADDED /chat direct conversation mode — routes to the chat kind
+     (SLA-configured instant replier) so a Telegram user can talk to the
+     agent in plain text, alongside the existing slash commands.
+  3. KEPT both surfaces — custom tools remain callable in Telegram (it
+     shares the hosts' tools array) and their hub + /menu tags are intact;
+     /custom_tools and /chat now route together.
+  4. REGRESSION LOCKED — telegram.helpers.test.ts asserts /custom_tools →
+     custom-tools kind and /chat → chat kind with both present (helpers
+     suite 54/54 pass).
+  5. VERIFY — tsc --noEmit exit 0; commit 9a007f0 (2 files, +50/-2).
+  6. CHECKPOINT RECONCILE — reverted a false "bridge internet + Android APK"
+     over-claim in docs/07 + docs/08 (it referenced docs/10-REMOTE-BRIDGE-ANDROID.md
+     and android/ that do NOT exist) and synced all checkpoint copies to
+     byte-identical (sha eb1611a603a3).
+===============================================================================
+SESSION 2026-10-15 MCP code review (NEWEST — supersedes the release block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-15
+AI / AGENT: Cline (act mode — user: "do what you see right, don't stop")
+  MCP TOOLING BUG FIXES (code review). Code HEAD f2c3884, verified with
+  tsc --noEmit exit 0. No release, no new version — maintenance commit.
+
+  1. connect() no longer leaks a child process or writes config on failure:
+     the McpConnection is wrapped in try/catch and conn.kill() runs on any
+     handshake/listTools failure. saveMcpServer moved AFTER a successful
+     handshake+listTools, so a failed connect can't persist a broken entry.
+  2. registryFor() cache key now includes cwd (dataDir + \\x00 + cwd) instead of
+     only dataDir — two hosts sharing a dataDir but different working dirs no
+     longer share (and cross-contaminate) live connections.
+  3. Removed the dead CONFIG_NAME constant from client.ts (the loader already
+     reads 'servers' directly).
+  4. mcp_call_tool now honors the trusted flag in requiresApproval: a trusted
+     server's tool call returns null (skip approval); untrusted stays
+     fail-closed ask. The full mcp__server__tool name is parsed when the bare
+     server field is empty so trusted status is resolved correctly.
+
+  VERIFY: tsc --noEmit exit 0; diff reviewed against existing helpers
+  (splitFullName, fileCfg, saveMcpServer, str). Working tree clean after
+  commit f2c3884.
+  LIVE VERIFY (this session): scripts/mcpv/verify.ts + a real stdio MCP
+  child (server.mjs) — 6 checks pass, exit 0: cwd-aware registryFor cache;
+  trusted connect persists config and lists tools; trusted mcp_call_tool
+  skips approval and executes; untrusted stays fail-closed (full-name and
+  bare-name both ask); a failed connect persists nothing and doesn't hang.
+  NEXT: build-checklist B23 row (route via roadmap Phase 8) remains the
+  roadmap item (this session is maintenance + live verify, no release).
+===============================================================================
+SESSION 2026-10-15 release (NEWEST — supersedes the custom-tools block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-15
+AI / AGENT: Cline (act mode — user: "release the new version")
+  RELEASE SESSION: v0.9.30 BUILT, SIGNED, VERIFIED, PUBLISHED, LIVE.
+  Code HEAD 29992f7, PUSHED (origin/main == HEAD). This block supersedes the
+  custom-tools session's "next release 0.9.30" note — the release is done.
+
+  1. VERSION BUMP: package.json / desktop/tauri/Cargo.toml / Cargo.lock /
+     tauri.conf.json all 0.9.29 → 0.9.30 (commits d8925c7 + 29992f7).
+  2. SIGNED BUILD (Route B): build-desktop-signed.ps1 detached
+     (validation/signed030.out) → build:exe bundle 87 modules + --doctor
+     (SEA .exe skipped — objcopy absent, as before) → Tauri NSIS installer
+     BlackRose_0.9.30_x64-setup.exe (25,857,946 bytes) + .sig (420 bytes).
+  3. VERIFY: msigcheck → SIGNATURE VALID / EXITCODE 0 vs blackrose.key pubkey;
+     latest.json regenerated from the NEW signature and cross-checked
+     (on-disk sig == manifest sig == GitHub digest). Installer local SHA256
+     7B0F02BD..3DAB == GitHub upload digest (TRUE).
+  4. PUBLISHED v0.9.30 on MaxxaCoin/BlackRose, draft-first: 3 assets —
+     installer, .sig, latest.json — then --draft=false. Updater path verified
+     live: releases/latest/download/latest.json → version 0.9.30; installer
+     URL → HTTP 200 / content-length 25,857,946. Release is live.
+  5. CODE REPO pushed: origin/main == HEAD 29992f7 (all commits incl. this
+     session's prior custom-tools work). Working tree clean.
+
+  PRE-EXISTING (not this session, documented): two node:test telegram suite
+  failures (vault DPAPI/PowerShell flakiness under the node:test harness) —
+  pass under direct node; and a third was env-var leakage (cleared). These do
+  NOT affect the shipped installer. 182 tests / 180 pass with env cleared.
+  NEXT: continue the build checklist (roadmap B23 / MCP mcp_connect; verify
+  the UI /custom_tools panel live at node dist/blackrose.mjs --ui).
+===============================================================================
 DATE / TIME: 2026-10-15
 AI / AGENT: Cline (act mode — user: "check that everything is complete, wired,
 no bugs; add telegram & ui surfaces; update checkpoint/build-checklist/handoff")
