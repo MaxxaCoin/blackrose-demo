@@ -37,3 +37,11 @@ motion_*.ps1
 motion_*.txt
 *_token.json
 signing_password*.txt
+
+# extracted installer scratch + downloaded/built release binaries (218 MB).
+# The artifacts live on GitHub Releases; the download-verification RESULT is
+# evidenced by validation/rel029-dl.out etc., which IS tracked.
+$dst/
+validation/rel029-download/
+validation/x929/
+validation/x929-new/

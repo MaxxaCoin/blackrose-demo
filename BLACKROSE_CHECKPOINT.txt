@@ -1,5 +1,28 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-17 v0.9.31 RELEASE (NEWEST — supersedes the native-approval block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-17
+AI / AGENT: Cline (act mode — user: "make it 31 and repeat the steps again")
+
+  1. VERSION BUMP 0.9.30 → 0.9.31 across all 4 manifests (package.json, Cargo.toml,
+     Cargo.lock, tauri.conf.json) + scripts/latest.json regenerated. Commits
+     feb8ee2 (bump) + 78fde59 (lockfile + manifest), pushed to origin/main.
+  2. SIGNED BUILD via scripts/build-desktop-signed.ps1 with BLACKROSE_SIGNING_PASSWORD
+     (blackrose.key, rsign-encrypted). rustc release build 4m 52s, makensis NSIS,
+     updater minisign signature — all OK.
+  3. ASSETS (all uploaded, digest-verified):
+     - BlackRose_0.9.31_x64-setup.exe  25,868,651 bytes  SHA256 ffe1070a..cf119f
+     - BlackRose_0.9.31_x64-setup.exe.sig  420 bytes
+     - scripts/latest.json  713 bytes  (version 0.9.31, signature, URL)
+     Local SHA256 == GitHub digest (byte-identical re-download verified).
+  4. PUBLISHED on MaxxaCoin/BlackRose as v0.9.31 (draft-first, then --draft=false
+     --latest). Release URL: https://github.com/MaxxaCoin/BlackRose/releases/tag/v0.9.31
+     Updater endpoint: releases/latest/download/latest.json serves 0.9.31.
+  5. TAG v0.9.31 pushed to origin/main on blackrose-source.
+  6. STILL OPEN / NEXT: installed app on this machine is still 0.9.30 — the updater
+     will offer 0.9.31. User test-drive of the new installer is the remaining step.
+=================================================================================
 SESSION 2026-10-16 Native approval dialog + Telegram delivery fix (NEWEST — supersedes
 the /custom_tools + /chat block below)
 -------------------------------------------------------------------------------
