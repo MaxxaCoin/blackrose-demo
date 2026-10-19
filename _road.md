@@ -24,7 +24,7 @@
 | 14 | **B20 AI Software Factory** | large, unclear payoff |
 | 15 | **B21 3D Website Factory** | narrow, high effort |
 
-Recommended next: **B23 One AI → Many Bodies** (2nd device + B9 ✅ — B18 now done; B23 is the last item with a live gate).
+Recommended next: ~~B23~~ DONE 2026-10-17 · ~~B22~~ DONE 2026-10-19. **Nothing ungated remains** — of the Phase-2 tail only B24 (hardware), B20 (large, unclear payoff) and B21 (narrow, high effort) remain, all explicitly gated; P3 row 93 (video) awaits a live video API decision. Future work needs a user decision (see checkpoint 2026-10-19 block, item 7).
 ## PENDING — full backlog (not built), priority order
 
 Sourced from goal.txt capability objectives + build checklist + recommended additions.

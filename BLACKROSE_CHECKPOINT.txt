@@ -1,5 +1,47 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-19 rows 92 + 94 + B22 (NEWEST — supersedes the v0.9.31 release block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-19
+AI / AGENT: Cline (act mode — user: "ok continue")
+
+  1. ROW 92 AI CONSTITUTION / Core Identity (commit da918f2): src/core/identity.ts
+     stores <dataDir>/identity/ai_constitution.md (non-empty, ≤8000 chars);
+     identity_set is approval-gated, identity_get is free; registered in
+     src/tools/index.ts. buildSystemPrompt (src/llm/prompt.ts) splices a
+     CONSTITUTION section at the very top of the system prompt, above the
+     built-in IDENTITY block. identity/ added to STATE_DIRS in aistate.ts so the
+     constitution rides ai_export/ai_import; IDENTITY_RE in robots.ts extended so
+     identity_restore brings it back. identity.test.ts 5/5 in npm test.
+  2. ROW 94 NATIVE CODE REVIEW (commit 4571485): pure analyzer src/core/review.ts
+     (unified-diff parser + severity-ranked findings; B3 redaction reused so a
+     secret is flagged but only ever shown REDACTED), review_diff / review_pr in
+     src/tools/review.ts (both read-only and free; review_pr reviews a LOCAL
+     branch pair offline, no hosted PR API), knowledge-graph cross-reference via
+     B14 dumpGraph. runGit/repoDir now exported from src/tools/git.ts.
+     review.test.ts 7/7 in npm test.
+  3. B22 MINI-AI / CLONE BUILDER (commit 1ee2109): src/tools/mini.ts adds
+     mini_build / mini_list; exportStateSubset added in src/state/aistate.ts.
+     Capability packages only (private state is unselectable); artifacts
+     re-import via ai_import. mini.test.ts (8 checks) in npm test.
+  4. GATES at B22: tsc --noEmit exit 0; npm test 258/258 pass, 0 fail
+     (smoke + all 18 regression files incl. the three new suites above).
+  5. STATE: these three commits (da918f2, 4571485, 1ee2109) sat unpushed
+     (ahead 3) after the B22 session ended; this session verified the gates and
+     pushed them together with this checkpoint block. Confirm with
+     git rev-list --left-right --count origin/main...HEAD = 0 0.
+  6. ROADMAP STATE: nothing ungated remains. Of the Phase-2 tail only B24
+     (hardware), B20 (large, unclear payoff) and B21 (narrow, high effort)
+     remain, all explicitly gated; P3 row 93 (video) awaits a live video API
+     decision; rows 95/96 gated. The outer _road.md "Recommended next" line
+     (still pointing at B23, done 10-17) is corrected by this session.
+  7. NEXT: no ungated build item remains. The user test-drive of the installed
+     app is still open (installed app predates 0.10.0; updater offers it).
+     Future work needs a user decision: B20/B21 (deferred deliberately), a live
+     video API choice for row 93, or B24 when hardware exists.
+=================================================================================
+
+-------------------------------------------------------------------------------
 SESSION 2026-10-17 v0.9.31 RELEASE (NEWEST — supersedes the native-approval block below)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-17
