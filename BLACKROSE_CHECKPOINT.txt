@@ -1,6 +1,55 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
-SESSION 2026-10-19 rows 92 + 94 + B22 (NEWEST — supersedes the v0.9.31 release block below)
+SESSION 2026-10-20 v0.10.1 RELEASE (NEWEST — supersedes the rows 92+94+B22 block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-20
+AI / AGENT: Cline (act mode — release session: gates, build, sign, publish)
+
+  1. SHIPPED IN v0.10.1 (commits 0792013..27c43a5, all pushed, rev-list
+     origin/main...HEAD = 0 0): B23 global emergency stop (panic latch +
+     emergency_stop tool); row 86 Windows toast notifications (notify tool);
+     row 87 spend budget caps (budget_set / budget_status over a spend ledger);
+     row 88 skill versioning + rollback (skill_versions / skill_rollback);
+     row 99 AI self-diagnostics (doctor tool + /api/health doctor block);
+     row 101 teach-by-demonstration (macro_record); d179842 dispatch-loop
+     catch block now records thrown tools to the audit trail and macro buffer;
+     27c43a5 version bump 0.10.0 → 0.10.1 across all 4 manifests.
+  2. GATES: npm test 290 pass / 0 fail (validation/gate-0101.out) — up from
+     258 at 0.10.0; the six new suites are counted.
+  3. SIGNED BUILD: scripts/build-desktop-signed.ps1 (BLACKROSE_SIGNING_PASSWORD,
+     never stored). rustc release 7m 47s, makensis NSIS, updater minisign —
+     DESKTOP_DONE_OK. BlackRose_0.10.1_x64-setup.exe 25,918,698 bytes SHA256
+     0917d754e1e78209930a1ca10aa2be4831b177999943414844fdca29e46c7911;
+     .sig 420 bytes SHA256 913199f35e0025be173a32c1b395b7c322dcf9af77194566511b4402568ace90;
+     scripts/latest.json regenerated (713 bytes, SHA256
+     4f2803b305b3db6b689b06846d8af41c1ec92246586526d0e716264b6050f845).
+  4. PAYLOAD INSPECTED before upload (§6 step 5): 7z extract of the installer,
+     all seven marker strings present in the extracted payload (emergency_stop,
+     budget_set, budget_status, macro_record, video_generate, identity_set,
+     doctor).
+  5. THE 408 CAME BACK — DRAFT-FIRST SAVED IT: the 25 MB installer upload to
+     uploads.github.com returned HTTP 408 (body inactivity timeout) at 18:55.
+     The background retry (upload-retry-0101.ps1) finished UPLOAD_DONE_OK on
+     attempt 1. Because the release was still a draft, no live user saw a
+     missing installer. This is the exact 0.9.17 pattern (two 408s → live release
+     without installer). The background-upload script is not optional.
+  6. ASSETS VERIFIED (§6 step 7): all 3 state=uploaded; re-downloaded via
+     `gh release download v0.10.1` (drafts 404 on /releases/tags URLs —
+     use the release ID or gh release download), re-hashed — installer,
+     .sig, and latest.json all byte-identical to local nsis/ directory copies.
+     Remote size == dl size == local size for all three.
+  7. PUBLISHED: `gh release edit v0.10.1 --draft=false --latest` →
+     https://github.com/MaxxaCoin/BlackRose/releases/tag/v0.10.1 (v0.10.0
+     demoted from Latest). Live updater verified: releases/latest/download/
+     latest.json serves version 0.10.1, installer URL points at v0.10.1,
+     live signature == shipped .sig byte-for-byte.
+  8. STILL OPEN / NEXT: the installed app on this machine predates 0.10.0;
+     the updater now offers 0.10.1. User test-drive of the installed new
+     version is the one remaining step. No ungated roadmap items remain.
+================================================================================
+
+-------------------------------------------------------------------------------
+SESSION 2026-10-19 rows 92 + 94 + B22
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-19
 AI / AGENT: Cline (act mode — user: "ok continue")
