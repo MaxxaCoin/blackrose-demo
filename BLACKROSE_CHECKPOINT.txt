@@ -1,5 +1,25 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-22 RECOVERY + FULL-CODEBASE AUDIT (NEWEST - supersedes the 2026-10-20 block, kept below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-22
+AI / AGENT: AutoClaw (act mode - user: "continue the work it was doing", then
+  "check the entire codebase for bugs, mistakes and fix them")
+
+  1. RESUMED THE INTERRUPTED CLINE SESSION (10-21 stopped mid-edit). Row 134 (workflow builder) was uncommitted, row 136 (UI tool picker) half written, and NO gate log existed for either. Fixed the mid-edit defect (a duplicated details/summary "Data" fragment in assets.ts) and committed 7bb2ba4 (row 134) + 19ce712 (row 136, fail-closed /api/tool-policy, 6 smoke checks). Checklist row 134 date corrected to 10-21, duplicate row 110 struck, the "none is struck through" note corrected.
+  2. GATE ENVIRONMENT GOTCHA (read before trusting a red gate): the AutoClaw host process does NOT inherit the user's HKCU environment, so a bare npm test fails 4 machine-dependent smoke checks (real vault round-trip, route build, UI key roster) that pass in a normal user shell. Green gate with the user env merged: 345 smoke checks + 302/302 suites, 0 fail (validation/gate-auditfix2.out). validation/gate-0136.out is that bare-env run; its 4 FAILs are NOT code defects (proved by gate-0136b.out).
+  3. ROW 136 verified end-to-end: gate previews by calling each tool's own requiresApproval with {}, live policy resolved strictest-wins, per-tool pre-allow/pre-gate/deny/clear through the REAL policy_set tool under the same fail-closed owner approval, typo protection, textContent-only rows, lazy load.
+  4. FULL-CODEBASE AUDIT: six read-only reviewers over disjoint areas wrote validation/audit-bugs-{core,llm-mcp,tools-content,tools-rest,state,ui}.md (gitignored): 20 HIGH, 49 MED, 30 LOW, each with file:line and a %TEMP% repro. They independently confirmed the workflow policy gate and atomic store, so those are not re-reported.
+  5. FIXED AND GATED (commit 35c7f7a unless noted): workflow policy-deny bypass, per-step stop check, atomic store + stale-lock recovery, ctx.tools registry (fbc68ff). MCP: boot-crashing missing 'error' listener, child leak on failed handshake, dropped isError/non-text results, "trusted":"false" string disabling the gate, buffer cap dropping a complete frame, replacement-first connect, double-underscore names, SIGKILL escalation, live trust. Custom/plugin tools can no longer take a built-in's name (shadowing was an approval-free arbitrary-argv primitive) + cwd/timeout for custom commands. The agent-facing telegram tool now gates trust/shell/forget/import/undo (trust ON + shell was a no-prompt arbitrary-command path). Policy: unknown effect no longer resolves to ALLOW; atomic save; outDir/dest/to path keys. Redaction: camelCase, secret_key, private_key and punctuation gaps (false CLEAN). Undo: a pre-image read failure no longer deletes the file. Review: TODO findings redacted; refs can no longer be git options (--output= write). aistate: ms+random export stamp, gunzip cap. Budget: validate before reset. Timeline: "-24h" = 24h ago. knowledge_forget gated. UI: shell-origin check now requires localhost on THIS server's port; panic reason escaped before innerHTML.
+  6. KNOWN OPEN (reports hold the detail; NOT fixed): openai/gemini/onemin tear down timeout+Stop before reading the body; gemini reuses gemini_call_0 ids across responses; Anthropic adapter has no timeout; .aistate is text-only (binary files corrupt); secrets/passwords persist in sessions/*.json; selfimprove sandbox keys by basename; office default filenames allow ':' (NTFS ADS); vectors unsafeFallback is never cleared.
+  7. STATE: inner repo pushed with origin/main == HEAD; both checkpoint copies byte-identical (verify:checkpoint PASS); scan:secrets clean; typecheck 0.
+  8. NEXT STEP: fix the llm adapter cluster (item 6) first - three single-file
+     fixes remove the only paths that wedge a turn - then the remaining MEDs;
+     then resume the priority queue at rows 137 (teach-by-demo adjudication),
+    138 (UI knowledge/graph viewer), 139 (UI git/repo panel + undo).
+
+================================================================================
+
 SESSION 2026-10-20 v0.10.1 RELEASE (NEWEST — supersedes the rows 92+94+B22 block below)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-20
@@ -43,9 +63,12 @@ AI / AGENT: Cline (act mode — release session: gates, build, sign, publish)
      demoted from Latest). Live updater verified: releases/latest/download/
      latest.json serves version 0.10.1, installer URL points at v0.10.1,
      live signature == shipped .sig byte-for-byte.
-  8. STILL OPEN / NEXT: the installed app on this machine predates 0.10.0;
-     the updater now offers 0.10.1. User test-drive of the installed new
-     version is the one remaining step. No ungated roadmap items remain.
+  8. UPDATE-INSTALL PATH VERIFIED (2026-10-20, user live test): the installed
+     app reached 0.10.1 via the in-app "Check for update" -> "Install &
+     restart" (download -> NSIS auto-close -> installer relaunch) - the
+     checkpoint's long-standing ONLY unverified feature. Confirmed post-update:
+     BlackRose.exe ProductVersion 0.10.1, crash-reports empty, no stray
+     BlackRose/node processes. No ungated roadmap items remain.
 ================================================================================
 
 -------------------------------------------------------------------------------

@@ -1,0 +1,14 @@
+﻿=== BlackRose v0.10.1 update-INSTALL path — USER LIVE TEST (2026-10-20) ===
+
+How 0.10.1 was reached: user clicked in-app "Check for update" -> "Install & restart"
+(download -> NSIS auto-close app -> installer relaunch). User re-tested several functions,
+reported no problems. This is the checkpoint's long-standing ONLY unverified feature.
+
+Observations (this session):
+  - installed BlackRose.exe ProductVersion = 0.10.1  (C:\Users\pc\AppData\Local\BlackRose\BlackRose.exe)
+  - crash-reports: (empty)
+  - no stray BlackRose/node processes after close
+  - verify-checkpoint.ts integrity: PASS (checkpoint copies identical, no BOM)
+  - RELEASE release v0.10.1 is Latest on MaxxaCoin/BlackRose
+----------------------------------------
+RESULT: UPDATE-INSTALL PATH VERIFIED (2026-10-20) — closes the audit item.
