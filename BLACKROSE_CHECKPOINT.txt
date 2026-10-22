@@ -17,6 +17,16 @@ AI / AGENT: AutoClaw (planning/docs turn - user: "read blackrose.txt ... add a f
      (b) implement AKI + its doc + tests, (c) knowledge_get/provenance,
      (d) freshness + retrieval eval harness.
 
+  8. PLAN REFINED (same turn, after the user asked how to improve it more):
+     AKI v1 acceptance now includes three prerequisites - injection fencing
+     (retrieved items are DATA, never instructions; unverified quarantined from
+     top-k), trust-aware ranking (similarity x confidence/agent/recency, shown
+     in the citation), and the retrieval eval harness promoted to P1 as a
+     BLOCKING gate for bulk ingest. Queued after v1: near-dup SimHash, per-kind
+     chunking, per-run caps + dryRun, superseded_by/staleAfter,
+     knowledge_status, and a scale decision (cap the hot tier or move vectors to
+     sqlite-vec/LanceDB).
+
 ================================================================================
 
 SESSION 2026-10-22 RECOVERY + FULL-CODEBASE AUDIT (NEWEST - supersedes the 2026-10-20 block, kept below)
