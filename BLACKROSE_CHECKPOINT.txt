@@ -1,5 +1,24 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-22 PLANNING - blackrose.txt review + AKI (Agent Knowledge Ingestion) design (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-22
+AI / AGENT: AutoClaw (planning/docs turn - user: "read blackrose.txt ... add a function where agents like you can ingest knowledge ... update checkpoint, handoff, build checklist")
+
+  1. blackrose.txt REVIEWED (C:\Users\pc\Music\blackrose.txt, 2.35 MB / 42,493 lines): the long ideation log - a 25-phase build plan (Vision -> AI OS) plus several IDEA LAB sections. Topic frequency: memory 682, knowledge/skill 663, workflow 469, graph 187, 3D 177, Android 152, Telegram 137, voice 129, MCP 91, mastery 64, vector 28. Sampled by structure (phase headers + idea-lab headings + keyword counts), NOT read end to end - treat counts as a map, not a citation.
+  2. CONVERGENCE CHECK: nearly all of that log is already implemented (phases map onto core/agent, memory, learning, skills, task engine, computer control, agents, tools, autonomy, voice, training, factory, experiments, verification, diagnostics, self-improvement, security, continuity, bodies, proactive, explainability, undo). New rows are therefore GAPS, not restatements.
+  3. NEW CHECKLIST ROWS (P1/P2, added 2026-10-22): Agent Knowledge Ingestion (AKI); knowledge provenance + knowledge_get; knowledge freshness + knowledge_verify; transcript secret hygiene (audit H4); bridge body cap / vectors-out-of-deltas; retrieval eval harness. AKI row carries the full contract.
+  4. AKI DESIGN (approved in principle, detail in the checklist row): ONE engine, THREE surfaces - knowledge_ingest tool, POST /api/knowledge/ingest (bridge token), --ingest CLI. Pipeline: safe resolve (workspace-contained path, http(s) only, no loopback/private IP, 1 MB/item) -> sha256 hash (same hash = metadata-only update, idempotent) -> raw item at knowledge/ingest/<slug>-<hash8>.md with front matter (source, kind, summary, howto, tags, agent, confidence, sha256, ts) -> the EXISTING chunker + kb: embeddings + ingestSource graph (no second index) -> knowledge_ingest audit row -> return {id, chunks, replaced, retrievable} only after a real read-back search. Approval-gated; unverified items stay retrievable but tagged. Ship docs/10-AGENT-INGEST.md.
+  5. WHY THIS SHAPE: reuses knowledge.ts chunker/embedder/vectors/graph instead of a parallel memory system; the howto field is what turns a stored document into actionable knowledge; hashed idempotent writes plus provenance are what make it safe to let OTHER agents write into this brain.
+  6. STATE: no source code changed this turn (docs only); inner repo committed +
+     pushed (origin/main == HEAD), both checkpoint copies byte-identical,
+     verify:checkpoint PASS.
+  7. NEXT: (a) llm adapter cluster (checkpoint item 6 of the previous block),
+     (b) implement AKI + its doc + tests, (c) knowledge_get/provenance,
+     (d) freshness + retrieval eval harness.
+
+================================================================================
+
 SESSION 2026-10-22 RECOVERY + FULL-CODEBASE AUDIT (NEWEST - supersedes the 2026-10-20 block, kept below)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-22
