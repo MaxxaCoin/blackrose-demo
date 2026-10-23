@@ -18,38 +18,44 @@ AI / AGENT: AutoClaw (act mode - user: "some changes were made so check them out
      ingest paths today. An earlier draft of this item wrongly said the CLI did
      not exist; corrected by reading src/index.ts, not by assuming.
 
-  6. THREE OF THE SIX HIGH GROUPS ARE NOW CLOSED - verified in code this session,
-     they were fixed inside the AKI batch: (a) body-read cleanup - openai.ts now
-     keeps the timer + caller-abort bridge alive until the body is consumed
-     (cleanup in the finally at :244), same shape in gemini.ts:243-250 and
-     onemin.ts:186-195, so a gateway that flushes headers then stalls can no
-     longer wedge the turn; (b) the Anthropic adapter has a real AbortController +
-     timeoutMs (client.ts:78-81, default 180 s); (c) Gemini call ids come from a
-     MODULE-level counter (gemini.ts:271 geminiCallSeq), so two tool rounds keep
-     read_file != write_file. DO NOT re-fix these.
+  6. THREE OF THE SIX HIGH GROUPS ARE CLOSED - verified in code, they were fixed
+     inside the AKI batch: (a) body-read cleanup - openai.ts keeps the timer and
+     the caller-abort bridge alive until the body is consumed (finally at :244),
+     same shape in gemini.ts:243-250 and onemin.ts:186-195, so a gateway that
+     flushes headers then stalls can no longer wedge the turn; (b) the Anthropic
+     adapter has a real AbortController + timeoutMs (client.ts:78-81); (c) Gemini
+     call ids come from a MODULE-level counter (gemini.ts:271 geminiCallSeq), so
+     two tool rounds keep read_file != write_file. DO NOT re-fix these: the audit
+     reports in validation/ are read-only snapshots and still list them as open.
 
-  7. NEXT STEP (rewritten 2026-10-23 against code, not memory): (a) the three
-     HIGH groups still open - aistate.ts reads AND writes every state file as
-     UTF-8 (:70, :251, :261, :265) so a binary file under a STATE_DIRS dir
-     silently corrupts on export; saveSession (:105) JSON.stringifies the whole
-     message array with no redaction, so secret_get output and password/value
-     args persist in sessions/*.json and ride .aistate; selfimprove.ts:179/:288
-     key the sandbox by path.basename, so same-named targets collapse and
-     apply_change can write one content into both originals. (b) Open MEDs:
-     office default filenames allow ":" (NTFS alternate data stream), control
-     chars in OOXML, mini.ts constitution over-inclusion, no corrupt-file
-     quarantine in graph/schedules, custom.ts lock degradation. (c) AKI bridge
-     surface (see item 5). (d) Priority queue rows 137-139: teach-by-demo
-     adjudication, UI knowledge/graph viewer, UI git/repo panel.
-
-  8. CHECKLIST RECONCILED WITH CODE (commit ab78a74, same day): rows 146-150 were
-     a 10-22 CONTRACT and had drifted. 146 AKI -> core DONE with the bridge gap
-     spelled out; 147 provenance + knowledge_get -> DONE (added ts= to every
+  7. CHECKLIST RECONCILED WITH CODE (commit ab78a74): rows 146-150 were a 10-22
+     CONTRACT and had drifted. 146 AKI -> core DONE with the bridge gap spelled
+     out; 147 provenance + knowledge_get -> DONE (added ts= to every
      knowledge_search hit, the one missing field); 148 freshness -> PARTIAL,
-     stating exactly what is unbuilt (staleAfter, Inbox flagging, schedule, UI);
-     150 bridge body cap -> DONE. Row 149 (transcript secret hygiene) verified
-     still OPEN. Rule applied: a row is only marked done after reading the code
-     that would have to exist.
+     naming what is unbuilt (staleAfter, Inbox flagging, schedule, UI); 150 bridge
+     body cap -> DONE. Row 149 (transcript secret hygiene) verified still OPEN.
+     Rule applied: a row is only marked done after reading the code that would
+     have to exist. Gate re-run after that change: still 318/318, 0 fail
+     (validation/gate-rows.out).
+
+  8. ORDERED NEXT WORK - decided 2026-10-23. Acceptance criteria for every item
+     live in docs/08-SESSION-HANDOFF.md (newest banner block, "the ordered plan");
+     this is the order, with the reason each one cannot slip:
+     P0-1 .aistate binary-safe payloads (state/aistate.ts:70,251,261,265) - the
+     BACKUP path currently corrupts any binary file under STATE_DIRS, silently.
+     P0-2 session secret hygiene (session/history.ts:105) - saveSession persists
+     secret_get output and password/value args, and they ride .aistate; redact on
+     save AND on export of pre-existing sessions. P0-3 selfimprove sandbox keyed
+     by path.basename (:179,:288) - same-named targets collapse and apply_change
+     writes one content into both originals. P1-4 AKI bridge surface - the whole
+     premise of AKI is OTHER agents ingesting; today only a local tool + CLI
+     exist, so an agent on another machine cannot teach BlackRose at all.
+     P1-5 freshness proactive half (staleAfter + inbox flag + scheduled verify).
+     P2-6 office filename sanitizer (":" makes an NTFS ADS). P2-7 corrupt-file
+     quarantine in graph/schedule state. P2-8 custom.ts lock fails closed.
+     P2-9 mini.ts constitution default = OWNER DECISION, ask before changing.
+     P3-10 queue rows 137-139. P3-11 release 0.10.2 - draft-first, re-hash the
+     assets before publishing, and expect the installer-upload 408 to recur.
 
 ================================================================================
 
