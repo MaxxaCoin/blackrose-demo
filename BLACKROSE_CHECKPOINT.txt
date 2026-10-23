@@ -1,5 +1,63 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-23 .AISTATE BINARY-SAFETY (P0-1) (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-23
+AI / AGENT: Cline (act mode - user: "checkout what to do next")
+
+  1. STARTED THE ORDERED PLAN from docs/08-SESSION-HANDOFF.md (2026-10-23
+     block) and shipped P0-1: .aistate is now binary-safe. Before this, every
+     state file was read and written as UTF-8 text (state/aistate.ts
+     collectData / applyEntries), so any binary file under a STATE_DIRS dir -
+     a SQLite db, a model blob, a .png identity asset - was silently corrupted
+     on export while the artifact still reported success. This is the BACKUP
+     path, which is why it was P0. P0-2 and P0-3 were re-verified as still
+     open before starting (history.ts:105, selfimprove.ts:179,288).
+
+  2. THE CHANGE (envelope v2, src/state/aistate.ts): collectData now reads raw
+     bytes and stores each entry as text-or-base64 - a plain string means
+     UTF-8 text exactly as before, and { enc: 'b64', data } carries raw bytes
+     whenever Buffer.isUtf8 says the file is not text. seal() writes version
+     2; readEnvelope accepts BOTH v1 (every entry read as text) and v2, so an
+     archive written by any older build still imports. applyEntries
+     normalizes every entry to a Buffer up front (a malformed b64 entry throws
+     "Invalid state content" BEFORE anything is written), then hashes, writes
+     and compares through Buffers only. Side repair: entry hashing is now
+     raw-byte, which agrees with the sha256File hashes the state-manifest
+     stores (the old utf8-string hash disagreed for any non-text file), and
+     the conflict branch compares with Buffer.equals instead of a utf8 string
+     comparison that was meaningless for binary content.
+
+  3. TESTS (src/tools/aistate.test.ts, 6 -> 10) - the handoff's acceptance
+     criteria plus the two corners the change touches: (a) a 1 KB file
+     containing every byte 0x00-0xFF round-trips byte-identical through export
+     -> import into a fresh dir, alongside a PNG-magic file and a text file;
+     (b) a legacy v1 archive (plain-string entries, hand-built byte-for-byte
+     the way seal() used to frame it) still imports; (c) a malformed b64 entry
+     fails closed and writes nothing; (d) changed binary state with no
+     manifest match lands as a .incoming- conflict copy, not an overwrite.
+
+  4. GATES: tsc --noEmit exit 0. Targeted node --test runs all green:
+     src/tools/aistate.test.ts 10/10, regression + parser-hostile 110/110,
+     identity + mini + robots 20/20 (the consumers of importState/exportState
+     and the subset paths). Suite grows 318 -> 322. The full 345-check smoke
+     was NOT re-run in this host (long-running, and this host shows 4 FALSE
+     failures per the 2026-10-22 RECOVERY note) - recorded honestly rather
+     than claimed.
+
+  5. NEXT, in the handoff's order: P0-2 session secret hygiene
+     (session/history.ts:105 - redact secret_get results and password/value
+     args before saveSession, and redact sessions/ entries on the way OUT of
+     ai_export so pre-fix sessions cannot leak either), then P0-3 selfimprove
+     sandbox keyed by absolute path (tools/selfimprove.ts:179,288), then P1-4
+     the AKI bridge surface (POST /api/knowledge/ingest, POST
+     /api/knowledge/ingest-batch, GET /api/knowledge/status in
+     src/bridge/server.ts, reusing the knowledge_ingest engine - do NOT write
+     a second ingest path), then P1-5 freshness proactive half. Acceptance
+     criteria for every item live in docs/08-SESSION-HANDOFF.md.
+
+================================================================================
+
 SESSION 2026-10-23 AKI REVIEW + FIXES (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-23
