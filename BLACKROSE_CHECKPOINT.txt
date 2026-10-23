@@ -9,14 +9,47 @@ AI / AGENT: AutoClaw (act mode - user: "some changes were made so check them out
   2. FIXED 7 DEFECTS in that work (commit 83f5b89): (a) knowledge_verify hashed the RAW source while ingest hashes extracted+scrubbed text, so every docx/pdf and every secret-bearing item read "stale" even when unchanged; (b) it overwrote the ingest-time hash with the observed one, so a changed source reported "verified" on the next run - the stored hash is now immutable and the observed hash is reported beside it; (c) URL/inline-text items were silently marked verified=false and mutated - now refused with a reason and nothing written; (d) it crashed ENOENT on a fresh install (no knowledge dir); (e) knowledge_get returned every chunk unbounded - capped at 20k chars with a truncation note; (f) BLACKROSE_BRIDGE_MAX_BODY was parseInt'd unchecked - NaN/0 makes every length comparison false, i.e. removes the cap; now validated (finite, >0) and clamped to 256 MB; (g) the ingest URL guard only validated the first hop - a public URL redirecting to loopback bypassed the SSRF check, and numeric/hex IPv4 (http://2130706433/) or IPv6 literals were uncovered - redirects are now followed manually with every hop re-validated and IP-literal hosts refused.
   3. REPAIRED A LOSSY RE-ENCODE: the working copy of src/tools/index.ts had been rewritten with the wrong codepage - BOM dropped and ~20 comment characters (em dashes, arrows, quotes) turned into '?' / U+FFFD. Restored the file from HEAD and re-applied ONLY the four real lines (knowledge_get + knowledge_verify, import + registry), so the diff is +4 lines with no comment churn.
   4. GATES: tsc --noEmit exit 0; full gate green - 345 smoke checks + 318/318 node:test, 0 fail (validation/gate-aki-review.out). Suite grew 302 -> 318 because the AKI batch added 16 tests. Pushed dd19307..83f5b89; origin/main == HEAD (0 0); tree clean.
-  5. STATE OF AKI: knowledge_ingest / knowledge_get / knowledge_verify / knowledge_dedup / knowledge_eval are registered; batch ingest + knowledge_status are NOT built yet; the bridge still has no /api/knowledge/* route; the --ingest CLI flag does not exist. Those remain the gap between the 10-22 contract and the shipped code.
-  6. NEXT STEP: (a) the llm adapter cluster (openai/gemini/onemin body-read after
-     headers, Anthropic timeout, unique gemini call ids) - the last HIGH group that
-     can wedge a turn; (b) .aistate binary files, secrets in sessions/*.json,
-     selfimprove sandbox basenames; (c) finish AKI declared surfaces: bridge
-     /api/knowledge/ingest + ingest-batch + status and the --ingest CLI; (d) then
-     the priority queue at rows 137-139 (teach-by-demo adjudication, UI
-     knowledge/graph viewer, UI git/repo panel).
+  5. STATE OF AKI (corrected 2026-10-23): knowledge_ingest / knowledge_get /
+     knowledge_verify / knowledge_dedup / knowledge_eval are registered, the
+     --ingest CLI IS built (src/index.ts:157) and docs/10-AGENT-INGEST.md ships.
+     STILL MISSING: the bridge HTTP surface named in the contract (POST
+     /api/knowledge/ingest, POST /api/knowledge/ingest-batch, GET
+     /api/knowledge/status) and any batch/status tool - tool + CLI are the only
+     ingest paths today. An earlier draft of this item wrongly said the CLI did
+     not exist; corrected by reading src/index.ts, not by assuming.
+
+  6. THREE OF THE SIX HIGH GROUPS ARE NOW CLOSED - verified in code this session,
+     they were fixed inside the AKI batch: (a) body-read cleanup - openai.ts now
+     keeps the timer + caller-abort bridge alive until the body is consumed
+     (cleanup in the finally at :244), same shape in gemini.ts:243-250 and
+     onemin.ts:186-195, so a gateway that flushes headers then stalls can no
+     longer wedge the turn; (b) the Anthropic adapter has a real AbortController +
+     timeoutMs (client.ts:78-81, default 180 s); (c) Gemini call ids come from a
+     MODULE-level counter (gemini.ts:271 geminiCallSeq), so two tool rounds keep
+     read_file != write_file. DO NOT re-fix these.
+
+  7. NEXT STEP (rewritten 2026-10-23 against code, not memory): (a) the three
+     HIGH groups still open - aistate.ts reads AND writes every state file as
+     UTF-8 (:70, :251, :261, :265) so a binary file under a STATE_DIRS dir
+     silently corrupts on export; saveSession (:105) JSON.stringifies the whole
+     message array with no redaction, so secret_get output and password/value
+     args persist in sessions/*.json and ride .aistate; selfimprove.ts:179/:288
+     key the sandbox by path.basename, so same-named targets collapse and
+     apply_change can write one content into both originals. (b) Open MEDs:
+     office default filenames allow ":" (NTFS alternate data stream), control
+     chars in OOXML, mini.ts constitution over-inclusion, no corrupt-file
+     quarantine in graph/schedules, custom.ts lock degradation. (c) AKI bridge
+     surface (see item 5). (d) Priority queue rows 137-139: teach-by-demo
+     adjudication, UI knowledge/graph viewer, UI git/repo panel.
+
+  8. CHECKLIST RECONCILED WITH CODE (commit ab78a74, same day): rows 146-150 were
+     a 10-22 CONTRACT and had drifted. 146 AKI -> core DONE with the bridge gap
+     spelled out; 147 provenance + knowledge_get -> DONE (added ts= to every
+     knowledge_search hit, the one missing field); 148 freshness -> PARTIAL,
+     stating exactly what is unbuilt (staleAfter, Inbox flagging, schedule, UI);
+     150 bridge body cap -> DONE. Row 149 (transcript secret hygiene) verified
+     still OPEN. Rule applied: a row is only marked done after reading the code
+     that would have to exist.
 
 ================================================================================
 
