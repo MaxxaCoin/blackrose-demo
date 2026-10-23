@@ -186,7 +186,11 @@ AI / AGENT: AutoClaw (act mode - user: "some changes were made so check them out
      secret_get output and password/value args, and they ride .aistate; redact on
      save AND on export of pre-existing sessions. P0-3 selfimprove sandbox keyed
      by path.basename (:179,:288) - same-named targets collapse and apply_change
-     writes one content into both originals. P1-4 AKI bridge surface - the whole
+     writes one content into both originals. P0-1 and P0-2 are DONE (2026-10-23);
+     P0-3 DONE 2026-10-23 (sandboxMap keyed by abs-path hash persisted in the
+     ledger, legacy basename fallback, acceptance test pins two same-named files
+     staying distinct through apply and revert; commit 1fd0c9e).
+     P1-4 AKI bridge surface - the whole
      premise of AKI is OTHER agents ingesting; today only a local tool + CLI
      exist, so an agent on another machine cannot teach BlackRose at all.
      P1-5 freshness proactive half (staleAfter + inbox flag + scheduled verify).
