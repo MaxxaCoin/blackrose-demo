@@ -144,61 +144,83 @@ SESSION 2026-10-23 AKI REVIEW + FIXES (NEWEST)
 DATE / TIME: 2026-10-23
 AI / AGENT: AutoClaw (act mode - user: "some changes were made so check them out and commit, check for bugs, mistakes then fix them")
 
-  1. REVIEWED THE AKI BATCH THAT LANDED SINCE dd19307: 59bfe6b knowledge_ingest (front matter, idempotent hash, SSRF guard, trust-aware ranking + retrieval fencing), 9cefc16 knowledge_eval harness, dbf2005 eval-query fix - plus the uncommitted follow-up (knowledge_get, knowledge_verify, bridge body cap). docs/10-AGENT-INGEST.md exists; knowledge.ts carries the quarantine/fencing comments (see the trust boost at :1087). Design matches the 10-22 checklist row.
-  2. FIXED 7 DEFECTS in that work (commit 83f5b89): (a) knowledge_verify hashed the RAW source while ingest hashes extracted+scrubbed text, so every docx/pdf and every secret-bearing item read "stale" even when unchanged; (b) it overwrote the ingest-time hash with the observed one, so a changed source reported "verified" on the next run - the stored hash is now immutable and the observed hash is reported beside it; (c) URL/inline-text items were silently marked verified=false and mutated - now refused with a reason and nothing written; (d) it crashed ENOENT on a fresh install (no knowledge dir); (e) knowledge_get returned every chunk unbounded - capped at 20k chars with a truncation note; (f) BLACKROSE_BRIDGE_MAX_BODY was parseInt'd unchecked - NaN/0 makes every length comparison false, i.e. removes the cap; now validated (finite, >0) and clamped to 256 MB; (g) the ingest URL guard only validated the first hop - a public URL redirecting to loopback bypassed the SSRF check, and numeric/hex IPv4 (http://2130706433/) or IPv6 literals were uncovered - redirects are now followed manually with every hop re-validated and IP-literal hosts refused.
-  3. REPAIRED A LOSSY RE-ENCODE: the working copy of src/tools/index.ts had been rewritten with the wrong codepage - BOM dropped and ~20 comment characters (em dashes, arrows, quotes) turned into '?' / U+FFFD. Restored the file from HEAD and re-applied ONLY the four real lines (knowledge_get + knowledge_verify, import + registry), so the diff is +4 lines with no comment churn.
-  4. GATES: tsc --noEmit exit 0; full gate green - 345 smoke checks + 318/318 node:test, 0 fail (validation/gate-aki-review.out). Suite grew 302 -> 318 because the AKI batch added 16 tests. Pushed dd19307..83f5b89; origin/main == HEAD (0 0); tree clean.
-  5. STATE OF AKI (corrected 2026-10-23): knowledge_ingest / knowledge_get /
-     knowledge_verify / knowledge_dedup / knowledge_eval are registered, the
-     --ingest CLI IS built (src/index.ts:157) and docs/10-AGENT-INGEST.md ships.
-     STILL MISSING: the bridge HTTP surface named in the contract (POST
-     /api/knowledge/ingest, POST /api/knowledge/ingest-batch, GET
-     /api/knowledge/status) and any batch/status tool - tool + CLI are the only
-     ingest paths today. An earlier draft of this item wrongly said the CLI did
-     not exist; corrected by reading src/index.ts, not by assuming.
-
-  6. THREE OF THE SIX HIGH GROUPS ARE CLOSED - verified in code, they were fixed
-     inside the AKI batch: (a) body-read cleanup - openai.ts keeps the timer and
-     the caller-abort bridge alive until the body is consumed (finally at :244),
-     same shape in gemini.ts:243-250 and onemin.ts:186-195, so a gateway that
-     flushes headers then stalls can no longer wedge the turn; (b) the Anthropic
-     adapter has a real AbortController + timeoutMs (client.ts:78-81); (c) Gemini
-     call ids come from a MODULE-level counter (gemini.ts:271 geminiCallSeq), so
-     two tool rounds keep read_file != write_file. DO NOT re-fix these: the audit
-     reports in validation/ are read-only snapshots and still list them as open.
-
-  7. CHECKLIST RECONCILED WITH CODE (commit ab78a74): rows 146-150 were a 10-22
-     CONTRACT and had drifted. 146 AKI -> core DONE with the bridge gap spelled
-     out; 147 provenance + knowledge_get -> DONE (added ts= to every
-     knowledge_search hit, the one missing field); 148 freshness -> PARTIAL,
-     naming what is unbuilt (staleAfter, Inbox flagging, schedule, UI); 150 bridge
-     body cap -> DONE. Row 149 (transcript secret hygiene) verified still OPEN.
-     Rule applied: a row is only marked done after reading the code that would
-     have to exist. Gate re-run after that change: still 318/318, 0 fail
-     (validation/gate-rows.out).
-
-  8. ORDERED NEXT WORK - decided 2026-10-23. Acceptance criteria for every item
-     live in docs/08-SESSION-HANDOFF.md (newest banner block, "the ordered plan");
-     this is the order, with the reason each one cannot slip:
-     P0-1 .aistate binary-safe payloads (state/aistate.ts:70,251,261,265) - the
-     BACKUP path currently corrupts any binary file under STATE_DIRS, silently.
-     P0-2 session secret hygiene (session/history.ts:105) - saveSession persists
-     secret_get output and password/value args, and they ride .aistate; redact on
-     save AND on export of pre-existing sessions. P0-3 selfimprove sandbox keyed
-     by path.basename (:179,:288) - same-named targets collapse and apply_change
-     writes one content into both originals. P0-1 and P0-2 are DONE (2026-10-23);
-     P0-3 DONE 2026-10-23 (sandboxMap keyed by abs-path hash persisted in the
-     ledger, legacy basename fallback, acceptance test pins two same-named files
-     staying distinct through apply and revert; commit 1fd0c9e).
-     P1-4 AKI bridge surface - the whole
-     premise of AKI is OTHER agents ingesting; today only a local tool + CLI
-     exist, so an agent on another machine cannot teach BlackRose at all.
-     P1-5 freshness proactive half (staleAfter + inbox flag + scheduled verify).
-     P2-6 office filename sanitizer (":" makes an NTFS ADS). P2-7 corrupt-file
-     quarantine in graph/schedule state. P2-8 custom.ts lock fails closed.
-     P2-9 mini.ts constitution default = OWNER DECISION, ask before changing.
-     P3-10 queue rows 137-139. P3-11 release 0.10.2 - draft-first, re-hash the
-     assets before publishing, and expect the installer-upload 408 to recur.
+  1. THIS BLOCK COVERS THREE PASSES OVER THE SAME DAY. First: reviewed the AKI
+     batch that landed since dd19307 (59bfe6b ingest, 9cefc16 eval, dbf2005 eval
+     fix) plus the uncommitted follow-up, and fixed 7 defects in it (83f5b89):
+     verify hashed raw text instead of the extracted+scrubbed text (every doc
+     read "stale"), verify overwrote the ingest hash (staleness forgotten after
+     one run), URL/text items were silently downgraded, ENOENT on a fresh
+     install, knowledge_get returned megabytes unbounded, BLACKROSE_BRIDGE_MAX_BODY
+     parsed unchecked (NaN silently removed the cap), and the ingest URL guard
+     only validated the first redirect hop. Also repaired a lossy re-encode of
+     src/tools/index.ts (BOM dropped, em dashes turned into "?").
+  2. SECOND PASS (a later session): the P0 trio from the plan landed - 333dd13
+     .aistate binary-safe envelope v2, 79592b2 session/export secret redaction,
+     1fd0c9e selfimprove sandbox keyed by absolute-path hash, f463c23 handoff
+     note. Those three HIGH groups are CLOSED; do not re-open them.
+  3. THIRD PASS (this one): reviewed the uncommitted AKI BRIDGE surface (P1-4)
+     and fixed it before committing (6c5d2bf). It shipped the three routes but
+     contradicted itself on identity: parseIngestBody defaulted agent to
+     "bridge" AND preserved a caller value, while the route overwrote it - the
+     tests asserted both. It also let a remote caller send verified:true, which
+     would promote its own content straight out of the quarantine AKI exists to
+     enforce. Rule now: agent is always stamped "bridge", verified is always
+     forced false, and promotion is a local approval-gated action. Its test file
+     also created scratch dirs with mkdtempSync("br-aki-") - which resolves
+     against the CWD and left a br-aki-* directory in the repo root - and had two
+     blocks interleaved so batch assertions ran after teardown. Rewritten: 13
+     tests, os.tmpdir() scratch.
+  4. FIXED THE INGEST ENGINE (8efa4af), four defects, all real: (a) THE
+     VERIFICATION PROBE DELETED THE WHOLE VECTOR INDEX - it called
+     hybridRank(probe, [oneChunk], store, "kb:") and hybridRank prunes the store
+     to the docs it is given and then SAVES it, so every ingest erased every
+     other document vectors from disk; its hit test was also id.startsWith("k"),
+     true for any kb id, so it could never fail. Verification is now a read-back
+     of the chunk file plus index membership (new "indexed" field). (b) A REBUILD
+     TRUNCATED THE CORPUS - indexKnowledge embedded only the caller entries after
+     loadStore had rebuilt, and saved a store that had forgotten everything else;
+     it now re-embeds every knowledge file when the store was rebuilt. (c)
+     "updated" WAS UNREACHABLE - the prior-record check stat()ed a path that
+     contains the content hash, so a changed source always reported "added"; it
+     now finds the newest record for the id at any hash. (d) PHANTOM MODEL
+     MISMATCH - embedModelName reported the configured API model with no key
+     while embedBatch always falls back to br-hash-v1, so every keyless run
+     rebuilt the fallback index from scratch.
+  5. HAZARD TO REMEMBER (in the code, but it belongs here too):
+     hybridRank(query, docs, store, prefix) PRUNES the store to `docs` and SAVES
+     it. Never call it with a partial doc list (one document, a subset) - that
+     deletes the rest of that prefix from disk. knowledge_search passes the full
+     corpus on purpose (that prune is the GC); knowledge_eval uses its own temp
+     store; the ingest probe no longer calls it at all.
+  6. AKI IS NOW COMPLETE ON ALL THREE CONTRACT SURFACES: knowledge_ingest tool,
+     `--ingest` CLI (src/index.ts:157), and the bridge (POST /api/knowledge/ingest,
+     POST /api/knowledge/ingest-batch max 50 with per-item results, GET
+     /api/knowledge/status). Related tools: knowledge_get (provenance),
+     knowledge_verify (freshness, on demand), knowledge_dedup, knowledge_eval.
+  7. CHECKLIST STATE: 146 AKI = CORE + BRIDGE DONE; 147 provenance + knowledge_get
+     = DONE; 148 freshness = PARTIAL (no staleAfter, no Inbox flag, no schedule,
+     no UI - verify only runs when asked); 149 transcript secret hygiene = DONE by
+     79592b2; 150 bridge body cap = DONE; 151 retrieval eval harness = STILL
+     PENDING, and be honest about why: knowledge_eval carries 3 canonical queries,
+     not the 20 fixed question->source pairs the row requires, so it is a smoke
+     test of the pipeline, NOT the gate that must be green before bulk ingest.
+  8. GATES: tsc exit 0; full gate green - smoke passed + 346/346 node:test, 0
+     fail (validation/gate-aki-bridge.out). Both repos clean and pushed.
+  9. ORDERED NEXT WORK: (a) P1-5 freshness proactive half - staleAfter per item,
+     a stale count in the Inbox digest, a scheduled verify. (b) Open MEDs: office
+     default filename allows ":" (NTFS alternate data stream), no corrupt-file
+     quarantine in graph/schedule state, custom.ts lock degradation, and mini.ts
+     shipping the constitution by default (OWNER DECISION - ask, do not change
+     silently). (c) Queue rows 137-139: teach-by-demo adjudication, UI
+     knowledge/graph viewer, UI git/repo panel + undo. (d) The 20-pair eval gate
+     when bulk ingest is actually next. (e) Release 0.10.2: 0.10.1 is still the
+     last release, so NONE of this is shipped - draft-first, re-hash the assets
+     after upload, and expect the installer 408 to recur.
+ 10. DO NOT RE-FIX the three closed HIGH adapter groups: body-read cleanup in
+     openai/gemini/onemin (timer + abort bridge held until the body is consumed),
+     the Anthropic AbortController + timeoutMs, and the module-level Gemini call
+     counter. The audit reports under validation/ are read-only snapshots and
+     still list them as open.
 
 ================================================================================
 
