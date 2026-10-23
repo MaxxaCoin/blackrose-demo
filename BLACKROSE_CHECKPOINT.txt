@@ -1,5 +1,25 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-23 AKI REVIEW + FIXES (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-23
+AI / AGENT: AutoClaw (act mode - user: "some changes were made so check them out and commit, check for bugs, mistakes then fix them")
+
+  1. REVIEWED THE AKI BATCH THAT LANDED SINCE dd19307: 59bfe6b knowledge_ingest (front matter, idempotent hash, SSRF guard, trust-aware ranking + retrieval fencing), 9cefc16 knowledge_eval harness, dbf2005 eval-query fix - plus the uncommitted follow-up (knowledge_get, knowledge_verify, bridge body cap). docs/10-AGENT-INGEST.md exists; knowledge.ts carries the quarantine/fencing comments (see the trust boost at :1087). Design matches the 10-22 checklist row.
+  2. FIXED 7 DEFECTS in that work (commit 83f5b89): (a) knowledge_verify hashed the RAW source while ingest hashes extracted+scrubbed text, so every docx/pdf and every secret-bearing item read "stale" even when unchanged; (b) it overwrote the ingest-time hash with the observed one, so a changed source reported "verified" on the next run - the stored hash is now immutable and the observed hash is reported beside it; (c) URL/inline-text items were silently marked verified=false and mutated - now refused with a reason and nothing written; (d) it crashed ENOENT on a fresh install (no knowledge dir); (e) knowledge_get returned every chunk unbounded - capped at 20k chars with a truncation note; (f) BLACKROSE_BRIDGE_MAX_BODY was parseInt'd unchecked - NaN/0 makes every length comparison false, i.e. removes the cap; now validated (finite, >0) and clamped to 256 MB; (g) the ingest URL guard only validated the first hop - a public URL redirecting to loopback bypassed the SSRF check, and numeric/hex IPv4 (http://2130706433/) or IPv6 literals were uncovered - redirects are now followed manually with every hop re-validated and IP-literal hosts refused.
+  3. REPAIRED A LOSSY RE-ENCODE: the working copy of src/tools/index.ts had been rewritten with the wrong codepage - BOM dropped and ~20 comment characters (em dashes, arrows, quotes) turned into '?' / U+FFFD. Restored the file from HEAD and re-applied ONLY the four real lines (knowledge_get + knowledge_verify, import + registry), so the diff is +4 lines with no comment churn.
+  4. GATES: tsc --noEmit exit 0; full gate green - 345 smoke checks + 318/318 node:test, 0 fail (validation/gate-aki-review.out). Suite grew 302 -> 318 because the AKI batch added 16 tests. Pushed dd19307..83f5b89; origin/main == HEAD (0 0); tree clean.
+  5. STATE OF AKI: knowledge_ingest / knowledge_get / knowledge_verify / knowledge_dedup / knowledge_eval are registered; batch ingest + knowledge_status are NOT built yet; the bridge still has no /api/knowledge/* route; the --ingest CLI flag does not exist. Those remain the gap between the 10-22 contract and the shipped code.
+  6. NEXT STEP: (a) the llm adapter cluster (openai/gemini/onemin body-read after
+     headers, Anthropic timeout, unique gemini call ids) - the last HIGH group that
+     can wedge a turn; (b) .aistate binary files, secrets in sessions/*.json,
+     selfimprove sandbox basenames; (c) finish AKI declared surfaces: bridge
+     /api/knowledge/ingest + ingest-batch + status and the --ingest CLI; (d) then
+     the priority queue at rows 137-139 (teach-by-demo adjudication, UI
+     knowledge/graph viewer, UI git/repo panel).
+
+================================================================================
+
 SESSION 2026-10-22 PLANNING - blackrose.txt review + AKI (Agent Knowledge Ingestion) design (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-22
