@@ -1,6 +1,113 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
-SESSION 2026-10-23 SESSION SECRET HYGIENE (P0-2) (NEWEST)
+SESSION 2026-10-24 DOCTOR ROUTE REPAIR + P2-6 OFFICE FILENAME SANITISER (NEWEST)
+--------------------------------------------------------------------------------
+DATE / TIME: 2026-10-24
+AI / AGENT: Cline (act mode - user: "fix doctor", then "commit everything and continue with p2-6")
+
+  1. DOCTOR ROUTE REPAIR (commit 647549e).
+     - openai2 (local OmniRoute gateway, 127.0.0.1:20128): OmniRoute was not
+       running. A first relaunch reproduced the known hang failure mode (port
+       bound, requests never answered -> doctor timeout); killing the stale
+       child and relaunching per the recipe fixed it (PID 10888 owns 20128;
+       logs ~/.omniroute/serve.{out,err}.log). GOTCHA: a hung OmniRoute answers
+       NOTHING while still holding the port - EADDRINUSE in serve.err.log means
+       a previous instance won the bind race. /models 401 is expected
+       (auth-gated); the chat probe is 200. 8 of 9 routes green.
+       NOTE: the detached serve process does NOT survive a reboot - relaunch
+       with `npx omniroute serve` + STORAGE_ENCRYPTION_KEY from
+       ~/.omniroute/.env.
+     - onemin: HTTP 401 with body {"errorCode":"API_KEY_INACTIVE"} - the 1min.ai
+       key is deactivated; only a team admin can reactivate it. EXTERNAL, not
+       code. Not fixed, now EXPLAINED by the doctor line.
+     - src/doctor.ts: the onemin probe now (a) has a bounded 8s timeout
+       (AbortController, clearTimeout in finally, abort -> "timeout (8s)") and
+       (b) failure lines surface the API's own reason (message/errorCode parsed
+       from the response body, whitespace-collapsed fallback, 120 chars).
+       Live line: "route onemin - HTTP 401 - API Key is not active. Please
+       contact your team administrator to be unblocked".
+
+  2. SHIPPED P2-6 office filename sanitiser (commit 9269f71; ordered-plan item
+     in docs/08-SESSION-HANDOFF.md). sanitizeFilename(raw, fallback) in
+     src/tools/office.ts strips control chars (0-31) and the Windows-forbidden
+     set < > : " / \ | ? *, strips trailing dots/spaces in any mix, and falls
+     back on empty results or reserved device names (CON/PRN/AUX/NUL/COM1-9/
+     LPT1-9, with or without extension). Wired into the default filenames of
+     doc_generate, pptx_create and NOW xlsx_write (gate + run both) - a raw
+     ':' used to create an NTFS alternate data stream instead of a file.
+     xlsx_pivot's default outPath is derived from an EXISTING source file's
+     stem and left unsanitized on purpose (a name that exists on disk is
+     already legal for new files on the same filesystem).
+     SANITIZER FIX: see item 3.
+
+  3. SANITIZER FIX made while writing the tests: trailing dots+spaces are
+     stripped in ONE pass (/[. ]+$/ applied after forbidden-char removal).
+     The old dots-then-spaces two-pass left 'Report... ' as 'Report...' -
+     still an illegal Windows filename ending (a mixed trailing run defeats
+     two sequential strips). JSDoc updated to say "any mix".
+
+  4. TESTS: 2 new tests in src/tools/office.test.ts - a unit matrix
+     (forbidden/control chars, mixed trailing dots/spaces, reserved +-extension,
+     CONTRIBUTORS/COM10 survive, empty -> fallback) and end-to-end
+     (doc_generate with "My: Report" -> My Report.docx re-learnable,
+     "Q4: Notes/." -> Q4 Notes.docx, xlsx_write "Scores: 2026." ->
+     Scores 2026.xlsx). Acceptance from the handoff met: ':' '/' and trailing
+     dot titles write REAL files.
+
+  5. GATES: tsc --noEmit exit 0. Full npm test: SMOKE TEST PASSED, 350/350,
+     0 fail, 33 files (was 348 + the 2 new P2-6 tests). Doctor: 8/9 routes OK;
+     onemin failure line self-explanatory. Run note: npm test exceeds the 30s
+     command window - run detached (Start-Process cmd /c "npm test >
+     test-full.out 2>&1"), poll the summary, delete test-full.out after.
+
+  NEXT (ordered plan, docs/08-SESSION-HANDOFF.md): P2-7 corrupt-file
+  quarantine (graph/schedule state -> .corrupt-<ts> + honest report), P2-8
+  custom.ts lock fail-closed, P2-9 mini.ts constitution default (owner
+  question). onemin stays red until the 1min.ai team admin reactivates the key.
+
+================================================================================
+SESSION 2026-10-23 FRESHNESS PROACTIVE HALF (P1-5)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-23
+AI / AGENT: Cline (act mode - continuation of the AKI bridge session; user: "ok do it")
+
+  1. SHIPPED P1-5 freshness proactive half (ordered plan item from docs/08-SESSION-HANDOFF.md).
+     `knowledge_verify` only ran when asked, so a stale fact answered confidently forever.
+     Three deliverables complete:
+
+  2. `staleAfter` per item: added `staleAfter?: number` (days) to `KnowledgeFile.meta`,
+     `IngestTarget`, and `BridgeIngestItem`. Stored at ingest time in `ingestItem()`,
+     persisted in front matter via `frontMatter()`, and passed through the bridge
+     (`parseIngestBody`). `knowledge_ingest` tool accepts `staleAfter` input.
+
+  3. Proactive freshness checking: new exported `checkFreshness(dataDir): FreshnessReport`
+     in `src/tools/knowledge.ts`. Scans all knowledge files and flags items as stale
+     when (a) `staleAfter` window elapsed since `ts`, or (b) source file's mtimeMs/size
+     changed since ingest (stats captured at ingest time). Stale items have
+     `verified = false` set and are written back. No re-ingest, no re-chunk — only
+     the trust flag is updated so callers can fence stale data.
+
+  4. Stale count in Inbox digest: `ingest_folder`/`inbox_scan` in `src/tools/inbox.ts`
+     now calls `checkFreshness()` and reports `Stale knowledge: N/M item(s) need
+     re-verification (reason: source; ...)` in the digest output.
+
+  5. `knowledge_verify` enhanced: checks time-based `staleAfter` expiry before
+     re-reading the source file. If `staleAfter` has elapsed, reports status=stale
+     without wasting a file re-read.
+
+  6. Schedule integration: `schedule/runner.ts` can run `knowledge_verify` on a
+     schedule for recurring freshness checks (existing schedule mechanism supports
+     any tool call).
+
+  7. TESTS: 2 new tests in `src/bridge/aki.test.ts` — staleAfter=0 is immediately
+     stale; source file change detected without verify call. All 15 AKI bridge
+     tests pass, typecheck clean, doctor tests pass, checkpoint integrity passes.
+
+  8. GATES: tsc --noEmit exit 0. AKI bridge tests 15/15. Doctor tests 4/4.
+     Redact tests 10/10. Checkpoint integrity: PASS (all 3 copies identical).
+
+================================================================================
+SESSION 2026-10-23 SESSION SECRET HYGIENE (P0-2)
 --------------------------------------------------------------------------------
 DATE / TIME: 2026-10-23
 AI / AGENT: Cline (act mode - continuation of the P0-1 session; user: "continue")
