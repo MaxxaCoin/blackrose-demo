@@ -1,5 +1,70 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-24 FULL SWEEP + 10 FIXES + RELEASE HOLD (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-24 (sweep)
+AI / AGENT: AutoClaw (act mode - user: "verify everything is good, check for bugs, the release must be fully clean")
+
+  1. FIVE READ-ONLY REVIEWERS SWEPT THE WHOLE TREE (src/core, src/llm+mcp,
+     src/memory+state, src/tools, src/ui+bridge+index). Reports:
+     validation/sweep-{core,llm-mcp,memory-state,tools,process-ui}.md. They found
+     10 real defects; 8 were fixed this session and 2 HIGH remain (item 5).
+  2. DATA LOSS FIXED: (a) addProviderKey never persisted the FIRST key a provider
+     ever received (saveExtraKeys re-reads the store and writes only extras), so
+     it vanished on restart and bulk import saved N-1 of N; (b) saveMcpServer
+     rebuilt mcp.json from a 4-field projection, deleting env/cwd from every
+     other server; (c) xlsx_update/xlsx_pivot re-authored the workbook from flat
+     text - formulas became cached values, gaps collapsed left, and the result
+     overwrote the original while reporting success. They now REFUSE with the
+     reason when the source has formulas, merged cells or gaps; (d) aistate
+     omitted knowledge_graph from STATE_DIRS, so every export dropped the entity
+     graph; (e) import did not redact sessions, so a pre-redaction .aistate
+     re-introduced credentials.
+  3. GATE BYPASS FIXED: workflow_run built its registry with new Map(map(...)) -
+     LAST-wins - while dispatch is FIRST-wins, so a plugin sharing a built-in name
+     ran inside a workflow under that trusted name with no gate and a lying audit
+     row. Now first-wins, identical to core/agent.ts.
+  4. ALSO FIXED: ingest id came from the UNRESOLVED source (printed id did not
+     resolve in knowledge_get; relative vs absolute ingest of one file = two
+     documents with a false "added") - now from the resolved display path;
+     knowledge_forget now deletes the ingest records, which carry the whole
+     document text (a "forgotten" doc stayed on disk and made the next ingest say
+     "unchanged"); the browser-origin guard accepted ANY localhost port, so any
+     local page could POST /api/trust then run commands - it now requires this
+     server port; ctx.signal was null! with nothing ever assigning it, so
+     spawn_agent/skill_run/team_run threw; sheet names are sanitised at the
+     writer; escXml drops XML-illegal control chars.
+  5. STILL OPEN - BOTH ARE RELEASE BLOCKERS. (a) src/memory/graph.ts saveGraph
+     writes entities.json and relations.json under Promise.all with plain
+     writeFileSync: a crash mid-save leaves one half truncated, which the new
+     quarantine then preserves as *lost* data. Fix: temp+rename each half,
+     sequentially. (b) registerMcpTools drops the kill handle, so boot-loaded MCP
+     children cannot be stopped by emergency_stop/killAll or mcp_disconnect (the
+     child keeps running and keeps answering), and a trusted:false edit needs a
+     restart to re-arm the gate. Fix: keep the handles in a module set, expose
+     killBootMcpServers(), call it from the panic path.
+  6. OPEN MEDIUM (documented, not fixed): policy path-scoped rules never match
+     run_command; budget.json has no cross-process lock (2 processes = 100/200
+     counted); a 401/403 HTML page is misparsed as quota, so a dead key is never
+     parked; apply_change copies a stale sandbox over newer edits; /compact can
+     persist an orphan tool_result; vectors can persist a mixed 3072/256-d index;
+     mastery/experiment write truncate-then-write; SEA argv double-slice; /exit
+     can hang with Telegram on; no lock for the Telegram watch (duplicate
+     getUpdates); bridge client calls have no timeout.
+  7. RUNTIME VERIFIED: doctor healthy except route onemin (401 API key not
+     active - a dead route in the chain, parked by key health); UI boots on its
+     port, serves /api/health (doctor=warn), releases the port on kill, leaves no
+     child behind; a second instance correctly falls back to port+1 and now
+     CANNOT duplicate the scheduler (new role lock).
+  8. GATES: tsc exit 0; smoke passed; 365/365 node:test, 0 fail
+     (validation/gate-sweep.out). Commits: f76e248 (instance lock), a11b208
+     (sweep fixes).
+  9. RELEASE CALL REVISED: HOLD. 0.10.2 should not ship while item 5 has two
+     open HIGHs; both are small, contained fixes. After they land: bump the 5
+     version files, build:exe, build:desktop, gate + scan:secrets, draft
+     release, re-hash assets, then publish. Expect the installer 408.
+
+===============================================================================
 SESSION 2026-10-24 REVIEW + FRESHNESS FIXES + RELEASE CALL (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-24 (late)
