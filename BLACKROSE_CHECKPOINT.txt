@@ -1,5 +1,64 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-24 REVIEW + FRESHNESS FIXES + RELEASE CALL (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-24 (late)
+AI / AGENT: AutoClaw (act mode - user: "check the progress, check for bugs & mistakes, fix them, commit, list what next (should we release a version?)")
+
+  1. PUSHED 8 COMMITS THAT HAD NEVER LEFT THIS MACHINE. The working tree was
+     clean, which hid it: origin/main was 8 behind (0 8) for the whole
+     doctor/office/audit session. Nothing was lost, but a disk failure would
+     have. Always read `git rev-list --left-right --count origin/main...HEAD`,
+     not just `git status`.
+  2. REVIEWED THE NEW P1-5 FRESHNESS CODE AND FIXED 4 DEFECTS (cb3affa). (a) THE
+     PASS RESET ITS OWN CLOCK: checkFreshness stamped meta.ts = now, but ts is
+     the INGEST time that both the expiry window and the age-decay multiplier
+     measure from, so an expired item was reported stale exactly once and then
+     looked fresh forever. Staleness now has its own staleAt marker, ts is never
+     touched, and files are rewritten only when the verdict changes. (b) CHANGE
+     DETECTION STAT-ED THE WRONG FILE: it used target.source (resolved against
+     process.cwd) while ingest resolves against env.cwd, so a relative source
+     either threw (detection off) or compared a different file. (c) NaN
+     staleAfter disabled expiry silently. (d) The inbox stale line listed every
+     item, so a corpus-wide expiry produced a wall of text: capped at 3 + count.
+  3. TWO INTENT CONFLICTS RESOLVED BY READING THE TEST, NOT BY WEAKENING IT:
+     staleAfter=0 means "immediately stale" and stays valid (NaN is still
+     rejected), and graph quarantine keeps the plain filename for the first
+     corruption, timestamping only on collision — my first version renamed
+     unconditionally and broke the M1 test, which was right.
+  4. AUDIT H3 IS STILL OPEN AND NOW SAYS SO IN THE CODE (dce3259). The default
+     requiresApproval returns null, so 98 of 157 built-ins inherit "no gate"
+     while the comment claimed the defaults were fail-closed. Behaviour is
+     UNCHANGED on purpose: flipping the default would prompt on every read. The
+     real rule (every state-changing tool must declare a gate) is now written
+     down; enforcement is review + tool_policy. OWNER DECISION if it should be
+     enforced mechanically.
+  5. GATES: tsc exit 0; smoke passed; 360/360 node:test, 0 fail
+     (validation/gate-2026-10-24b.out). The first run of the day was 358/360:
+     one failure was mine (graph quarantine filename) and one was the
+     staleAfter=0 disagreement above.
+  6. RELEASE CALL: ALL 20 AUDIT HIGH ARE CLOSED (13 in 35c7f7a, the workflow
+     policy bypass in fbc68ff, the three adapter HIGHs, the P0 trio 333dd13 /
+     79592b2 / 1fd0c9e, and state H1-H3 in 15a6325/ed886cb). The installed
+     0.10.1 predates every one of them, INCLUDING the workflow policy bypass,
+     the MCP boot crash, custom-tool shadowing and the Telegram trust+shell
+     escalation. The bundles under dist-build/ and desktop/tauri/core/ predate
+     the fixes too. RECOMMENDATION: cut 0.10.2 now, then resume feature work —
+     this is a security-fix release, not a feature release.
+  7. RELEASE 0.10.2 CHECKLIST (in order): bump 0.10.1 -> 0.10.2 in package.json,
+     desktop/tauri/tauri.conf.json, desktop/tauri/Cargo.toml,
+     desktop/tauri/Cargo.lock and scripts/latest.json; npm run build:exe; npm run
+     build:desktop; gate + npm run scan:secrets; draft release; upload; THEN
+     re-download and re-hash every asset before --draft=false --latest. Expect
+     the installer-upload 408 to recur (draft-first is what makes it harmless).
+     Never trust a stale dist-build/.
+  8. NEXT AFTER THE RELEASE: (a) state-audit M6-M9 and L1-L8; (b) queue rows
+     137-139 (teach-by-demo adjudication, UI knowledge/graph viewer, UI git/repo
+     panel + undo); (c) the 20-pair retrieval eval gate before any bulk ingest;
+     (d) the mini.ts constitution default (owner decision). Checkpoint items
+     146/147/150 are DONE, 148 is PARTIAL, 151 is PARTIAL.
+
+===============================================================================
 SESSION 2026-10-24 DOCTOR ROUTE REPAIR + P2-6 OFFICE FILENAME SANITISER (NEWEST)
 --------------------------------------------------------------------------------
 DATE / TIME: 2026-10-24
