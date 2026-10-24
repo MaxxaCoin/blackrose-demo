@@ -28,9 +28,11 @@ AI / AGENT: AutoClaw (act mode - user: "ok do what you see right" after the
      a module-eval TDZ crash; caught before commit and moved above) - and
      the new exported killBootMcpServers() is called from the
      emergency_stop panic path right after the interactive-registry
-     killAll(). Per-server mcp_disconnect of a boot child is UNCHANGED
-     (still needs a restart); only the panic-path kill was in the
-     prescribed fix.
+     killAll(). Per-server reach landed in the same-day self-review pass
+     (item 8): bootKills is a Map keyed by server name with an exported
+     killBootServer(name), called from McpRegistry.connect (same-name
+     supersede) and McpRegistry.disconnect (mcp_disconnect), so a boot
+     child can now be stopped by name as well.
   4. SMOKE HARDENING, both fail closed (src/smoke.ts): (a) the MCP
      fake-server call is wrapped in try/catch - a server that dies before
      handshake now logs and fails its own checks instead of crashing the
@@ -64,6 +66,34 @@ AI / AGENT: AutoClaw (act mode - user: "ok do what you see right" after the
      policy path-rule vs run_command, llm status-before-parse, selfimprove
      stale sandbox, then queue rows 137-139 and the 20-pair retrieval eval
      gate before any bulk ingest.
+  8. SELF-REVIEW PASS (same day, user: "check for any bugs & mistakes till
+     now"): an independent read-only reviewer swept 82c43d3 + e9f7890 while
+     the fixes were re-checked by hand; 6 defects found, ALL fixed in
+     commit 9c2c01a: (a) saveGraph had NO fsync and a FIXED .tmp name - a
+     deviation from the prescribed vectors.ts saveStore pattern and a real
+     power-loss window that could publish an empty half, plus a temp-file
+     collision for racing saves; now unique tmp per write (pid + counter),
+     fsync before rename, temp cleanup on failure. (b) The UI panic path
+     POST /api/emergency-stop (ui/web/server.ts) re-implements the sequence
+     inline and NEVER killed boot-loaded MCP children - wired now.
+     (c) emergency_stop had both MCP teardowns in one try - split so a
+     killAll throw cannot skip the boot kill. (d) Same-name mcp_connect
+     leaked the boot child and mcp_disconnect could not reach a boot-only
+     server - fixed via the name-keyed map (see item 3). (e) Stale and
+     overclaiming comments (graph.ts catch text, test debris filter using
+     .endsWith on mid-string .tmp names) - rewritten honestly. Gates
+     re-run green: tsc 0, smoke PASS, 366/366 node:test (validation/
+     gate-review-*.out). scan:secrets on the newly staged server.ts
+     reported 4 assigned_secret fingerprints (lines 927/1358/1396/1425):
+     INSPECTED, all are request-input receivers (token/password read from
+     a request body or the x-state-password header), zero literal values -
+     classified false positive per the documented source-shape residual
+     doctrine. PROCESS NOTE, recorded not hidden: the commit landed before
+     the scan verdict was read (command chain did not gate on scan exit);
+     the human classification above stands, and future sessions staging
+     server.ts will see these 4 known fingerprints. Lesson: the first pass
+     shipped comments claiming properties the code did not have - the
+     reviewer caught the gap between the claim and the prescribed pattern.
 
 ================================================================================
 
