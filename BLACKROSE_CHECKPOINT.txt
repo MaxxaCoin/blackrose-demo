@@ -1,5 +1,73 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-24 HIGH 5A + 5B CLOSED - RELEASE BLOCKERS GONE (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-24 (sweep, late)
+AI / AGENT: AutoClaw (act mode - user: "ok do what you see right" after the
+  checkpoint/handoff readout; continuation of the same day's sweep session)
+
+  1. BOTH ITEM-5 RELEASE BLOCKERS ARE CLOSED (inner commit 82c43d3). The
+     0.10.2 HOLD from the sweep block below is lifted to READY: the next
+     session can run the release checklist exactly as written in the REVIEW
+     block (item 7 there).
+  2. HIGH 5a FIXED (src/memory/graph.ts): saveGraph wrote entities.json and
+     relations.json under Promise.all with plain writeFile - a crash
+     mid-save left one half truncated, which the quarantine then preserved
+     as LOST data. saveGraph is now atomic per half: BOTH halves are
+     written to .tmp files first (a crash before the first rename leaves
+     the originals completely intact), then renamed sequentially, and no
+     .tmp debris survives a completed save. A new regression test in
+     src/audit-fixes.test.ts pins the round-trip, the no-tmp-debris
+     invariant and rename-over-existing (HIGH 5a test).
+  3. HIGH 5b FIXED (src/mcp/client.ts + src/tools/emergency.ts):
+     registerMcpTools used to discard the kill handle, so boot-loaded MCP
+     children could not be stopped by emergency_stop/killAll/mcp_disconnect
+     and a trusted:false edit needed a restart to re-arm the gate. The
+     handles now live in a module-level Set (bootKills) - DECLARED BEFORE
+     registerMcpTools (a first pass placed it below the function, which is
+     a module-eval TDZ crash; caught before commit and moved above) - and
+     the new exported killBootMcpServers() is called from the
+     emergency_stop panic path right after the interactive-registry
+     killAll(). Per-server mcp_disconnect of a boot child is UNCHANGED
+     (still needs a restart); only the panic-path kill was in the
+     prescribed fix.
+  4. SMOKE HARDENING, both fail closed (src/smoke.ts): (a) the MCP
+     fake-server call is wrapped in try/catch - a server that dies before
+     handshake now logs and fails its own checks instead of crashing the
+     whole smoke run; (b) the desktop/tauri scaffold reads go through a
+     readOpt helper - a missing desktop/ dir fails those checks instead of
+     an ENOENT crash that killed every later section. Both crashes were hit
+     for real before the cause was understood (see item 6); the hardening
+     keeps them harmless.
+  5. GATES, all green: tsc --noEmit exit 0; SMOKE TEST PASSED; node:test
+     366/366, 0 fail (365 prior + 1 new HIGH 5a test) - validation/
+     gate-5a5b-smoke.out and gate-5a5b-tests.out; scan:secrets clean on the
+     5 staged files. Handoff ordered-plan items 1-2 marked DONE with the
+     commit hash and the honest per-server mcp_disconnect caveat.
+  6. ENVIRONMENT GOTCHAS RE-CONFIRMED, ONE NEW: (a) smoke.ts resolves EVERY
+     path against process.cwd(), so it MUST run from inside the inner repo
+     (cd cline/blackrose; node src/smoke.ts) - from the outer
+     Desktop\BlackRose root it ENOENT-crashes on src/ui/web/server.ts and
+     the MCP fake server "exits (code 1)" because the script path does not
+     exist there; the --resume regression failure seen from the outer root
+     was the same cwd artifact, NOT a code defect. (b) In the AutoClaw host
+     shell the two env-dependent smoke checks fail (vault key-rotation
+     round-trip, router unknown-route skip); merging HKCU:\Environment into
+     the session before the run turns the full gate green - same recipe as
+     gate-0136b, re-proven on today's tree. (c) The OmniRoute gateway runs
+     here as long-lived node processes (npx omniroute serve) - do NOT
+     taskkill node PIDs blindly when cleaning up test processes.
+  7. NEXT: the 0.10.2 release checklist stands (bump the 5 version files,
+     build:exe, build:desktop, gate + scan:secrets, draft release, upload,
+     re-hash, publish; expect the installer 408). Then the ordered plan
+     items 3+ in docs/08-SESSION-HANDOFF.md: budget cross-process lock,
+     policy path-rule vs run_command, llm status-before-parse, selfimprove
+     stale sandbox, then queue rows 137-139 and the 20-pair retrieval eval
+     gate before any bulk ingest.
+
+================================================================================
+
+-------------------------------------------------------------------------------
 SESSION 2026-10-24 FULL SWEEP + 10 FIXES + RELEASE HOLD (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-24 (sweep)
