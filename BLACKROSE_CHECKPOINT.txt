@@ -1,5 +1,79 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-25 AUDIT OF THE PREVIOUS AGENT - PANIC PATHS CONSOLIDATED (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-25 (audit)
+AI / AGENT: AutoClaw (act mode - user: "check for any bugs and mistakes done by
+  the previous agent")
+
+  1. AUDIT SETUP: three read-only reviewers over the previous agent's commits
+     (82c43d3 → 6b99dc9) — code correctness, panic-path completeness, and
+     docs-vs-reality. The code reviewer DIED without output; its scope was
+     covered by hand (final graph.ts, client.ts, UI route read line by line)
+     plus the docs reviewer's per-claim verification and the compiler. Reports:
+     validation/audit-2026-10-25-panic.md and audit-2026-10-25-docs.md (the
+     third reviewer left no report).
+  2. YESTERDAY'S CLAIMS VERIFIED TRUE (docs reviewer, evidence-checked):
+     fsync + unique temp names really in saveGraph; bootKills Map declared
+     before registerMcpTools; killBootServer really called from connect and
+     disconnect; the UI route really calls killBootMcpServers; the HIGH 5a
+     test exists and passes; smoke PASS; 366/366, 0 fail; origin/main==HEAD
+     0 0; both trees clean; verify:checkpoint 9/9.
+  3. BUT THE VERDICT WAS NOT ACCEPTABLE AS-IS: the panic-teardown class was
+     NOT closed. HIGH — the --ui Telegram owner (ui/web/main.ts) attached no
+     onPanic at all, and the agent-facing telegram tool's companionOwner had
+     none either: Telegram /panic killed jobs and dropped trust while the
+     in-flight run kept spending — and the reply still said PANIC
+     (telegram.ts awaits an absent optional hook). The CLI owner was the only
+     complete surface. LESSON: closing ONE panic surface (the UI route) was
+     reported as closing the CLASS; the class is the duplication, not the
+     route.
+  4. ROOT-CAUSE FIX (commit faadddf): ONE shared teardown —
+     runEmergencyTeardown()/formatTeardown() in src/tools/emergency.ts
+     (latch FIRST, then jobs, then MCP in two separate tries, then
+     schedules). emergencyStopTool, POST /api/emergency-stop and the default
+     Telegram watch owner all call it. TelegramOwner.onPanic is now REQUIRED
+     (compiler-enforced — the exact omission that hid the bug, found by tsc
+     at 8 test literals + the watch merge); startTelegramWatch supplies the
+     full teardown itself when the host passes none; panicCommand falls back
+     to arming the latch directly if the host teardown throws, instead of
+     silently reporting PANIC, and no longer kills jobs BEFORE the latch.
+  5. TEST GAP CLOSED: the docs auditor flagged HIGH 5b as DONE-without-test
+     (violating the handoff rule that a claimed safety property must be
+     pinned by a test). emergency.test.ts now spawns a REAL stdio fakeServer,
+     registers it at boot, and pins: child ALIVE before the panic, DEAD after
+     (a tool call fails instead of echoing), latch armed first, schedule
+     disable persisted. Gates: tsc 0; SMOKE TEST PASSED; node:test 367/367,
+     0 fail (validation/gate-1025-smoke.out + gate-1025-tests.out, HKCU env
+     merged).
+  6. SCAN SECRETS HONESTY: staging telegram.ts surfaced 14 NEW fingerprints
+     plus the 4 known server.ts ones (18 total). ALL inspected line by line:
+     dynamic reads (telegramToken()/vault/env/parse, request-input
+     receivers), zero literal values — the documented source-shape residual
+     class. Known-FP counts for staged scans: 4 (server.ts) + 14
+     (telegram.ts). CORRECTION, recorded not hidden: yesterday's 9c2c01a
+     commit message said "scan:secrets clean" — an overclaim; the scan
+     exited 1 on 4 classified fingerprints and the truthful classification
+     lived only in the checkpoint. Commit messages must state the scan
+     verdict as it is.
+  7. RECORDED, NOT FIXED (next session): (a) no way to re-enable missions
+     after a panic — the UI promises one (assets.ts:708); (b) the scheduler
+     tick ignores the latch (schedule/runner.ts:181) — bounded, because the
+     teardown disables schedules and runAgent aborts at the next boundary;
+     (c) the latch is per-process — a second BlackRose process (bridge) is
+     not stopped and the bridge has no panic route; (d) Telegram/CLI
+     fallbacks that arm ONLY the latch when the emergency_stop tool is
+     missing are unreachable by construction today (the tool is always
+     registered) but deserve a compile-time guarantee someday.
+  8. NEXT: the 0.10.2 release checklist (unchanged, now with faadddf in),
+     then the handoff NEXT WORK items 4+ (budget cross-process lock, policy
+     path rules vs run_command, llm status-before-parse, selfimprove stale
+     sandbox), queue rows 137-139, and the 20-pair retrieval eval gate
+     before any bulk ingest.
+
+================================================================================
+
+-------------------------------------------------------------------------------
 SESSION 2026-10-24 HIGH 5A + 5B CLOSED - RELEASE BLOCKERS GONE (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-24 (sweep, late)
