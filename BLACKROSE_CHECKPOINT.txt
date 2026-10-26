@@ -67,9 +67,10 @@ AI / AGENT: AutoClaw (user: "do it yourself" - publish the new release)
      child death (calls fail honestly; memory is trivial); (d) BLACKROSE_MAX_TURNS
      set to an EMPTY string still yields 0 (= loop disabled; same as before the
      NaN fix - treat "" as unset someday); (e) the recorded-not-fixed LOW list
-     from the 2026-10-26 sweep-2 block item 8 stands unchanged. PENDING USER
-     ACTION: install 0.10.2 through the in-app "Check for update" and confirm the
-     update-install path (the v0.10.1 item-8 pattern).
+     from the 2026-10-26 sweep-2 block item 8 stands unchanged. POST-RELEASE CHECK
+     CLOSED (owner-confirmed, 2026-10-26): 0.10.2 was installed through the in-app
+     "Check for update" and the update-install path verified - the release chain is
+     closed end to end (tag -> signed assets -> live manifest -> real update).
 
 ================================================================================
 
