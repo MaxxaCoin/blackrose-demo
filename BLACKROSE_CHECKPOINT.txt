@@ -66,7 +66,11 @@ AI / AGENT: AutoClaw (user: "do it yourself" - publish the new release)
      hygiene: stale dead entries survive disconnect-of-boot-only and natural
      child death (calls fail honestly; memory is trivial); (d) BLACKROSE_MAX_TURNS
      set to an EMPTY string still yields 0 (= loop disabled; same as before the
-     NaN fix - treat "" as unset someday); (e) the recorded-not-fixed LOW list
+     NaN fix - treat "" as unset someday); (e) the updater private key is
+     protected by a SHORT, guessable password - do NOT rotate it casually: the
+     pubkey is baked into every installed client, so a rotation needs a
+     coordinated pubkey swap or in-app updates break for existing installs;
+     (f) the recorded-not-fixed LOW list
      from the 2026-10-26 sweep-2 block item 8 stands unchanged. POST-RELEASE CHECK
      CLOSED (owner-confirmed, 2026-10-26): 0.10.2 was installed through the in-app
      "Check for update" and the update-install path verified - the release chain is
