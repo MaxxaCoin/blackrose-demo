@@ -1,5 +1,69 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-26 FULL RECHECK BEFORE 0.10.2 - SWEEP 2, 3 HIGH + 7 MED CLOSED (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-26 (pre-release full sweep)
+AI / AGENT: AutoClaw (user: "recheck the entire project for bugs & mistakes - the new
+  version release should be error free and fully clean")
+
+  1. AUDIT SETUP: five read-only reviewers over the ENTIRE tree at HEAD 1e6e1b7
+     (core; memory/state; tools first half; process/UI; llm/mcp), reports in
+     validation/audit-sweep2-*.md. Every finding was re-verified in source by the
+     main agent BEFORE fixing - and that paid off: one reviewer example was wrong
+     ("CANNOT VERIFY" does not contain the substring VERIFIED), but the class was
+     still real via UNVERIFIED / NEVER VERIFIED. Fix the class, not the report.
+  2. HIGH x3 CLOSED (commit 636ff1d): (a) decodeXmlEntities threw RangeError on a
+     crafted numeric entity (&#x110000; / lone surrogate) and crashed the whole
+     process on learn_docx/xlsx/pptx/epub - hostile entities are now dropped
+     (safeCodePoint); (b) xlsx_pivot gated only the SOURCE path - an absolute
+     outPath wrote anywhere on disk with no approval; the gate now checks the
+     resolved OUTPUT path and run refuses non-.xlsx outputs; (c) learn_url plain-
+     fetched with redirect-following and no private-host check - a full SSRF read
+     primitive into the KB; it now shares fetchPublicUrl with ingestItem (manual
+     redirects, per-hop private/loopback/numeric-host validation).
+  3. THE SMOKE CAUGHT THE OVER-BROAD GUARD (keep this lesson): run 1 failed the
+     bookmarklet checks, because the bookmarklet endpoint calls learn_url with the
+     page it was clicked ON - legitimately a loopback URL. Owner-initiated fetch is
+     not agent-initiated SSRF: the authenticated bookmarklet now grants
+     ctx.allowLoopbackFetch, a capability in ctx (NOT tool input - the model must
+     never be able to grant the exception to itself). The guard stays default-on.
+  4. MED x7 CLOSED (same commit): taskEngine verdict fail-closed
+     (parseVerification) + plan cap 8 + numbered-lines-only fallback; script
+     plugin tools got a 120s ceiling + killTree + ctx.signal Stop (execShell
+     doctrine); team_delete now requires approval; all five knowledge-store
+     writes are atomic (tmp+fsync+rename); router/rotating-key clients no longer
+     record a user Stop as a route/key failure (Stop no longer paints routes RED
+     or parks a healthy key 60s); superseded MCP boot servers no longer leave dead
+     mcp__name__* tool runs (runs resolve the LIVE connection via liveConns);
+     knowledge_verify stopped resetting the staleAfter clock on bad reads.
+  5. LOW fixes in the same commit: junk BLACKROSE_* env numbers fall back to the
+     default instead of NaN-disabling the agent loop; runGoal refuses the planner
+     call while the emergency latch is armed; /api/custom_tools POST got the body
+     cap every other route has; unused killBootMcpServers import removed; stale
+     256 MB comment, duplicated agent.ts comment line, and the dishonest
+     no-AbortSignal.any comment in emergencyMergedSignal corrected.
+  6. GATES: tsc --noEmit 0; SMOKE TEST PASSED; node:test 373/373, 0 fail - six new
+     tests pin the sweep fixes (src/audit-sweep2.test.ts; package.json test list
+     now 35 files). Evidence: validation/gate-1026-smoke.out + gate-1026-tests.out
+     (HKCU env merged). An unrelated FOREIGN npm test was hung on image.test.ts
+     during the window (idle, 0 CPU, not ours) - left alone, not killed.
+  7. SCAN SECRETS (staged set): 6 fingerprints, ALL classified dynamic reads -
+     server.ts 4 (known request-input receivers) + bookmarklet.ts 2
+     (crypto.randomBytes token GENERATION, ensureBookmarkToken vault read); zero
+     literal values. Cumulative known-FP classification: server.ts 4, telegram.ts
+     14, bookmarklet.ts 2. The commit message states the verdict as-is.
+  8. RECORDED, NOT FIXED (next cleanup pass): undo blob GC race + restore status-
+     write throw; selfimprove grandchild kill on Windows; inbox trailing-separator
+     orphan filter; git_push approval reason omits refs; aistate export TOCTOU;
+     openai latent call_${i} id fallback; plugins lock busy-wait; constitution
+     non-atomic write; executive half-succeeded append; trimHistory once-per-run
+     growth; keys "unknown" ok:false consumer watch. NEXT: the 0.10.2 release
+     checklist, handoff NEXT WORK items 4+, queue rows 137-139, 20-pair retrieval
+     eval gate before any bulk ingest.
+
+================================================================================
+
+-------------------------------------------------------------------------------
 SESSION 2026-10-25 AUDIT OF THE PREVIOUS AGENT - PANIC PATHS CONSOLIDATED (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-25 (audit)
