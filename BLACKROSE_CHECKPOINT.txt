@@ -1,5 +1,73 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-26 TIER 2 - NEXT WORK 7, ATOMIC STRAGGLERS, UNDO L1+L2 (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-26 (tier 2 work)
+AI / AGENT: AutoClaw
+
+  1. ITEM 7, STALE SANDBOX (cecf5ba): improve_tool snapshots the target files,
+     and apply_change blind-copied them back - anything that changed the
+     workspace file in between (the user's own edit, or the agent writing it
+     through another tool) was destroyed silently, on the exact file the user
+     was watching. improve_tool now records a sha256 per file it snapshots
+     (read once: hash and copy the same bytes) and apply_change verifies every
+     target BEFORE spending the test run; on a mismatch it refuses, names the
+     file with both short hashes, says NOTHING was written and no test ran, and
+     points at the remedy (re-run improve_tool, or copy edits by hand). A
+     deleted target counts as stale and is not resurrected; legacy entries
+     without hashes still apply with an explicit note.
+  2. ATOMIC STRAGGLERS (2386a9c): the constitution, mastery records and
+     experiment records were the last three truncate-then-write files, and every
+     reader treats unparseable content as "nothing here" - a crash truncated the
+     protected constitution, silently forgot a mastered subject, or lost an
+     experiment result. New shared src/core/atomicFile.ts (tmp+pid+time, fsync,
+     rename, temp cleaned when the rename fails, sync+async+mkdir flavours) and
+     all three now use it; the dead promisified writeFile bindings are gone.
+     NOTE: nine other modules still hand-roll the same dance - unifying them is
+     a later cleanup, not a bug.
+  3. UNDO L1 + L2 (a8575e7). L1: blobs are stored BEFORE their manifest, so a
+     pruner in another process saw a just-written blob as unreferenced and
+     deleted it - the entry degraded to "skipped" on restore (two hosts on one
+     data dir is an explicitly supported mode). FIRST ATTEMPT WAS WRONG AND THE
+     SMOKE GATE REJECTED IT: a wall-clock grace period stopped the byte budget
+     from being enforced (a burst of fresh blobs could not be collected). The
+     rule that satisfies both keys on manifests, not the clock: an orphan blob is
+     deletable only when its mtime is older than the NEWEST SURVIVING entry's
+     timestamp; with no surviving entry, delete nothing. L2: restoreEntry wrote
+     the "restored" status outside any try/catch, so a failed journal write turned
+     a SUCCESSFUL rollback into a reported failure - it is now folded into the
+     result (statusWriteFailed) and the undo tool prints an explicit note.
+  4. SMALL BATCH (b7f9fb6): selfimprove runIn used child.kill() on timeout, which
+     on Windows leaves the grandchildren alive (npm -> node -> the real runner)
+     and can hold locks in the sandbox - now killTree, same doctrine as execShell.
+     And BLACKROSE_MAX_TURNS= (EMPTY) meant 0 turns because Number('') is 0; an
+     empty value now counts as unset while junk still falls back to the default.
+  5. TESTS: 398/398, 0 fail (up from 391), seven new - 2 selfimprove (stale
+     refused + edit survives byte-for-byte, then refreshing unblocks the same
+     apply; deleted target refused and not recreated), 3 atomicFile (round-trip
+     with no debris, failed write leaves the old file intact, async mkdir),
+     1 undo-GC (orphan newer than the newest manifest survives, aged orphan is
+     collected, referenced blobs untouched), 1 config (empty/junk/real values).
+     L2 has no direct test - forcing a journal write failure needs injection - and
+     that is stated in the commit rather than implied.
+  6. GATES PER COMMIT, NOT ONCE: tsc 0 each; SMOKE PASSED (gate-item7/atomic/
+     undo2/small-smoke.out - the undo one FAILED first and caught the bad design);
+     node:test 393 -> 396 -> 397 -> 398, all 0 fail; scan:secrets clean on every
+     staged set (b7f9fb6: 1 env/identifier REFERENCE ignored - the test sets
+     BLACKROSE_MAX_TURNS, a name, not a value). Pushed c8580a4..b7f9fb6, 0 0.
+  7. NEXT, in order: item 8 - one Telegram watch per data dir (instanceLock role
+     telegram-watch; two hosts long-polling one token cause 409s and split
+     updates); item 9 remainder - vectors must not persist a mixed 3072/256-d
+     index, /compact orphan tool_result at the head, SEA argv sliced twice, /exit
+     hanging while the watch is on, bridge client calls with no timeout; item 10 -
+     delete the dead onemin route; then the release follow-ups - build-exe subpath
+     specifiers (node:fs/promises class), liveConns stale-entry hygiene,
+     DNS-rebinding connect-time IP pinning, and unifying the nine hand-rolled
+     atomic writers onto core/atomicFile.ts.
+
+================================================================================
+
+-------------------------------------------------------------------------------
 SESSION 2026-10-26 TIER 1 - NEXT WORK 4/5/6 CLOSED (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-26 (tier 1 work, one item at a time)
