@@ -1,5 +1,64 @@
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
+SESSION 2026-10-26 TIER 1 - NEXT WORK 4/5/6 CLOSED (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-26 (tier 1 work, one item at a time)
+AI / AGENT: AutoClaw
+
+  1. ITEM 5, POLICY PATH RULES vs run_command (c0dffdc): pathMatches() only
+     looked at path-like INPUT KEYS, and run_command keeps its paths inside a
+     free-form command string - so a path-scoped rule NEVER matched a shell
+     command: the user's protective deny simply did not exist for the tool most
+     able to do damage. Now deny/approve match when the command names the scope,
+     a path-looking token resolves inside it, or the command is OPAQUE
+     ($VAR / %VAR% / subshells / pipes / redirects / &&) so the target cannot be
+     proven out of scope. Precision kept: a plain "git status" still falls
+     through to auto. THE ASYMMETRY THAT KEEPS THE FIX HONEST: a path-scoped
+     ALLOW never auto-approves a shell command ("writes here are fine" is not
+     "run anything"); it falls through to the tool's own gate instead.
+  2. ITEM 6, LLM STATUS BEFORE PARSE (2fb545e): openai.ts and gemini.ts awaited
+     res.json() before checking res.ok, so a gateway answering a dead key with
+     an HTML 401 page produced a bare SyntaxError with no status in the message;
+     classifyKeyFailure fell through to quota (transient), the key was never
+     parked, and every turn paid a wasted round trip. Both adapters now read the
+     status first (bounded 300-char body, JSON error message when present);
+     onemin.ts already had this shape. Added inside the existing try so the
+     timeout and the Stop bridge still clean up.
+  3. ITEM 4, BUDGET CROSS-PROCESS LEDGER (d1b030b): every mutator was a bare
+     read-modify-write, so two hosts each rewrote budget.json from their own
+     copy - a 100-call cap counted 200. Atomic writes could not fix it (the
+     UPDATE was lost, not the write). withLedgerLock(): O_EXCL lock file beside
+     the ledger, bounded 5s wait, stale-lock takeover so a crashed writer cannot
+     wedge the ledger, released in a finally; Atomics.wait for the sleep. Readers
+     stay lock-free (writeLedger renames atomically).
+  4. TESTS: 16 new, all pinning the actual failure mode - 9 policy (including
+     the precision case and the allow-never-auto-approves case), 4 llm (first
+     use of a stubbed global fetch in this repo: HTML 401 -> parked, JSON body ->
+     its own message, malformed 200 -> honest transient), 3 budget (a REAL
+     two-process repro: child writes 40 entries while the parent writes 40 and
+     the ledger must hold exactly 80; stale-lock takeover; no lock residue).
+     The budget test resolves its child module from import.meta.url - its first
+     run caught the cwd-dependency trap and now passes from any directory.
+  5. GATES, RUN PER ITEM (not once at the end): tsc 0 each time; SMOKE PASSED
+     (gate-policy-smoke / gate-item2-smoke / gate-item3-smoke.out); node:test
+     384 -> 388 -> 391, all 0 fail (gate-policy-tests / gate-item2-tests /
+     gate-item3-tests.out). scan:secrets: clean on items 1 and 3; item 2 showed
+     1 pre-existing classified fingerprint (gemini.ts:226 opts.apiKey) - and the
+     commit message was AMENDED to state that instead of the first draft's
+     overclaim "staged clean" (the 2026-10-25 lesson applied).
+  6. STATE + NEXT: pushed 332325e..d1b030b, rev-list 0 0; handoff orientation
+     refreshed earlier (332325e: live 0.10.2, installed 0.10.2, NEXT WORK item 3
+     DONE); items 4/5/6 marked DONE in the handoff. NEXT, in order: Tier 2 -
+     selfimprove stale sandbox (item 7), the atomic-write stragglers
+     (mastery/experiment/constitution), the undo GC race + the status-write throw
+     after a successful restore; then Tier 3 hygiene - telegram single-watch lock
+     (item 8), the item-9 small-correctness batch, the dead onemin route (item
+     10); then the release follow-ups (DNS-rebinding IP pinning, build-exe subpath
+     imports, liveConns hygiene, MAX_TURNS="").
+
+================================================================================
+
+-------------------------------------------------------------------------------
 SESSION 2026-10-26 v0.10.2 PUBLISHED - SIGNED, PAYLOAD-VERIFIED, LIVE (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-26 (release)
