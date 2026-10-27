@@ -9,6 +9,13 @@
 > `53f596b..04ac318` is pushed (`0 0`). Step 5 — queue rows 137-139 — is untouched; §8's open items
 > still stand as written, minus M9 and `web_fetch`.
 
+> **Also learned (2026-10-28, `feee2d0`):** `build:exe` is a gate the test suite cannot replace. The
+> bundler rewrites `import ... from` specifiers but **not** `export ... from`, so a re-export added for a
+> test survived verbatim into `dist/blackrose.mjs` and made the bundle a SyntaxError — while tsc, smoke
+> and all 414 tests stayed green. Do not add `export { x } from '...'` in any module that reaches the
+> bundle. Final inner HEAD after this session: `feee2d0`, 35 commits past `v0.10.2`, pushed `0 0`;
+> the bundle was rebuilt from it (128 modules, syntax ok, `--doctor` ok).
+
 Compiled 2026-10-27 by AutoClaw. Everything below was read from disk or executed; claims that
 were not verifiable are marked as such. This file is a briefing, **not** a checkpoint block —
 `BLACKROSE_CHECKPOINT.txt` still has no entry for 2026-10-27 (see §7).
