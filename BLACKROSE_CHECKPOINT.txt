@@ -1,3 +1,163 @@
+SESSION 2026-10-26 TIER 4 - RELEASE FOLLOW-UPS CLOSED (NEWEST - supersedes the tier-3 block above, kept below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-26 tier 4 - release follow-ups closed (44e09df..15b8993)
+AI / AGENT: AutoClaw
+
+  1. SUBPATH SPECIFIERS (44e09df): the bundler hoists slash-free `node:x`
+     specifiers only; a `node:x/y` import survives into a wrapped module body
+     where an import declaration is illegal ESM. Audit: 46 occurrences, ALL
+     `node:assert/strict` (45 test files + scripts/mcpv/verify.ts) - ALL latent,
+     none in the bundle graph; no node:fs/promises class anywhere. Converted to
+     the slash-free named form `import { strict as assert } from 'node:assert'`
+     (same object/API). build-exe.ts gained an emit-time scan that names the
+     offending specifier (node --check alone only reports a bare SyntaxError,
+     and only for violations inside the graph). Verified by a real build:
+     npm run build:exe exit 0, bundle 127 modules, --check ok, --doctor ok
+     (validation/build-exe-subpath-gate.out).
+  2. LIVECONNS HYGIENE (2786e3a): McpConnection marked itself dead on child
+     exit/error/stdin-failure but nothing told the registries - isConnected
+     stayed true, listServers painted connected:true + toolCount:1 for a
+     corpse, killAll left dead liveConns entries. onDeath now fires ONCE on the
+     alive->dead transition (failAll is idempotent), and every registry path
+     reaps with an IDENTITY check (a superseding connection is never touched):
+     boot/tool path removes its liveConns entry, McpRegistry.connect removes
+     both, killAll reaps synchronously, isConnected/listServers also consult
+     isDead. Test: a real-stdio server that self-exits after the handshake -
+     proven to FAIL pre-fix (isConnected stayed true).
+  3. DNS REBINDING (8afe45b): the guard resolved+validated with
+     dns.promises.lookup, then fetch re-resolved the same hostname inside
+     net.connect - attacker DNS with TTL 0 answered public to the guard and
+     127.0.0.1 to the socket. REPRODUCED LIVE pre-fix (learn_url delivered an
+     internal loopback page into the knowledge base while the guard saw
+     93.184.216.34). Node's fetch has no lookup hook (undici #421) and undici
+     violates zero-dep, so the guarded fetch now uses node:http/https.request
+     with a `lookup` hook pinned to the validated array - no second resolver
+     query exists. URL stays hostname-form (TLS SNI + cert check intact). The
+     owner allowLoopbackFetch capability is unchanged and pinned by its own
+     test, which also proves the new request path end-to-end.
+     BLACKROSE_FETCH_TIMEOUT_MS is env-tunable (empty = unset, junk = default).
+     FLAGGED, NOT FIXED: web_fetch (tools/web.ts) still plain-fetches arbitrary
+     URLs with redirect-following and NO SSRF guard - same class, bigger hole,
+     needs an owner decision (a guard could break legitimate local-dev fetches).
+  4. ATOMIC WRITERS UNIFIED (15b8993): 14 sites / 12 modules now use
+     core/atomicFile.ts (budget, costmeter, policy, workflow, instanceLock,
+     plugins, custom, selfimprove, mcp.json x2, vectors, history, schedules,
+     undo, and the knowledge store whose local duplicate helper is deleted -
+     5 call sites). Weak sites gained fsync + cleanup-on-failure (the fixed
+     `.tmp` ones had neither). NOT unified, with in-code reasons: memory/graph
+     (both halves flushed before either rename - deliberate cross-file
+     ordering; a journal is the only real fix) and core/vault writePrivate
+     (hardenAtRest pre-rename + post-rename ACL window; keystore's only path).
+     TWO REAL DEFECTS FOUND BY THE NEW TEST, both fixed in the helper:
+     (a) pid+Date.now is not a unique temp name - two async writes to one
+     target in the same millisecond collided and the loser's rename failed
+     ENOENT (the strong sites had a counter; the helper now has tmpSeq too);
+     (b) Windows renames fail transiently EPERM/EACCES/EBUSY while another
+     rename or an AV/indexer holds the target - bounded retry (5 attempts,
+     short backoff) then the old cleanup-and-throw path. The M2 schedules test
+     now asserts >=1 rename attempt instead of exactly 1 (the retry is
+     intended, not a licence).
+  5. GATES: tsc 0; SMOKE PASSED (HKCU env merged); node:test 427 tests, 0 fail
+     over the 44-suite run (a superset of the npm-test list: kb-ingest and
+     tools/policy included); scan:secrets on the 66 changed .ts files reports
+     17 `assigned_secret` fingerprints, EACH SPOT-CHECKED as an identifier /
+     call / env reference, not a literal (e.g. `const token =
+     telegramToken(dataDir)`, `... || process.env.BLACKROSE_BRIDGE_TOKEN`) -
+     the same reference class prior sessions documented; verify:checkpoint
+     PASS. Log: validation/gate-followups.out (that run showed 1 failing test
+     in the summary; a second full run of the identical list is 427/427 green,
+     so it was a flake - recorded rather than hidden). The bare-env --resume
+     failure seen mid-work is the documented machine-dependent gotcha, not a
+     regression.
+  6. NEXT: queue rows 137-139 (teach-by-demo adjudication, UI knowledge/graph
+     viewer, UI git/repo panel + undo), the 20-pair retrieval eval gate before
+     any bulk ingest, the owner decision on mini.ts's constitution default, and
+     the newly-flagged unguarded web_fetch. Nothing in the release follow-up
+     list remains open.
+
+================================================================================
+
+SESSION 2026-10-26 TIER 3 - NEXT WORK 8, 9, 10 CLOSED (NEWEST - supersedes the tier-2 block above, kept below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-26 tier 3 - items 8, 9, 10 closed (321ff57..c1df5d2)
+AI / AGENT: AutoClaw
+
+  1. ITEM 8, ONE TELEGRAM WATCH PER DATA DIR (321ff57): the watch owns an
+     instanceLock role 'telegram-watch' for its whole life; a second host gets
+     an inert handle and a REASON, not a second poller (two long-polls on one
+     bot token = 409s and split/duplicated updates). A dead owner's lock is
+     taken over automatically via the pid check, so a crashed host cannot wedge
+     Telegram off forever. 2 tests: refusal with reason; stopping the owner
+     frees the role for the next host.
+  2. ITEM 9, /EXIT HANG (321ff57): /exit drains naturally (no process.exit),
+     which the watch defeated - its while(!stopped) loop re-issues long polls
+     forever and each fetch's in-flight ref'd socket holds the event loop alive
+     after main() returned. The CLI now stops the watch on BOTH exit paths
+     (one-shot + REPL end; the web UI host already did), and stop() aborts the
+     pending long poll via an AbortController wired into telegramGetUpdates.
+     The abort test is self-demonstrating: against the old code the test
+     process itself wedges (the ref'd socket cannot drain), so the failure mode
+     IS the proof. An abort on the way out is not a watch failure and is no
+     longer logged as one.
+  3. ITEM 9, BRIDGE TIMEOUTS (ac7991d): bridge client jsonCall had no timeout -
+     a host that accepted the connection and hung wedged the caller forever.
+     Ceiling is generous (10 min) because /ask and /goal legitimately run a
+     full agent turn; BLACKROSE_BRIDGE_TIMEOUT_MS env-tunable; the error names
+     the route. aki 15/15.
+  4. ITEM 9, SEA ARGV DOUBLE-SLICE (in 321ff57): cliArgs is already uniform -
+     the extra isSea slice in one-shot mode dropped the first user arg in SEA
+     builds.
+  5. ITEM 9, /COMPACT ORPHAN TOOL_RESULT (bbd5523): the re-anchor checked only
+     role === 'user', never content blocks. Two orphan paths, both reproduced
+     against the real compactHistory before the fix: the boundary lands on a
+     user tool_result carrier whose tool_use was folded into the summary, or
+     the re-anchor slice lands on exactly that carrier. compactHistory now
+     applies the same guard trimHistory has (drop leading tool_result carriers;
+     a result always follows its use, so only already-removed pairs drop).
+     trimHistory does NOT mask this - its early return passes a short history
+     through unsanitized. New smoke checks use REAL tool_use/tool_result
+     blocks; the old checks used text-only messages, which is why the bug
+     lived. Pre-fix repro exits 1, post-fix 0 (validation/repro-compact-*).
+  6. ITEM 9, MIXED-DIM VECTOR INDEX (c1df5d2): the stranded re-embed in
+     vectorsFor can land in a different backend than the rest of the call
+     (quota spent between the two embeds); its vectors were inserted
+     unvalidated, so a gemini/3072 store could gain 256-d entries and cosine()
+     (Math.min truncation) degraded to garbage instead of failing. Serving
+     stays total; only same-space vectors are cached, and saveStore is the
+     persistence backstop (drop any entry whose decoded length disagrees with
+     the header dim). New src/memory/vectors.test.ts in npm test - the mixed
+     test fails against the old code (it persisted [3072,256]).
+  7. ITEM 10, DEAD ONEMIN ROUTE (no code change - data-side): the live chain
+     was the HKCU env var BLACKROSE_ROUTES (env wins over the vault chain, and
+     the vault chain was already clean: gemini,openai3). 'onemin' was removed
+     from that value (HKCU\Environment, WM_SETTINGCHANGE broadcast, verified);
+     the failover no longer pays its dead-key round trip. The onemin ADAPTER
+     code stays - it is tested, legitimate for a working key, and the doctor
+     branch only fires when the route is actually chained. Flagged, not
+     removed: 'kilo' is also in the env chain with no adapter in code, but the
+     factory skips it BEFORE any network call, so it costs a warning row, not
+     a round trip - left for the owner to prune.
+  8. GATES: tsc 0; SMOKE PASSED (HKCU env merged - the bare host fails the
+     same 4 machine-dependent checks as documented 2026-10-22: vault
+     round-trip, unknown-route skip, UI key roster, key rotation; they are the
+     documented false failures, not regressions); node:test 403/403 (up from
+     398: +2 single-watch, +1 abort-drain, +2 vectors); scan:secrets clean.
+     Full-gate log: validation/gate-item9-block.out (run ONCE over the final
+     tree, not per commit - the per-commit targeted runs are named in the
+     commit messages). Investigators' repro scripts: validation/repro-
+     compact-orphan.ts (exit 1 pre-fix, 0 post-fix),
+     validation/repro-compact-fixed.ts, _inv_compact.md, _inv_exit.md,
+     _inv_vectors was NOT produced - the vectors investigator failed and the
+     fix was found and proven directly in-session.
+  9. PUSHED 321ff57..c1df5d2 (rev-list origin/main...HEAD = 0 0 to verify).
+     NEXT: the release follow-ups stay next in line - build-exe subpath
+     specifiers (node:fs/promises class), liveConns stale-entry hygiene,
+     DNS-rebinding connect-time IP pinning, unifying the nine hand-rolled
+     atomic writers onto core/atomicFile.ts; then queue rows 137-139 and the
+     20-pair retrieval eval gate before bulk ingest.
+
+================================================================================
+
 BLACKROSE_CHECKPOINT.txt — AI-TO-AI HANDOFF
 -------------------------------------------------------------------------------
 SESSION 2026-10-26 TIER 2 - NEXT WORK 7, ATOMIC STRAGGLERS, UNDO L1+L2 (NEWEST)
