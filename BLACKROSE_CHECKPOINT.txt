@@ -1,3 +1,72 @@
+SESSION 2026-10-28 - M9 REPAIRED, WEB_FETCH GUARDED, 10-27 SESSION RECORDED (NEWEST - supersedes the tier-4 block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-28 m9 + web_fetch + the missing 2026-10-27 record
+AI / AGENT: AutoClaw (the 10-27 run was Cline/GLM-5.3-Flash; it died on harness
+            errors - ConnectionRefused 127.0.0.1:4096 - not on a code defect)
+
+  1. THE 2026-10-27 SESSION HAD NO BLOCK IN THIS FILE - NOW RECORDED
+     (53f596b..80dc2c3). A grep finds zero hits for 2026-10-27 in either copy;
+     the newest block was tier 4. The four inner commits are described here from
+     git: 53f596b retrieval eval gate (12 docs / 20 query pairs, exported
+     constants, wired into npm test); c564173 M6 (an exhausted schedule run backs
+     off, resumeCount, disables after 5); 6b57a34 M9 fatal-key handling + M7
+     (loadLatestSession sorts by updated desc); 80dc2c3 L6 skill slug collision,
+     L7 numeric XLSX sheet sort, L8 UI session auto-compaction. Consequence: the
+     tier-4 line "20-pair retrieval eval gate before any bulk ingest" is CLOSED,
+     and the audit tail is M8 + L1-L5 - NOT "M6-M9 + L1-L8".
+  2. M9'S OWN FIX WAS STILL BROKEN - MEASURED, THEN REPAIRED (9e2fbf0).
+     attemptWithKey collapsed every non-200 into `fatal`, and 6b57a34 handled it
+     with `continue` INSIDE the inner attempt loop, so a dead key was replayed
+     MAX_RETRIES+1 times before the healthy key behind it was ever tried. The
+     repro the previous session left unexecuted (validation/repro-m9-fatal-retry.ts)
+     printed 6 fetch calls / 29.1 s; it now prints 2 calls / 0.1 s and exits 0.
+     The root cause was the classification, not the loop keyword: 404 and a
+     malformed 200 body stay key-independent (abort the pass, fall back to hash),
+     every other 4xx is `rejected` and rotates once. Two tests in
+     audit-fixes.test.ts pin both halves and FAIL on the old code (actual 6,
+     expected 2), so neither can regress silently now.
+  3. WEB_FETCH IS GUARDED LIKE LEARN_URL (04ac318). web_fetch takes an arbitrary
+     model-chosen URL and plain-fetched it with redirect-following and no guard,
+     while learn_url one call away had been guarded since the DNS-rebinding fix.
+     The guard moved to src/core/publicFetch.ts - one implementation - because
+     knowledge.ts imports stripHtml from tools/web.ts, so importing the other way
+     would have been a cycle. knowledge.ts re-exports isPrivateAddress and is
+     otherwise untouched (audit-sweep2 10/10). Loopback stays reachable ONLY via
+     ctx.allowLoopbackFetch (the authenticated bookmarklet click) or the new
+     BLACKROSE_FETCH_ALLOW_LOOPBACK=1 machine opt-in - never from tool input,
+     which the model composes. New src/tools/web.test.ts (2 tests) is registered
+     in npm test (43 -> 44 suites). The README quickstart line carried a literal
+     sk-ant- shape that tripped scan:secrets; it is a quoted placeholder now.
+  4. GATES ON THIS TREE (validation/gate-2026-10-28.out): tsc 0; audit-fixes
+     14/14; audit-sweep2 10/10; web.test 2/2; SMOKE TEST PASSED; node --test 414
+     tests, 414 pass, 0 fail; scan:secrets clean on the 6 staged files;
+     verify:checkpoint PASS. The bare-env gotcha bit again exactly as recorded on
+     2026-10-22: without the user's HKCU merged, smoke fails the real-vault
+     round-trip and route-build checks (2 of the documented 4). The first run of
+     this session was red for those two; merging HKCU made the SAME tree green -
+     nothing in the source changed between the two runs.
+  5. STATE AT THIS BLOCK: inner HEAD 04ac318, 33 commits past the v0.10.2 tag,
+     working tree clean. 53f596b..04ac318 was pushed to MaxxaCoin/blackrose-source
+     and confirmed 0 0 BEFORE this docs commit, which lands on top of it. The
+     released installer is still the 2026-10-26 12:01 build and contains none of
+     those 33 commits. The outer repo has no tags; only scratch files are
+     untracked there.
+  6. STILL OPEN, RESTATED HONESTLY: audit M8 (.aistate inflate cap) and L1-L5
+     (pdf budget, zip member overshoot, 64-vs-256 MB comment drift, MAX_BATCH
+     rationale, per-key retry ceiling that multiplies by pool size); queue rows
+     137-139 (teach-by-demo adjudication, UI knowledge/graph viewer, UI git/repo
+     panel + undo); three OWNER DECISIONS that must not be taken silently -
+     mini.ts constitution default, fail-closed approvals (audit H3), and the kilo
+     route that has no adapter. Three test files (tools/policy, tools/repo,
+     tools/kb-ingest) still run outside npm test.
+  7. NEXT STEP: build queue row 138, the UI knowledge/graph viewer, as the
+     headline of a 0.11.0. It is read-only over data that already exists
+     (knowledge store, vectors, graph, skills), reuses the server-route +
+     embedded-asset pattern, adds no model calls, and is the prerequisite for 137
+     and 139: neither a taught workflow nor an undo can be reviewed without being
+     able to see the objects. Then rebuild and publish, so the app on disk is not
+     33 commits stale. Do NOT re-open H1-H3 or the adapter groups.
+================================================================================
 SESSION 2026-10-26 TIER 4 - RELEASE FOLLOW-UPS CLOSED (NEWEST - supersedes the tier-3 block above, kept below)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-26 tier 4 - release follow-ups closed (44e09df..15b8993)
