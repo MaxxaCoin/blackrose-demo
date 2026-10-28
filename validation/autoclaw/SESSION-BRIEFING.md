@@ -15,8 +15,9 @@
 > bundler rewrites `import ... from` specifiers but **not** `export ... from`, so a re-export added for a
 > test survived verbatim into `dist/blackrose.mjs` and made the bundle a SyntaxError — while tsc, smoke
 > and all 414 tests stayed green. Do not add `export { x } from '...'` in any module that reaches the
-> bundle. Final inner HEAD after this session: `feee2d0`, 35 commits past `v0.10.2`, pushed `0 0`;
-> the bundle was rebuilt from it (128 modules, syntax ok, `--doctor` ok).
+> bundle. Queue row 138 (this page's Brain viewer) then shipped in `6f0b64f`. Final inner HEAD
+> after this session: `d2b3d2f`, **33** commits past `v0.10.2` (`git rev-list --count`), pushed
+> `0 0`; the bundle was rebuilt from it (128 modules, syntax ok, `--doctor` ok).
 
 Compiled 2026-10-27 by AutoClaw. Everything below was read from disk or executed; claims that
 were not verifiable are marked as such. This file is a briefing, **not** a checkpoint block —

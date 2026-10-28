@@ -54,6 +54,12 @@ AI / AGENT: AutoClaw
      behind an approval path, not a browse panel. Still open: rows 137 and 139,
      audit M8 + L1-L5, and the three owner decisions (mini.ts constitution
      default, fail-closed approvals, the kilo route).
+  7. CORRECTION TO ITEM 5 OF THE BLOCK BELOW: it says "33 commits past the
+     v0.10.2 tag" at 04ac318, and the briefing repeated a worse "35". Both were
+     counted by hand and both are wrong. Measured: 27 at 80dc2c3 (git describe),
+     so 29 at 04ac318 and 33 at HEAD d2b3d2f - `git rev-list --count
+     v0.10.2..HEAD`. The rule this file keeps re-learning applies to arithmetic
+     too: run the command, do not add it up in your head.
 ================================================================================
 SESSION 2026-10-28 - M9 REPAIRED, WEB_FETCH GUARDED, 10-27 SESSION RECORDED (NEWEST - supersedes the tier-4 block below)
 -------------------------------------------------------------------------------
