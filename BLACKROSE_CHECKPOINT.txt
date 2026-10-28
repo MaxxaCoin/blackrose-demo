@@ -1,3 +1,60 @@
+SESSION 2026-10-28 CONTINUED - QUEUE ROW 138 SHIPPED: THE BRAIN VIEWER (NEWEST - supersedes the NEXT STEP in the block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-28 row 138 shipped - brain viewer
+AI / AGENT: AutoClaw
+
+  1. WHAT SHIPPED (6f0b64f): four read-only GETs plus a panel, so the knowledge
+     store, the entity graph and the vector index can finally be SEEN instead of
+     only asked about in prose. /api/brain/sources (files with kind, saved,
+     chunk count, newest first), /api/brain/source (the chunks inside one
+     source, 400-chunk cap with `truncated` reported), /api/brain/graph
+     (entities + relations, heaviest 200 by mentions, totals kept), and
+     /api/brain/health (docs, chunks, vectors, dim, model, backend, degraded,
+     skills). Read-only by construction: four GETs, no ingest path, no model
+     call, nothing that writes.
+  2. WHY ROUTES AND NOT THE /api/tool ALLOWLIST: that path returns a tool's
+     rendered TEXT. Enough for "search and show me", useless for backing a
+     browser or drawing a graph. The panel is a modal in assets.ts with two
+     tabs; the graph is an inline SVG force layout (~110 deterministic
+     iterations, no library, no random seed, so the same graph always draws the
+     same way).
+  3. TWO DEFECTS ONLY A BROWSER COULD FIND, both fixed here: (a) the app's
+     button styling is scoped to the sidebar, so the new tabs rendered with
+     browser-default white-on-white - the label was invisible while tsc, smoke
+     and 419 tests stayed green; (b) at a 488px window a fixed 300px list left
+     the reader ~117px wide, so the two columns now stack below 900px. Also hit
+     the template-literal trap again: a backtick inside a CSS COMMENT closed the
+     CSS string. tsc caught it - the smoke suite's "inline script parses" check
+     covers JS only, not CSS. Keep backticks and dollar-brace out of comments
+     inside CSS/BODY/JS.
+  4. VERIFIED: tsc 0; src/ui/web/brain.test.ts 5/5 (listing, newest-first,
+     stray JSON not listed, four traversal shapes all 404, graph cap + totals,
+     health numbers, and the served page actually ships the panel, the button
+     and the routes the script calls) wired into npm test; SMOKE TEST PASSED;
+     node --test 419/419, 0 fail; build:exe 128 modules, syntax ok, --doctor ok
+     (validation/gate-brain.out). Browser-checked against a seeded instance on
+     port 8799: health chips, source list, chunk reader and graph all render,
+     then the demo host and its temp data dir were deleted.
+  5. SCAN VERDICT, STATED AS IT IS: scan:secrets exits 1 on this change with 7
+     `assigned_secret` fingerprints, all in assets.ts / server.ts, and EVERY one
+     was read and classified as an identifier, a call or a header reference -
+     `password: mPass.value`, `password: p.password` twice,
+     `x-state-password: p.password`, `String(parsed.token ?? '')`, two
+     `String((JSON.parse(...)).password ?? '')`, and
+     `(req.headers['x-state-password'] as string) ?? ''`. Zero literal values.
+     The commit message for 6f0b64f omitted this verdict, which breaks the rule
+     this file records for itself ("commit messages must state the scan verdict
+     as it is"). It is recorded here rather than hidden: the code is fine, the
+     message was incomplete.
+  6. NOT DONE, AND DELIBERATELY: no version bump and no release. 0.11.0 needs
+     BLACKROSE_SIGNING_PASSWORD and a gh upload, which is the owner's act, so
+     the shipped installer is STILL the 2026-10-26 build and does not contain
+     this feature. The viewer reports a chunks-without-vectors mismatch but does
+     not offer a re-embed button: that spends embedding quota, so it belongs
+     behind an approval path, not a browse panel. Still open: rows 137 and 139,
+     audit M8 + L1-L5, and the three owner decisions (mini.ts constitution
+     default, fail-closed approvals, the kilo route).
+================================================================================
 SESSION 2026-10-28 - M9 REPAIRED, WEB_FETCH GUARDED, 10-27 SESSION RECORDED (NEWEST - supersedes the tier-4 block below)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-28 m9 + web_fetch + the missing 2026-10-27 record

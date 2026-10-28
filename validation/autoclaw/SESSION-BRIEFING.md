@@ -6,8 +6,10 @@
 > `src/core/publicFetch.ts` and `src/tools/web.test.ts`). The full gate is green on this tree
 > (tsc 0, smoke PASSED, 414/414, `validation/gate-2026-10-28.out`). The missing 2026-10-27 record is
 > now item 1 of the `SESSION 2026-10-28` block at the top of both checkpoint copies, and
-> `53f596b..04ac318` is pushed (`0 0`). Step 5 — queue rows 137-139 — is untouched; §8's open items
-> still stand as written, minus M9 and `web_fetch`.
+> `53f596b..04ac318` is pushed (`0 0`). Step 5 is half done: **queue row 138, the knowledge/graph
+> viewer, shipped in `6f0b64f`** (four read-only `/api/brain/*` routes, a two-tab panel, 5 tests,
+> browser-verified) — rows 137 and 139 are untouched. §8's open items still stand as written,
+> minus M9 and `web_fetch`.
 
 > **Also learned (2026-10-28, `feee2d0`):** `build:exe` is a gate the test suite cannot replace. The
 > bundler rewrites `import ... from` specifiers but **not** `export ... from`, so a re-export added for a
