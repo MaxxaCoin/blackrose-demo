@@ -1,3 +1,63 @@
+SESSION 2026-10-28 CONTINUED - OXION PROVIDER ADDED (oxionai.com) (NEWEST - supersedes the block below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-28T06:11 oxion provider added - key valid, upstream in maintenance
+AI / AGENT: AutoClaw
+
+  1. WHAT WAS ADDED (fd122bf): Oxion as a provider preset, endpoint
+     https://oxionai.com/v1, OpenAI-compatible, 33 model ids from GET /v1/models
+     (Claude Sonnet 5 / Opus 5.5 / Fable 5.1 / Mythos preview, GPT-5.6
+     sol-terra-luna, GPT-5.5 pro, Gemini 3.1 pro / 3.7 flash, DeepSeek V4 pro-max,
+     Qwen 3.8 max, Kimi K3, GLM 5.3, Grok 4.6, seed-2.1, muse-spark). Registered on
+     this machine as THREE routes so the model is a chain decision, not a code
+     change: `oxion` = claude-sonnet-5 (tool-calling workhorse, and the one in the
+     chain), `oxionopus` = claude-opus-5.5 (hard reasoning), `oxiongemini` =
+     gemini-3.1-pro (long context / vision). Keys: BLACKROSE_OXION_API_KEY,
+     _OXIONOPUS_, _OXIONGEMINI_ - all three hold the same cc_... key, sealed in
+     the vault by saveKey(), never written to disk in plaintext.
+  2. THE WRONG-HOST TRAP, recorded because it cost time: the API is on
+     oxionai.COM, not oxion.AI. oxion.ai is a Cloudflare-fronted marketing SPA
+     (it 403s every scripted request and returns the consent wall), and
+     api.oxion.ai is a DIFFERENT AWS API Gateway whose authorizer returns 401
+     UnauthorizedException for every request - INCLUDING one with no auth header
+     at all. That looks exactly like a bad key. The tell was the control probe:
+     identical 401 with and without credentials means the authorizer never
+     evaluated the key, so nothing had been learned about it.
+  3. LIVE STATE AT THIS BLOCK: the key is GOOD - GET /v1/models returns 200 with
+     33 ids - but every completion returns HTTP 503 with error code
+     "service_upgrading" ("Our service is being upgraded right now and will be
+     back to normal within a few minutes... your plan and balance are not
+     affected"), in ~180 ms, consistently, for all eight top models probed
+     (gpt-5.6-sol, claude-opus-5.5, gemini-3.1-pro, deepseek-v4-pro-max,
+     claude-sonnet-5, kimi-k3, qwen3.8-max, grok-4.6). No queueing, no partial
+     answers: a deliberate maintenance gate, not a fault. The same wording came
+     from the 10-27 Cline session's provider at 22:03, so the phrase is a
+     provider-side template, not evidence of anything local.
+  4. WIRING PROVED END-TO-END WHILE DOWN, through the app's own client rather
+     than curl: makeClient with provider "router" built
+     router(oxion -> gemini[12 keys] -> openai6[45 keys] -> openai3 -> openai ->
+     kilo), tried oxion FIRST, got the 503, marked it down and fell through to
+     kilo, which answered PONG in 11.8 s. That is the wanted behaviour during a
+     maintenance window: no hang, no crash, no silent downgrade of the answer.
+  5. COLLATERAL, AND WORTH THE OWNER'S ATTENTION: in that same run the other
+     routes did not work either. `gemini` fails with HTTP 404 "This model
+     models/gemini-2.5-flash is no longer available" on all 12 keys - the
+     configured model was retired upstream. `openai6` (45 keys), `openai3` and
+     `openai` all fail with HTTP 401 "Missing Authentication header", and
+     `openai2`, `openai1`, `openai5` are skipped for want of a key. So the app is
+     currently running entirely on the free `kilo` route: every turn pays ~11 s
+     and several wasted upstream calls before it answers. Fixing the gemini model
+     id is a one-field change and the cheapest real win on this machine.
+  6. WHAT CHANGED OUTSIDE THE REPO (reversible, backups taken): the sealed route
+     chain and HKCU\Environment BLACKROSE_ROUTES were both set to
+     oxion,openai2,gemini,openai6,openai3,openai,openai1,openai5,kilo - oxion
+     first, everything the owner had preserved, `kilo` left in place because that
+     is an open owner decision. The env var wins at runtime, so both had to agree
+     or "I added a provider and nothing changed" would have been the result. The
+     vault was copied to keys.enc.bak-20261028-060149 and
+     vault.key.bak-20261028-060149 before any write. A background watcher polls
+     every 2 minutes and writes validation/oxion-recovery.log; the first real
+     completion after maintenance is the last unverified step.
+================================================================================
 SESSION 2026-10-28 CONTINUED - QUEUE ROW 138 SHIPPED: THE BRAIN VIEWER (NEWEST - supersedes the NEXT STEP in the block below)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-28 row 138 shipped - brain viewer
