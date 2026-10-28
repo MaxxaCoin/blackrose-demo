@@ -1,3 +1,54 @@
+SESSION 2026-10-28 CONTINUED - ROUTE REPAIR: openai6 MISROUTED, gemini RETIRED, CHAIN RESTORED (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-28T06:32 route repair - openai6 misrouted, gemini default retired, openai2 put back first
+AI / AGENT: AutoClaw
+
+  1. openai6 WAS SENDING 45 GONKAROUTER KEYS TO OPENROUTER - THE BIGGEST WIN.
+     The route is labelled "GonkaRouter" but BLACKROSE_OPENAI6_BASE_URL was never
+     set, so every call went to the openrouter.ai default with a GonkaRouter key
+     and came back 401 "Missing Authentication header" - a message that reads
+     like a bad key and is actually a misrouted call. Pointed at
+     https://api.gonkarouter.io/v1 with zai-org/GLM-5.3-Flash (the gateway serves
+     three: DeepSeek-V4-Flash-0731, MiniMax-M2.7, GLM-5.3-Flash) and all 45 keys
+     answer. Measured direct: 214 / 216 / 522 ms, against kilo's 2.1-7.6 s. This
+     is why the app felt slow: it was healthy, and every turn was already paying
+     for a route that could never work.
+  2. gemini'S SHIPPED DEFAULT WAS RETIRED UPSTREAM (e64e106). gemini-2.5-flash
+     now returns 404 "no longer available to new users. Please update your code
+     to use models/gemini-3.8-flash" - so a FRESH INSTALL was shipping a model
+     error that reads exactly like a bad key. Default changed in
+     factory.ts (the real one) and in the gemini.ts doc comment. NOT verified
+     end-to-end on this machine: this Google project returns 403 "the free tier
+     is not available for this project, set up billing" for every model, so the
+     route is ALIVE but unpurchased. That is an owner action, not a bug.
+  3. gemini MOVED TO THE END OF THE CHAIN for that reason: with twelve keys it
+     burned ~5.4 s per turn proving they are all 403, before any working route
+     was reached. The route and its keys are untouched, just not paid for on
+     every single turn until billing exists.
+  4. openai AND openai3 HOLD PLACEHOLDER KEYS, not credentials: `probe-...`
+     (20 chars) and `nvapi-...` (9 chars). openai3 is labelled NVIDIA NIM yet
+     resolves to the openrouter.ai default, so it is doubly wrong. Nothing to fix
+     in code - both need a real key from the owner, or removal.
+  5. CHAIN RESTORED TO openai2 FIRST, AFTER A WRONG CALL BY ME. I had moved
+     openai2 (OmniRoute, http://127.0.0.1:20128/v1, model BlackRose2) from first
+     to third. That is not a removal, but it starves a working primary behind a
+     route that always answers, which has the same effect - the user caught it.
+     Final chain: openai2,oxion,openai6,openai3,openai,openai1,openai5,kilo,gemini.
+     WHY I GOT IT WRONG, recorded so it is not repeated: openai2's key lives only
+     in HKCU\Environment, and the AutoClaw host does not inherit HKCU, so my
+     runs reported "openai2 route requires BLACKROSE_OPENAI2_API_KEY" for a route
+     that works in the user's own launch. Never reorder a user's primary on
+     evidence from a shell that cannot see their environment. OmniRoute was UP
+     the whole time - a local 401 on /v1/models means alive and asking for auth,
+     not refused.
+  6. VERIFIED NOW, full chain through makeClient with HKCU merged: 2468 ms then
+     1777 ms, ZERO fallbacks - openai2 answers. oxion is still in maintenance
+     (mostly 503 service_upgrading, occasionally 500 internal_error) and stays
+     second in the chain, so it takes over by itself when it recovers; the
+     watcher keeps polling validation/oxion-recovery.log. Scan verdict for
+     e64e106 stated as it is: 4 assigned_secret fingerprints, all four read -
+     "apiKey: <variable>" in factory.ts (x3) and gemini.ts (x1) - zero literals.
+================================================================================
 SESSION 2026-10-28 CONTINUED - OXION PROVIDER ADDED (oxionai.com) (NEWEST - supersedes the block below)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-28T06:11 oxion provider added - key valid, upstream in maintenance
