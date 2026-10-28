@@ -1,3 +1,49 @@
+SESSION 2026-10-28 CONTINUED - v0.11.0 PUBLISHED, SIGNED, LIVE (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-28T07:03 v0.11.0 published - signed, payload-verified, live
+AI / AGENT: AutoClaw
+
+  1. SHIPPED: BlackRose 0.11.0. Installer BlackRose_0.11.0_x64-setup.exe
+     25,908,795 bytes, signed (.sig 420 B), latest.json regenerated from the
+     signature THAT build produced (make-latest-json inside
+     build-desktop-signed.ps1 - the guard against the 0.9.21 stale-manifest bug).
+     Release: https://github.com/MaxxaCoin/BlackRose/releases/tag/v0.11.0,
+     marked Latest. Annotated tag v0.11.0 pushed to MaxxaCoin/blackrose-source.
+  2. WHAT IS IN IT, 39 commits past v0.10.2: the web_fetch SSRF guard over ONE
+     shared implementation (core/publicFetch.ts) with loopback behind an owner
+     capability; DNS-rebinding proofed by pinning the validated IPs to the
+     connect; 14 hand-rolled writers unified on core/atomicFile.ts; M9 (a dead
+     embedding key cost 29 s per batch - now 0.1 s, two tests that fail on the
+     old code); M6/M7/L6/L7/L8; the Brain viewer (four read-only /api/brain
+     routes + panel); the retrieval eval gate wired into npm test; the three
+     orphaned suites (policy, repo, kb-ingest) wired in, 419 -> 442 tests; and
+     gemini's default model, which upstream had retired.
+  3. HOW IT WAS VERIFIED, in this order, because a release is the one thing that
+     cannot be un-shipped: full gate on the exact tree (tsc 0, SMOKE PASSED,
+     442/442, scan:secrets classified, verify:checkpoint PASS, build:exe 128
+     modules + --doctor ok); the signed build run with the owner's password
+     supplied out-of-band and never written to disk; the staged payload checked
+     to CONTAIN the new code (api/brain/health x3, "SSRF guard" x7) rather than
+     assumed from a green build; uploaded as a DRAFT; all three assets
+     re-downloaded with gh and sha256-compared byte-identical (51052A33..., 
+     C5BBD027..., BB5E31EE...); only then published --latest.
+  4. LIVE CHECKS AFTER PUBLISH: releases/latest/download/latest.json returns
+     HTTP 200 with version 0.11.0, pub_date 2026-10-28T01:26:19Z, the v0.11.0
+     asset URL and a 420-char signature; the installer URL itself returns HTTP
+     200 at 24.7 MB. The updater chain tag -> signed assets -> live manifest is
+     therefore intact end to end.
+  5. NOT DONE, DELIBERATELY: no clean-install of 0.11.0 from the live URL. That
+     is the last unverified link, and it is a MACHINE action (it replaces the
+     installed app) - the 0.10.2 cycle did it and recorded it, so this one should
+     too, from the app's own "Check for update" or the downloaded installer.
+     Until it runs, the honest statement is "published and live", not "verified
+     installed".
+  6. STILL OPEN, UNCHANGED BY THE RELEASE: oxion in maintenance (503
+     service_upgrading, occasionally 500) and second in the chain, watcher still
+     polling; Gemini blocked on billing for this project; openai/openai3 hold
+     placeholder keys; audit M8 + L1-L5; queue rows 137 and 139; the three owner
+     decisions (mini.ts constitution default, fail-closed approvals, kilo).
+================================================================================
 SESSION 2026-10-28 CONTINUED - ROUTE REPAIR: openai6 MISROUTED, gemini RETIRED, CHAIN RESTORED (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-10-28T06:32 route repair - openai6 misrouted, gemini default retired, openai2 put back first
