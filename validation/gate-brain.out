@@ -1,0 +1,798 @@
+﻿
+> blackrose@0.10.2 test
+> node src/smoke.ts && node --test src/emergency.test.ts src/regression.test.ts src/parser-hostile.test.ts src/session/redact.test.ts src/core/executive.test.ts src/llm/adapters.test.ts src/llm/routeHealth.test.ts src/mcp/client.test.ts src/tools/telegram.test.ts src/tools/telegram.helpers.test.ts src/tools/teams.test.ts src/tools/selfimprove.test.ts src/tools/git.test.ts src/tools/review.test.ts src/tools/secrets.test.ts src/tools/aistate.test.ts src/tools/robots.test.ts src/tools/audit.test.ts src/tools/plugins.test.ts src/tools/timeline.test.ts src/tools/image.test.ts src/tools/video.test.ts src/tools/office.test.ts src/tools/identity.test.ts src/tools/notification.test.ts src/tools/budget.test.ts src/tools/skills.test.ts src/tools/macro.test.ts src/tools/workflow.test.ts src/tools/mini.test.ts src/tools/doctor.test.ts src/audit-fixes.test.ts src/instance-lock.test.ts src/audit-sweep2.test.ts src/policy.test.ts src/llm/status-before-parse.test.ts src/budget-ledger.test.ts src/core/atomicFile.test.ts src/core/undo-gc.test.ts src/memory/vectors.test.ts src/tools/retrieval-eval.test.ts src/config.test.ts src/bridge/aki.test.ts src/tools/web.test.ts src/ui/web/brain.test.ts
+
+  ↪ 2 of 3 route(s) active (skipped: this_route_does_not_exist)
+  [ui] policy change auto-approved (trust mode): deny tool run_command
+  [ui] policy change auto-approved (trust mode): remove rule pl_21qjo8cd
+  PASS — loop finished with a final text
+  PASS — file was written by tool_use
+  PASS — edit_file applied
+  PASS — history contains tool_result blocks
+  PASS — keyless route: builds with no credential and sends no Authorization header
+  PASS — key health: 401/403 park a key, 429/quota cool it down, provider outage is not the key’s fault
+  PASS — key rotation: a 429 key falls through to the next key, and the winner is reused next call
+  PASS — key rotation: when every key fails the error names the provider and both keys
+  PASS — key rotation: extra keys round-trip through the vault, de-duplicated and ordered
+  PASS — stop: aborting mid-request ends the run and reports it as stopped
+  PASS — stop: the abort signal survives the router and retry wrappers
+  PASS — stop: a multi-tool plan halts between tools instead of finishing the batch
+  PASS — stop: the gemini adapter cancels the in-flight HTTP request (does not just stop the turn)
+  PASS — stop: the onemin adapter cancels the in-flight HTTP request (does not just stop the turn)
+  PASS — ui: composer has a stop button, a message queue and calls /api/stop
+  PASS — ui: spawn_agent actually works from the web UI (sub-agent runs and its answer is used)
+  PASS — trim: a long history is trimmed, keeps the original ask, and shrinks the payload
+  PASS — trim: a history under budget is passed through untouched, as a copy
+  PASS — trim: the kept window never starts on an orphaned tool_result
+  PASS — trim: the model is sent less, but the caller keeps the FULL conversation
+  PASS — router: an unknown route name is skipped with a warning, not fatal
+  PASS — usage: a turn reports its token spend (input, output, model calls)
+  PASS — usage: a stopped run still reports its spend
+  PASS — skills: token-economy skills ship built-in, even with no user skills folder
+  PASS — skills: a user skill overrides the built-in of the same name, and is not duplicated
+  PASS — ui: renders the per-turn token line from the usage event
+  PASS — budget: the ledger records spend; status aggregates tokens, billed calls and per-tool totals
+  PASS — budget: a new month starts a clean window — last month’s spend is not double-counted
+  PASS — budget: the gate refuses the next spend once the cap is hit, and says why
+  PASS — budget: a tokens cap never blocks billed calls and vice versa
+  PASS — budget: clearing the cap opens the gate and status honestly says uncapped
+  PASS — budget: runAgent records each model call’s real tokens into the ledger
+  PASS — budget: a hit cap stops the agent before the next model call, honestly
+  PASS — budget: budget_set needs the human’s approval; budget_status is free
+  PASS — budget: a malformed cap is refused with the reason, never half-applied
+  PASS — budget: budget_set stores the cap; budget_status reads it back honestly
+  PASS — budget: a corrupt ledger is quarantined and rebuilt empty, not bricked
+  PASS — budget: budget_status tells the truth about the quarantined ledger
+  PASS — budget: budget_set and budget_status ship in buildTools, set gated / status free
+  PASS — router falls back when primary fails
+  PASS — openai adapter: native tool_calls, text-JSON recovery, prose/unknown untouched
+  PASS — onemin adapter: API-KEY wire format, flattened prompt, fenced-JSON tool_use, error mapping
+  PASS — route-status tray: router records per-route ok/degraded/down states
+  PASS — executive brain: goals persist, validate, and reach the system prompt
+  PASS — executive brain (.aihistory): every decision is appended, dated and greppable in goals/aihistory.log
+  PASS — executive brain (.aihistory): decision_search cites a past decision by keyword
+  PASS — secrets: an Authorization bearer header is redacted, and prose is not
+  PASS — gemini rotates across every stored key, and both Google key shapes are redacted
+  PASS — embedder: rotates off a spent key, and keeps the secret out of the URL
+  PASS — undo journal: prunes to a byte budget, keeps the newest, and never self-deletes the last entry
+  PASS — redaction catches JSON and compound secret keys without mangling prose
+  PASS — web ui: a hostile browser origin is refused, ordinary callers still served
+  PASS — web ui: the desktop shell is served but tauri-lookalike origins are not
+  PASS — route probe: a gateway that hides /models (404/405) stays unknown, not down
+  PASS — route probe: a route with no API key is reported down, never ok
+  PASS — route probe: a /models-hidden gateway that answers chat is ok, not down (OmniRoute)
+  PASS — route probe: a failed chat fallback is reported down, never ok
+  PASS — route probe: keyless routes resolve their base URL from KEYLESS_ROUTES (no key needed)
+  PASS — route probe: probe and registerRoute produce one row per route (no duplicates)
+  PASS — transcribe_audio: multipart to /audio/transcriptions, transcript back, sidecar + ingest
+  PASS — transcribe_audio rejects unsupported extensions without any network call
+  PASS — learn_file chunks a document
+  PASS — learn_folder ingests a whole tree
+  PASS — learn_folder recurses into nested directories
+  PASS — learn_folder skips dependency + VCS directories
+  PASS — learn_folder skips binaries and unsupported extensions
+  PASS — learn_folder results are searchable
+  PASS — learn_folder rejects a file path
+  PASS — learn_folder reports a missing directory
+  PASS — learn_folder honours maxFiles and reports the stop
+  PASS — learn_folder on an empty tree ingests nothing
+  PASS — long sources with a shared slug prefix do not overwrite each other
+  PASS — knowledge_search retrieves the right passage
+  PASS — knowledge_forget removes the source, and its vectors with it
+  PASS — knowledge_forget refuses an ambiguous reference instead of guessing
+  PASS — project note persisted and readable
+  PASS — .aistate rejects a wrong password (AES-GCM integrity)
+  PASS — .aistate import restores memory + knowledge + projects
+  PASS — background job runs and completes
+  PASS — schedule created + persisted
+  PASS — schedule is due when never run
+  PASS — every-minutes schedule respects interval
+  PASS — scheduler fired the due task unattended (fail-closed approvals)
+  PASS — B15 checkpoint: save→load preserves history, turns, and timestamp
+  PASS — B15 checkpoint: clear removes the file
+  PASS — B15 isDue: schedule in backoff is NOT due
+  PASS — B15 backoff: fail 1 → 2 min delay
+  PASS — B15 backoff: fail 2 → 4 min delay
+  PASS — B15 backoff: fail 3 → 8 min delay
+  PASS — B15 backoff: fail 4 → 16 min delay
+  PASS — B15 backoff: fail 5 → disabled (undefined)
+  PASS — B15 backoff: fail 6 → disabled (undefined)
+  PASS — B15 resume: checkpoint loads history that matches what was saved
+  PASS — schedule removed
+  PASS — task engine: plan→execute→verify
+  PASS — read_image attaches image blocks for vision models
+  PASS — execShell captures output + exit code
+  PASS — renderDiff shows removed + added lines
+  PASS — skill saved + loaded from disk
+  PASS — skill_run dispatches to a sub-agent with args
+  PASS — spawn_agent returns the sub-agent answer
+  PASS — MCP client lists + calls external tools
+  PASS — untrusted MCP server requires approval
+  PASS — .aistate export carries skills/ (portable identity)
+  PASS — .aistate v2 incremental export packs only changes
+  PASS — .aistate delta imports and merges correctly
+  PASS — embeddings: deterministic + subword robust
+  PASS — hybrid ranking: keyword + typo-tolerant semantic
+  PASS — vector store records its embedding model + dim
+  PASS — vector index persisted under dataDir
+  PASS — memory_search finds notes (hybrid)
+  PASS — PDF text extraction (zlib stream, text operators)
+  PASS — learn_pdf ingests a real PDF into knowledge
+  PASS — learn_docx ingests a real DOCX into knowledge
+  PASS — knowledge_search finds learned DOCX passages
+  PASS — learn_xlsx ingests a real XLSX into knowledge
+  PASS — knowledge_search finds learned XLSX cells
+  PASS — learn_pptx ingests a real PPTX into knowledge
+  PASS — knowledge_search finds learned PPTX slides
+  PASS — learn_epub ingests a real EPUB into knowledge
+  PASS — knowledge_search finds learned EPUB text
+  PASS — learn_folder skips office documents by default and says so
+  PASS — learn_folder with documents:true ingests xlsx/pptx/epub/docx
+  PASS — bulk-ingested EPUB text is searchable
+  PASS — parseTranscript strips SRT cues and dedupes rolling captions
+  PASS — learn_transcript ingests WebVTT into knowledge
+  PASS — knowledge_search finds learned transcript text
+  PASS — ocr_read recognizes text in an image (Windows OCR)
+  PASS — --doctor reports provider, data inventory and vector index
+  PASS — bridge rejects requests without a token
+  PASS — bridge /health reports provider/model
+  PASS — bridge /ask runs the agent with tools
+  PASS — bridge /goal runs plan→execute→verify
+  PASS — bridge rejects an invalid token
+  PASS — bridge memory save + search roundtrip
+  PASS — bridge knowledge search
+  PASS — sync push: delta exported, imported on remote device
+  PASS — sync pull: remote edits merged back locally
+  PASS — sync pull: repeated sync with no changes is a no-op
+  PASS — sync conflict: both concurrent versions are preserved
+  PASS — bridge audit log written
+  PASS — resilient client retries transient 429s until success
+  PASS — non-transient errors fail fast (no retry)
+  PASS — isTransientError classifies transient vs fatal
+  PASS — compactHistory folds old messages into a summary
+  PASS — compactHistory is a no-op on short conversations
+  PASS — /compact drops a kept window that starts on an orphaned tool_result
+  PASS — /compact re-anchor cannot land on a tool_result carrier
+  PASS — --resume finds the most recent session
+  PASS — session: a traversing id cannot write outside the sessions directory
+  PASS — ui serves the embedded page
+  PASS — ui ships a working update-install action (update_install → install + restart)
+  PASS — ui page inline script parses as valid JavaScript
+  PASS — ui page inline script parses as valid JavaScript
+  PASS — ui: no collapsed escapes reach the browser (template-literal bug class)
+  PASS — approval chime is embedded as a decodable MP3 (a bad blob fails silently)
+  PASS — approval chime plays on a permission prompt
+  PASS — approval chime invokes the native shell and never swallows a failure
+  PASS — task completion rings its own authorized cue
+  PASS — the ringtone choice reaches the shell and the browser fallback
+  PASS — approval and task-done have independently selectable ringtones
+  PASS — approval chime is authorized for the remote loopback origin
+  PASS — stale cores are reaped by literal match and evicted by listener identity
+  PASS — approval chime unlocks on first interaction and retries when the tab regains focus
+  PASS — ui: every modal is hidden until opened (a missing rule covers the whole page)
+  PASS — loopback capability allows the sidebar updater commands and app shutdown
+  PASS — sidebar ships Export/Import/Check-for-update/Shut-down actions
+  PASS — sidebar ships capability-inspector groups + panel
+  PASS — inspector buttons call the read-only tool endpoints
+  PASS — check-for-update stays remote, shut-down granted to the loopback remote
+  PASS — sidebar groups are collapsible folders in order
+  PASS — sidebar regrouping lost no buttons (all ids still present)
+  PASS — installer closes the running app before writing files and relaunches after
+  PASS — export seals an encrypted .aistate snapshot
+  PASS — import restores the snapshot it just exported
+  PASS — import refuses a wrong password
+  PASS — import leaves no staged copy behind
+  PASS — ui page has launch chooser, btn-clear, and unique element ids
+  PASS — ui health reports provider/model + counts
+  PASS — ui health exposes routes[] for the route-status tray
+  PASS — ui health exposes embed status (backend, degraded flag, index coverage)
+  PASS — sidebar renders the vector index count
+  PASS — ui /api/upload saves dropped audio for transcribe_audio
+  PASS — ui composer ships a mic button wired to /api/listen
+  PASS — ui: drag & drop is bound to the whole window, not a composer strip
+  PASS — ui: the mic is discoverable (hint in the composer, not squeezed by a drop strip)
+  PASS — ui: answers render markdown instead of showing raw asterisks
+  PASS — ui: a real answer never renders a stash sentinel as visible S0/S1 garbage
+  PASS — ui: the sentinel safety net does not eat legitimate text
+  PASS — ui: model output cannot inject live HTML or javascript: links
+  PASS — ui: code blocks are shown verbatim, not reinterpreted as markdown
+  PASS — ui: a type scale and a real font stack are declared
+  PASS — ui: header cannot grow (composer and Send stay on screen)
+  PASS — ui: main can shrink so only the chat scrolls (min-height:0 present)
+  PASS — ui /api/listen runs one local mic listen and returns a structured result
+  PASS — ui approval relay: dialog waits and Allow lets the tool run
+  PASS — trust mode: the sidebar is told the truth about what will still ask
+  PASS — trust mode: OFF by default — a gated tool still asks
+  PASS — trust mode: ON auto-approves an ordinary gated tool (no dialog)
+  PASS — trust mode: ON auto-approves run_command too (full trust)
+  PASS — ephemeral port 6085 is fetchable
+  PASS — ephemeral port 6088 is fetchable
+  PASS — ephemeral port 6091 is fetchable
+  PASS — ephemeral ports are never in the fetch-blocked low range
+  PASS — ui: GET /api/usage reports the real recorded tokens/calls
+  PASS — ui: /api/usage recomputes the USD estimate from the in-effect prices
+  PASS — ui: POST /api/usage without reset is a no-op
+  PASS — ui: POST {reset:true} zeroes the meter and re-baselines the window
+  PASS — ui: the reset persists — a fresh GET still reads zero
+  PASS — ui: the meter is trivially zero before any usage is recorded
+  PASS — ui serves the Spend panel with its meter ids and reset wiring
+  PASS — ui: GET /api/jobs reports the latch, jobs, missions and MCP shape
+  PASS — ui serves the Live jobs strip with the STOP button and poll wiring
+  PASS — ui: POST /api/emergency-stop arms the latch with the full teardown
+  PASS — ui: after the stop, /api/jobs reports the sticky latch and reason
+  PASS — ui: POST /api/emergency-reset clears the latch for new runs
+  PASS — ui: the latch reset stays hidden until the strip is latched
+  PASS — inbox digest: a dropped settled file shows up as pending, never as recent
+  PASS — inbox digest: a journaled file becomes a recent entry with its chunk count
+  PASS — ui: GET /api/inbox returns the full read-only digest shape
+  PASS — ui serves the Inbox panel with its ids and read-only poll wiring
+  PASS — ui: the Inbox panel offers no button and the server no POST /api/inbox
+  PASS — ui: POST /api/inbox is refused (ingest only via watcher / inbox_scan)
+  PASS — lm_list: probes the local endpoints and answers honestly when none run
+  PASS — lm: setup/switch are approval-gated; list is free
+  PASS — lm_setup/lm_switch refuse bad URLs and unregistered routes
+  PASS — lm_setup + lm_switch append: the local route lands LAST in the chain
+  PASS — lm_switch remove takes the local route back out cleanly
+  PASS — lm_switch refuses to edit a chain locked by a user-set BLACKROSE_ROUTES
+  PASS — macro_record start/status: captures demonstrated steps, excludes meta tools
+  PASS — macro: save is approval-gated; start/status/discard are free
+  PASS — macro_record save builds an ordinary runnable skill (failed step marked ✗)
+  PASS — macro_record discard clears the recording and status is honest after
+  PASS — ui remembers context across /api/ask calls
+  PASS — ui /api/new clears server-side conversation memory
+  PASS — ui per-tab session keys keep live conversations separate
+  PASS — ui resumes persisted history after a server restart
+  PASS — desktop shell: valid Tauri v2 config + Rust boot supervisor markers
+  PASS — desktop shell: single-instance guard registered before the updater plugin
+  PASS — desktop shell: orphan cores from a previous shell are reaped, without killing our own
+  PASS — desktop shell: window title is pinned after navigating off the splash
+  PASS — trust mode: shell/install/schedule/write/mic/screen/network are the deny-list (used when trust is OFF)
+  PASS — trust mode: an unrecognised tool is not in the always-ask set (deny-list, not allow-list)
+  PASS — trust mode: the approval dialog outranks every other overlay
+  PASS — trust mode: the sidebar ships a trust toggle wired to /api/trust
+  PASS — trust mode: the page reads the exact key the server sends (on, not trust)
+  PASS — trust mode: plain on/off — server flag, client flip, no timed windows
+  PASS — desktop shell: post-install restart waits instead of racing the installer
+  PASS — desktop shell: procedural .ico generator emits a valid 4-size icon
+  PASS — ui page is served with cache-control: no-store (stale pages cannot bypass /api/new)
+  PASS — ui /api/new starts a fresh conversation while the previous one stays persisted + listed
+  PASS — listen: window is clamped to 1-15s with an env default
+  PASS — listen: output parsing is success-gated (markers only, chatter rejected)
+  PASS — listen: registered and approval-gated (a microphone is opening)
+  PASS — instagram_scrape: playbook ranks by likes, drops captionless posts, survives junk rows
+  PASS — instagram_learn: fails closed without markdown or path
+  PASS — instagram_scrape: starts the actor run with a JSON body carrying directUrls (not a bare GET)
+  PASS — instagram_scrape: ACTOR id uses Apify's tilde form (owner~name, not owner/name)
+  PASS — instagram_scrape: token joins with & when the path has a query, and bare array responses are not unwrapped
+  PASS — watch_video: metadata parsing is success-gated (one JSON line, else null)
+  PASS — watch_video: registered and approval-gated (a download + cloud STT upload)
+  PASS — watch_video: rejects non-http URLs without any network call
+  PASS — ui /api/tools lists every registered tool with its permissions
+  PASS — ui /api/tool runs the allowlisted inspectors
+  PASS — ui /api/tool refuses state-changing and machine-touching tools
+  PASS — ui knowledge search panel returns real results
+  PASS — ui /api/tool accepts args as well as input (a wrong key used to empty the call silently)
+  PASS — ui /api/keys returns route list with masked statuses
+  PASS — ui /api/keys/roster lists each key with health and never returns a key value
+  PASS — ui key rotation: an extra key is added then removed via /api/keys/rotate
+  PASS — ui keys modal renders the multi-key roster with health and add/remove
+  PASS — ui /api/keys updates key, masks preview and stores on disk
+  PASS — ui /api/keys clears key and removes from memory
+  PASS — ui /api/tools ships a gate preview for every tool (free + gated paths)
+  PASS — ui tool picker: policy set → rule listed → gate preview flips to deny (policy)
+  PASS — ui tool picker: clearing the rule restores the tool default gate
+  PASS — ui tool picker: policy changes land on the audit ledger
+  PASS — ui /api/tool-policy rejects bad effect, unknown tool and remove-without-id
+  PASS — ui /api/tool-policy fails closed: trust off + no Telegram → 403, no rule
+  PASS — ui tool picker ships its ids and wiring in the served page
+  PASS — ui sessions sidebar lists conversations newest-first with titles
+  PASS — ui sessions open reattaches history (continuing an old conversation works)
+  PASS — ui /api/new keeps the previous conversation in the sidebar (non-destructive)
+  PASS — ui sessions delete archives the file and rejects unsafe ids
+  PASS — vault: keys are sealed at rest — no cleartext secret anywhere under the data dir
+  PASS — vault: a tampered vault file fails closed instead of returning keys
+  PASS — vault: a legacy plaintext keys.json is sealed and deleted on first read
+  PASS — undo: write_file is journaled, approval names it, one undo restores the pre-image
+  PASS — undo: a file the agent created is deleted again, not left behind
+  PASS — undo: edit_file is rolled back to the exact prior bytes
+  PASS — undo: run_command snapshots the workspace before executing
+  PASS — undo: a restore is itself snapshotted and can be redone by id
+  PASS — undo: BLACKROSE_UNDO=0 turns the journal off completely
+  PASS — undo stays out of the web UI read-only allowlist (it overwrites files)
+  PASS — undo is classified as ask while trust is OFF (rollback path is destructive)
+  PASS — inbox_scan creates the watched folder on first run instead of erroring
+  PASS — inbox_scan ingests a dropped file and reports its chunk count
+  PASS — a file dropped in the Inbox is searchable afterwards
+  PASS — the Inbox reuses learn_folder + learn_pdf + forgetKnowledge rather than a second ingest path
+  PASS — a second scan with nothing new ingests nothing and says so
+  PASS — a file dropped in later is ingested by the next scan
+  PASS — editing a file already in the Inbox re-ingests it (old text replaced)
+  PASS — minAgeMs defers a file younger than the threshold, and the next scan takes it
+  PASS — the DEFAULT minAgeMs defers a just-written file; minAgeMs:0 is the explicit way through
+  PASS — a binary dropped in the Inbox is reported as 0 chunks, not as learned
+  PASS — force:true re-ingests the whole folder, ignoring the journal
+  PASS — inbox_scan rejects a file path with a pointer at the folder it wants
+  PASS — the seen-journal is persisted under the data dir and keys on absolute path
+  PASS — a corrupt seen-journal degrades to re-learning, never to an error
+  PASS — learn_folder targeted mode ingests ONLY the named file — no tree walk
+  PASS — learn_folder treats files:[] as ingest-nothing, not as a full walk
+  PASS — learn_folder targeted mode still sniffs binaries (naming a path is not a bypass)
+  PASS — a PDF dropped in the Inbox is routed to learn_pdf and actually ingested
+  PASS — a PDF dropped in the Inbox is retrievable through knowledge_search
+  PASS — deleting a learned file is REPORTED (not silent), and its knowledge stays by default
+  PASS — forgetDeleted:true removes the orphaned knowledge (and is approval-gated)
+  PASS — startInboxWatch runOnce reports a settled drop, gate-holds a fresh one, and is silent when nothing changed
+  PASS — inbox_scan is registered in the tool registry
+  PASS — cookie source: nothing stored means no cookies (exactly the pre-B11 behaviour)
+  PASS — cookie source: Firefox is persisted and read back
+  PASS — cookie source: the persisted choice drives yt-dlp with BLACKROSE_YTDLP_ARGS unset
+  PASS — cookie source: a cookies.txt path is persisted and handed to yt-dlp
+  PASS — cookie source: a path containing a space is quoted into a single argument
+  PASS — cookie source: only the path is stored — cookie contents never reach the data dir
+  PASS — cookie source: BLACKROSE_YTDLP_ARGS still overrides the stored choice
+  PASS — cookie source: an unknown mode is refused (the value reaches a command line)
+  PASS — cookie source: a missing or relative cookies.txt is refused, not repaired
+  PASS — cookie source: a refused save leaves the previous choice untouched
+  PASS — cookie source: Chrome is selectable and reported as known-broken with the DPAPI reason
+  PASS — cookie source: a damaged settings file falls back to none, never to a guess
+  PASS — cookie source: GET /api/cookies returns the modes and the Chrome warning
+  PASS — cookie source: POST /api/cookies persists the choice for watch_video to read
+  PASS — cookie source: a bad POST is refused with a reason, not silently accepted
+  PASS — cookie source: Settings ships the picker wired to /api/cookies, Chrome labelled broken
+  PASS — bookmarklet: a per-install token is minted once and is stable across calls
+  PASS — bookmarklet: a damaged token file is discarded and regenerated, never trusted
+  PASS — bookmarklet CSRF: a page on evil.example with no token is refused, and gets no CORS header
+  PASS — bookmarklet CSRF: a forged token of the right SHAPE is still refused
+  PASS — bookmarklet DNS rebinding: a rebound Host is refused even WITH a valid token
+  PASS — bookmarklet: a tokenised cross-site click learns the page and reports the chunk count
+  PASS — bookmarklet: the response echoes ACAO for the calling origin but never allows credentials
+  PASS — bookmarklet: a selection is stored as its OWN source, not merged into the page
+  PASS — bookmarklet: a javascript:/file: url is refused, not repaired into a fetch
+  PASS — bookmarklet: preflight is answered for the bookmarklet but refused for a rebound Host
+  PASS — bookmarklet: a valid token is rate limited, so a leak cannot flood the base
+  PASS — bookmarklet: the shipped code is a single self-contained javascript: URL that parses
+  PASS — bookmarklet: the install doc and the installer script ship with the endpoint
+
+  workspace: C:\Users\pc\AppData\Local\Temp\blackrose-smoke-feq6Je
+SMOKE TEST PASSED
+[vectors] not saving: br-hash-v1 fallback vectors would overwrite the real index. Retrieval is degraded to lexical for this session only.
+✔ a real-backend embed clears unsafeFallback and saves again (H3) (101.6188ms)
+✔ a truncated graph half is quarantined and the healthy half survives (M1) (105.173ms)
+✔ saveGraph writes through temp+rename so a mid-save crash keeps the old pair (HIGH 5a) (30.8019ms)
+✔ an unparseable schedules file is quarantined and never overwritten (M2) (30.7669ms)
+✔ a failed schedules save leaves the prior file intact (M2 atomic write) (135.6599ms)
+✔ H1: assigned_secret redacts every audit credential row and leaves prose alone (2.7099ms)
+✔ H2: two full exports in one second produce distinct files, both intact (410.0232ms)
+✔ H2: two writeBackup calls in one second keep both archives (190.1092ms)
+✔ M3: bridge body cap defaults high enough for vector deltas, is env-tunable, still enforced (407.9818ms)
+✔ M5: bridge /state/import returns the conflict count, not only restored (740.7592ms)
+✔ M4: embedStatus.degraded sees an all-parked key pool and clears on recovery (3.857ms)
+✔ M6: exhausted schedule run backs off and disables after 5 resumes (893.0914ms)
+✔ M9: a key-specific 400 rotates on the first attempt instead of replaying the ladder (3459.679ms)
+✔ M9: a key-independent failure stops the pass instead of walking the whole pool (1441.4557ms)
+✔ zip entities: out-of-range and surrogate numeric refs are dropped, not thrown (5.4048ms)
+✔ verification verdict is fail-closed (negation prefix decides, not the substring) (1.1971ms)
+✔ extractSteps: prose is not a plan, and plans are capped (4.8296ms)
+✔ xlsx_pivot gate: outPath outside the workspace requires approval (4.3527ms)
+✔ team_delete is approval-gated and names the team (1.4375ms)
+✔ learn_url refuses private, loopback, IPv6-literal and numeric hosts (SSRF guard) (3.4328ms)
+✔ isPrivateAddress: loopback/private/link-local/CGNAT/ULA are caught, public is not (16.8414ms)
+✔ learn_url refuses a hostname that resolves into private space, before fetching (36.2842ms)
+✔ learn_url: a rebound hostname cannot land the connect on a private address (429.4775ms)
+✔ learn_url: the owner allowLoopbackFetch capability still reads a local page (756.9617ms)
+✔ setup: bridge on ephemeral port (58.8399ms)
+✔ AKI routes reject missing or invalid bearer tokens (134.1626ms)
+✔ single ingest: added -> unchanged (idempotent) -> updated (new content) (1518.3945ms)
+✔ identity is not caller-controlled: agent is stamped bridge, verified cannot be self-set (1503.5726ms)
+✔ validation errors are 400 with caller-facing messages (26.9654ms)
+✔ engine rejections surface as 400 (workspace escape via kind=file) (9.1824ms)
+✔ batch ingest: independent items; per-item errors never abort the batch (1210.2035ms)
+✔ batch ingest: empty array and oversize batch are 400 (9.7967ms)
+✔ batch ingest: added then unchanged, counts stay honest (1543.3652ms)
+✔ status: counts sources, chunks, the verified split and one honest agent bucket (637.5356ms)
+✔ status: the verified/unverified split reflects locally-promoted knowledge (8.75ms)
+✔ status on a data dir with no knowledge store reports zeros (1.3266ms)
+✔ staleAfter: item with staleAfter=0 is immediately stale (751.9124ms)
+✔ staleAfter: source file change is detected without verify call (747.7792ms)
+✔ teardown: bridge closed, scratch removed (12.6297ms)
+✔ two concurrent processes must not lose a single budget entry (1097.0355ms)
+✔ a stale lock left by a crashed writer is taken over, not honoured forever (258.7066ms)
+✔ a normal section releases its lock (no residue for the next writer) (16.6294ms)
+✔ empty or junk numeric env values fall back to the defaults, never to 0 or NaN (11.7636ms)
+✔ atomic write: content round-trips and no temp file is left behind (20.411ms)
+✔ a failed write leaves the previous file intact and no debris (197.7175ms)
+✔ the async flavour creates missing directories and lands the same bytes (30.9999ms)
+✔ overlapping writers: the last write lands complete, with no temp debris (63.492ms)
+✔ loadGoals: a goal missing `created` must not crash the sort (52.7964ms)
+✔ loadDecisions: a decision missing `madeAt` must not crash the sort (14.9491ms)
+✔ blob GC: an orphan newer than the newest manifest survives; an older one is collected (72.9173ms)
+✔ emergency: arm is sticky, idempotent, and clear resets it (3.2193ms)
+✔ emergency: a latched stop aborts runAgent mid-request (no per-run signal needed) (23.7656ms)
+✔ emergency: the emergency_stop tool arms the latch mid-run and halts the batch (28.9534ms)
+✔ emergency: the shared teardown kills a boot-loaded MCP child and disables schedules (746.8359ms)
+✔ a second owner of the same role is refused, and release frees it (31.9265ms)
+✔ a DEAD owner does not block the role (crash recovery) (14.7968ms)
+✔ a STALE heartbeat from another host does not block the role (13.8091ms)
+✔ release never removes a lock a SUCCESSOR owns (12.7459ms)
+✔ startScheduler: only the first host runs the schedule runner (44.7435ms)
+✔ openai: stalled body is bounded by timeoutMs (headers flushed, body never ends) (353.6183ms)
+✔ openai: Stop aborts during the body read (previously unbounded) (228.4609ms)
+✔ gemini: stalled body is bounded by timeoutMs (308.9392ms)
+✔ onemin: Stop aborts during the body read (previously unbounded) (216.5697ms)
+✔ anthropic: provider that never answers is bounded by timeoutMs (previously pending forever) (319.312ms)
+✔ anthropic: caller abort still wins and is reported as aborted (164.3836ms)
+✔ gemini: tool-call ids never repeat across responses (name-map stays correct) (33.5668ms)
+✔ resilient: abort during backoff ends the call fast and never issues another request (123.9332ms)
+✔ openai: synthetic ids for id-less gateways stay unique across turns (suspected audit #1) (33.5435ms)
+✔ realCallProofExpired: fresh verdict is protected, stale one is not (2.9559ms)
+✔ m9: a failed probe is ignored while the real-call verdict is fresh (1.0889ms)
+✔ openai adapter: an HTML 401 names the status, so the key is PARKED not quota (119.3242ms)
+✔ gemini adapter: an HTML 401 names the status, so the key is PARKED not quota (3.4834ms)
+✔ JSON error bodies still surface their own message (not the raw text) (1.9107ms)
+✔ a 200 with a broken body is still an honest parse error (not a status lie) (4.0179ms)
+✔ mcp: non-existent command rejects (skip server) instead of crashing the process (35.9195ms)
+✔ mcp: server flooding stdout without a newline is bounded by the buffer cap (1015.1738ms)
+✔ mcp: a self-exited child stops being advertised as connected (680.4214ms)
+✔ mcp: a normal server returns tools (sanity guard for the tests above) (292.5748ms)
+[vectors] dropped 1 cross-space vector(s) before saving — the index stays one 3072-d space.
+[vectors] not saving: br-hash-v1 fallback vectors would overwrite the real index. Retrieval is degraded to lexical for this session only.
+✔ saveStore drops cross-space entries instead of persisting a mixed index (15.27ms)
+✔ a fallback episode still serves every id in memory and never overwrites a real index (13.0805ms)
+✔ zip: isZip recognises a real archive and rejects noise (8.355ms)
+✔ zip: a normal archive round-trips completely (1.8645ms)
+✔ zip: aggregate ceiling stops the walk once the budget is spent (1.7141ms)
+✔ zip: an expired wall-clock stops the walk immediately (0.718ms)
+✔ zip: maxEntries bounds a lying entry count (1.0587ms)
+✔ zip: a directory entry is skipped, not yielded as content (1.0589ms)
+✔ zip: garbage and truncated input are walked without throwing (1.1651ms)
+✔ zip: traversal names reach the CALLER verbatim - readZip is not a sanitiser (0.6886ms)
+✔ zip: a corrupt member is skipped, not fatal to the archive (0.8917ms)
+✔ zip: a real deflate bomb fixture is tiny on the wire but huge inflated (125.2314ms)
+✔ aistate: an offline export is an encrypted file with no plaintext in it (243.4366ms)
+✔ aistate: a file exported on one machine imports into another, no network involved (309.3413ms)
+✔ aistate: the wrong password is refused, and so is a tampered file (433.2276ms)
+✔ aistate: the vault and root-level files never travel (370.1865ms)
+✔ backup: a written backup restores the state it was taken from (309.9606ms)
+✔ backup: a SECOND backup alone must still restore everything (672.2726ms)
+✔ backup: nothing to save leaves no litter in the state dir (145.445ms)
+✔ backup: refuses to write without a password (7.6913ms)
+✔ backup: rotation keeps the newest N and deletes nothing else (9.3419ms)
+✔ a path-scoped deny DOES apply to run_command (relative path token) (27.8749ms)
+✔ a path-scoped deny DOES apply to run_command (absolute path outside the workspace) (8.4533ms)
+✔ a path-scoped deny stays PRECISE: an unrelated command still falls through (8.7691ms)
+✔ a path-scoped deny cannot be dodged by building the path at runtime (fail closed) (12.8034ms)
+✔ a path-scoped APPROVE also applies to run_command (8.6606ms)
+✔ a path-scoped ALLOW never auto-approves run_command (11.2844ms)
+✔ path-scoped ALLOW still works for ordinary path tools (13.324ms)
+✔ a rule with no path scope keeps matching run_command as before (8.5675ms)
+✔ deny beats approve beats allow on shell commands (9.7699ms)
+✔ decodeTextFile: UTF-16LE with BOM decodes without NULs or U+FFFD (37.0614ms)
+✔ decodeTextFile: UTF-16BE with BOM decodes (0.8172ms)
+✔ decodeTextFile: a NUL-dense binary blob is NOT mistaken for UTF-16 (0.6297ms)
+✔ decodeTextFile: BOM-less UTF-16LE is still detected (0.4348ms)
+✔ decodeTextFile: plain UTF-8 passes through unchanged (0.5477ms)
+✔ decodeTextFile: UTF-8 BOM is stripped, not chunked as content (0.6575ms)
+✔ decodeTextFile: a lone NUL in UTF-8 does not trigger a UTF-16 misread (0.5685ms)
+✔ decodeTextFile: non-ASCII UTF-16 (real 16-bit code units) round-trips (0.5052ms)
+✔ openai adapter: a stalled request is bounded by a timeout, never an infinite await (1.5008ms)
+✔ every provider adapter bounds its request with a deadline (1.8522ms)
+✔ final assistant answer survives session persistence and a follow-up call (69.4976ms)
+✔ tool conversation retains exactly one final assistant message (25.0399ms)
+✔ state import rejects unsafe path "../state-other/escaped.md" before writing any entries (296.2713ms)
+✔ state import rejects unsafe path "memory/../../state-other/escaped.md" before writing any entries (290.8698ms)
+✔ state import rejects unsafe path "memory/..\\..\\state-other/escaped.md" before writing any entries (283.6696ms)
+✔ state import rejects unsafe path "memory/../sessions/escaped.json" before writing any entries (240.4899ms)
+✔ state import rejects unsafe path "mcp.json" before writing any entries (309.0515ms)
+✔ state import rejects unsafe path "memory/note.md:stream" before writing any entries (278.678ms)
+✔ state import rejects unsafe path "memory/trailing./note.md" before writing any entries (231.9006ms)
+✔ state import rejects unsafe path "memory//note.md" before writing any entries (250.0133ms)
+✔ state import rejects an absolute path (298.7983ms)
+✔ state import rejects junction/symlink parents pointing outside the state root (245.2883ms)
+✔ state import validates all entry contents before modifying existing state (261.3868ms)
+✔ full state roundtrip supports nested files and a relative destination (305.9431ms)
+✔ --resume is a mode flag: it starts the REPL instead of being sent as a prompt (1832.8715ms)
+✔ an agent write can be rolled back, and the rollback itself is restorable (105.643ms)
+✔ the secret vault seals keys per store, migrates plaintext, and fails closed on tampering (9658.855ms)
+✔ CSP blocks inline script but still permits the inline styles the page uses (1.7346ms)
+✔ web UI with a token: unauthenticated requests are rejected and the token grants access (1686.9148ms)
+✔ the UI script and stylesheet load without a token, so listeners can bind (111.3218ms)
+✔ trust flips on and off over HTTP, and refuses anything but explicit true (79.0643ms)
+[vectors] not saving: br-hash-v1 fallback vectors would overwrite the real index. Retrieval is degraded to lexical for this session only.
+✔ the web UI rebuilds the system prompt per run, so new memories are visible (114.1628ms)
+▶ a hash-fallback embed is served but never persisted over a real vector index
+  ✔ adding a provider cannot destroy keys from a legacy plaintext store (2065.3519ms)
+  ▶ keys and providers share one store without an import cycle
+    ✔ a custom provider wins even when its name matches the openai<N> pattern (1970.6492ms)
+    ✔ a keyless custom provider sends no Authorization header (1741.1298ms)
+    ✔ removing a provider clears its mirrored environment variables (1965.2366ms)
+  ✔ keys and providers share one store without an import cycle (5678.8386ms)
+  ✔ every route name maps to its real env var, and anthropic is the exception (2397.4156ms)
+  ✔ saving the chain does not then lock the editor read-only (1977.4701ms)
+  ✔ a genuinely user-set BLACKROSE_ROUTES still overrides the stored chain (1618.6542ms)
+  ✔ the fallback chain round-trips through the vault (1714.6854ms)
+  ✔ the env var still wins over the stored chain (1787.1257ms)
+  ✔ a chain cannot contain duplicates or unusable route names (1921.2382ms)
+  ✔ deleting a provider also drops it from the chain, but keeps its keys (2446.4597ms)
+  ▶ a new provider can join the chain without disturbing the existing order
+    ✔ forgetting a source removes it and its vectors, and nothing else (119.534ms)
+    ✔ a short or ambiguous reference deletes NOTHING and asks for detail (76.4534ms)
+    ✔ an exact source is removed even when a substring of it also exists (68.7486ms)
+    ✔ stray JSON in the knowledge dir is neither listed nor deleted (60.5035ms)
+  ✔ a new provider can join the chain without disturbing the existing order (2415.8882ms)
+  ✔ a provider can be added from config, and bad input is refused (2167.8347ms)
+  ✔ a provider with two keys survives the first one hitting a limit (2259.6555ms)
+  ✔ bulk key import parses real-world formats and never echoes a key (3825.8042ms)
+  ✔ key validation tells a dead key from a busy one, and leaks nothing (4.8001ms)
+  ✔ secrets are redacted before anything is persisted or embedded (16.9504ms)
+[vectors] not saving: br-hash-v1 fallback vectors would overwrite the real index. Retrieval is degraded to lexical for this session only.
+  ✔ knowledge ingest leaves no secret in the graph, chunks, or any file under the data dir (39.4329ms)
+  ✔ console output is redacted end-to-end and uninstall restores the exact originals (3.728ms)
+✔ a hash-fallback embed is served but never persisted over a real vector index (32351.3081ms)
+✔ the vector store writes normally when the store matches the active backend (13.2782ms)
+✔ a backend flip mid-call re-embeds the cached ids instead of crashing (10.2245ms)
+✔ one corrupt file does not zero the knowledge chunk count (2104.382ms)
+✔ a large corpus is searched without embedding every document (45.4256ms)
+✔ shingles are order-sensitive; token sets are not (1.1276ms)
+✔ near-duplicate chunks are grouped, and distinct ones are left alone (1.775ms)
+✔ a redundant source is only ever absorbed into a LARGER one (1.6741ms)
+✔ the sweep reports savings and deletes nothing (1712.5365ms)
+✔ the sweep says so plainly when there is no duplication (718.3132ms)
+✔ archive reads stop at the total budget, not just the per-member cap (125.9861ms)
+✔ a single oversized member is refused without throwing (101.3908ms)
+✔ an ordinary archive is read whole, under the default limits (1.7454ms)
+✔ auto-continue: text-only answer ends the loop immediately (no continuations) (12.3873ms)
+✔ auto-continue: exhausted run triggers continuation up to the cap (96.6379ms)
+✔ auto-continue: abort signal stops the loop immediately, even mid-delay (2.7911ms)
+✔ the walk honours its wall-clock deadline (133.1878ms)
+✔ authHeaders is declared before every load-time use (TDZ) (7.5513ms)
+▶ the session fetch does not silently swallow every error
+  ✔ run_command refuses to archive the vault in plaintext (4.2019ms)
+  ✔ the run_command TOOL actually refuses, not just its helper (1.2814ms)
+  ✔ the chat UI handles /backup locally instead of sending it to the model (3.7921ms)
+  ✔ trust is an on/off switch: off by default, one source of truth, never persisted (2.3689ms)
+  ✔ the trust control is a plain on/off toggle with no timed windows (3.3779ms)
+✔ the session fetch does not silently swallow every error (22.8083ms)
+✔ knowledge graph: extraction → ingest → search → remove round trip (40.4025ms)
+✔ knowledge graph: two sources merge mentions and dedupe relations (39.8168ms)
+✔ mastery: spaced repetition grows interval on pass, collapses on fail (1.1144ms)
+✔ mastery: persistence round-trips to goals/mastery with save/load (15.5513ms)
+✔ mastery: honest level never claims Mastery Candidate without evidence (3.7781ms)
+✔ mastery: gap analysis flags uncovered and thin-graph concepts (38.6662ms)
+✔ mastery: self-quiz surfaces due and weak concepts (1.2361ms)
+▶ mastery: applyReview drops to 1 on fail and rises to 5 on perfect
+  ✔ loadCustomTools: persisted def becomes a runnable, approval-gated ToolDef (206.1923ms)
+  ✔ inbox_review is read-only: reports pending files, writes nothing (7.6042ms)
+  ✔ telegram /review and /inbox route to the inbox digest (3.9097ms)
+✔ mastery: applyReview drops to 1 on fail and rises to 5 on perfect (219.0822ms)
+✔ credential ARGUMENTS are dropped from persisted tool_use inputs (7.4151ms)
+✔ benign `value` args on non-secret tools survive untouched (0.529ms)
+✔ secret_get results are masked without consulting the vault (1.2948ms)
+✔ vault values are occurrence-masked even in plain prose (3875.2369ms)
+✔ shape redaction works even with an empty vault (0.6014ms)
+✔ benign `name = value` prose survives redaction (0.5513ms)
+✔ redactTranscript never mutates the live transcript (1.0992ms)
+✔ redactSessionJson redacts a session file and rejects non-session shapes (2.1418ms)
+✔ saveSession writes a redacted file and leaves the live transcript intact (15.9801ms)
+✔ exportState redacts pre-fix session files on the way out (331.92ms)
+✔ ai_export -> ai_import round-trips state across data dirs (280.5851ms)
+✔ ai_export incremental packs only changes (delta artifact) (300.4208ms)
+✔ export and import are approval-gated and never put the password in the reason (2.61ms)
+✔ password is required when neither argument nor env provides one (4.7598ms)
+✔ ai_import rejects a wrong password without touching existing state (282.0847ms)
+✔ ai_import rejects non-.aistate and missing files before decrypting (4.1355ms)
+✔ binary state round-trips byte-identical through export -> import into a fresh dir (302.5872ms)
+✔ a legacy v1 archive (plain-string entries) still imports (262.9971ms)
+✔ a malformed binary entry fails closed and writes nothing (318.6977ms)
+✔ changed binary state with no manifest match lands as a conflict copy, not an overwrite (382.6889ms)
+✔ auditQuery returns matching rows newest-first and skips corrupt lines (26.7788ms)
+✔ free-text fields are redacted before they reach the ledger (13.8989ms)
+✔ log_append writes a note; audit_query reads it back; only log_append is gated (17.7904ms)
+✔ runAgent writes a tool row + approval rows to the ledger (granted and denied) (129.8442ms)
+✔ budget: periodKey buckets (local time) (4.179ms)
+✔ budget: ledger round-trip, token sums, and per-tool breakdown (46.2763ms)
+▶ budget: the cap window excludes spend from previous periods
+  ✔ budget: gate blocks once the cap is hit and reports unit/period honestly (135.8697ms)
+  ▶ budget: set/clear/reset and corrupt-ledger quarantine
+    ✔ budget: runAgent records per-call tokens and STOPS at the cap (85.6401ms)
+    ✔ budget tools: set is approval-gated, status is free, and the gate stops billed tools (28.2628ms)
+  ✔ budget: set/clear/reset and corrupt-ledger quarantine (161.5596ms)
+✔ budget: the cap window excludes spend from previous periods (328.9812ms)
+✔ doctor on a fresh state dir reports honest unknowns, no approval gate (2517.3584ms)
+✔ doctor surfaces route failures, a sealed vault and an engaged latch as PROBLEMS (2436.657ms)
+✔ doctor flags dangling graph relations but keeps reading the graph (24.6308ms)
+✔ doctor probe=true pings bridge bodies: live answers ok, dead port bad (204.8871ms)
+✔ git tools: approval gates (write ops gated, read ops free) (6.1181ms)
+✔ git tools: full lifecycle — status, commit, log, diff, branch, push (6427.5164ms)
+✔ git tools: not a repo + empty message fail cleanly (240.0277ms)
+✔ identity_set -> identity_get round-trips the constitution; set is approval-gated (20.86ms)
+✔ identity_set rejects oversized constitutions (1.8753ms)
+✔ constitution rides with export/import and identity_restore keep-list (394.2515ms)
+✔ system prompt splices the constitution above the built-in identity block (13.4954ms)
+✔ runAgent end-to-end: identity_set writes on approval and fails closed when denied (123.6833ms)
+▶ generateImage posts to the route images endpoint, saves b64 to disk
+  ✔ generateImage returns remote URLs as-is; rejects bad size and dead routes (58.8473ms)
+  ✔ generateImage surfaces gateway errors without leaking the key (34.042ms)
+  ✔ image_generate tool is approval-gated and reports paths (37.3148ms)
+✔ generateImage posts to the route images endpoint, saves b64 to disk (353.881ms)
+✔ macro lifecycle: start records executed steps, excludes meta tools, save builds a real skill (132.7078ms)
+✔ redaction and honest errors: secrets never reach the buffer, bad states fail closed (43.3754ms)
+✔ runAgent end-to-end: the dispatch loop records executed calls with args; denials are never recorded (121.5129ms)
+✔ mini_build packages only selected capabilities and the product imports cleanly (518.189ms)
+✔ private state is unselectable — the allowlist rejects it by name (23.5882ms)
+✔ include patterns must stay under a selected package (15.0367ms)
+✔ include patterns scope the selection within a package (23.0118ms)
+✔ preview lists files and writes nothing; empty selection fails closed (19.1778ms)
+✔ gating: build requires approval (preview does not), list is free (2.1612ms)
+✔ mini_list reports built products; missing password fails honestly (190.4797ms)
+✔ notify: sanitizer strips newlines, doubles single quotes, trims (4.3599ms)
+✔ notify: script embeds escaped text, the AUMID, WinRT loads, and both markers (4.7117ms)
+✔ notify: a single-quoted injection attempt stays inert inside the PS literal (0.6283ms)
+✔ notify: parse is success-gated (marker AND exit 0) (0.9926ms)
+✔ notify: registered in buildTools() and free (no approval gate) (1.5461ms)
+✔ stored-zip writer round-trips through the real reader with valid CRCs (7.7398ms)
+✔ buildDocx output re-learns through extractDocxText verbatim (4.2273ms)
+✔ buildPptx output re-learns through extractPptxText in slide order (4.6225ms)
+✔ builders reject empty input, oversized decks and raw XML breakage (4.3284ms)
+✔ doc_generate + pptx_create tools: happy path, gating, bad args (46.399ms)
+✔ P2-6 sanitizeFilename: forbidden/control chars, trailing dots/spaces, reserved names, empty→fallback (0.6552ms)
+✔ P2-6 end-to-end: a title with :, / and a trailing dot still writes a real file (68.4821ms)
+✔ buildXlsx output re-learns through extractXlsxText (6.3779ms)
+✔ xlsx_update honors per-update sheet names (multi-sheet) (95.2302ms)
+✔ xlsx_update + xlsx_pivot: lifecycle on one file (203.3572ms)
+✔ script plugin: load from dir materializes a runnable tool, persists, removes (439.5772ms)
+✔ mcp plugin converges with the shared MCP client: server loads as a plugin (1166.1369ms)
+✔ validation: missing manifest or bad tool name is rejected; mcp server down fails closed (302.6155ms)
+✔ the gate is the size it claims: 12 documents, 20 fixed pairs, every expect is a document (3.1175ms)
+✔ retrieval eval gate: 20/20 offline, and the harness never touches the real store (792.2835ms)
+✔ review core: parseDiff counts per-file stats and captures added lines with positions (17.1634ms)
+✔ analyzeDiff: flags secrets (redacted), conflict markers, debug, TODO; secrets never echoed raw (6.7884ms)
+✔ review core: empty diff yields an honest empty report; env-file edit is HIGH (1.9989ms)
+✔ review tools: read-only (no approval gate) (0.8602ms)
+✔ review_diff: explicit diff text path needs no git at all (4.3765ms)
+✔ review_diff + review_pr on a real temp repo: working tree and branch pair (2364.3721ms)
+✔ review_pr: missing base ref fails honestly; empty diff says so (1125.7333ms)
+✔ robot_attach refuses an unreachable body and stores nothing (20.1503ms)
+✔ attach -> list -> detach lifecycle keeps the token in the vault only (4187.8899ms)
+✔ state_push and state_pull round-trip across two bodies (2768.0877ms)
+✔ a push never clobbers a remote file changed independently — it keeps a conflict copy (2207.7346ms)
+✔ identity_restore from a robot brings ONLY memory/goals/skills (2085.5256ms)
+✔ identity_restore from a local artifact path is also subset-only (282.6659ms)
+✔ sync guards: local is not a sync target, unknown robots and token-less bodies refuse (22.6889ms)
+✔ every mutating B23 tool is approval-gated and reasons never carry secrets (2.5716ms)
+✔ secret_set + secret_get round-trips a value (4662.5589ms)
+✔ secret_list shows only masked previews, never raw values (1949.7839ms)
+✔ secret_* tools do not collide with provider keys in the same vault (1706.3652ms)
+✔ secret_delete removes the value and reports missing when absent (2101.3395ms)
+✔ secret_set rejects invalid names without writing (1659.9711ms)
+✔ secret_rotate with an explicit value replaces the old one atomically (1998.7649ms)
+✔ secret_rotate on a missing name fails closed instead of creating one (2138.8351ms)
+✔ secret_rotate generation mode replaces and the new value authenticates (1891.9718ms)
+✔ B19 lifecycle: propose -> sandbox -> edit -> test fail (workspace untouched) -> test pass -> applied -> reverted (827.6477ms)
+✔ P0-3: two same-named files stay distinct in the sandbox and restore individually (472.6991ms)
+✔ apply_change refuses a stale sandbox and never overwrites a newer workspace edit (358.2869ms)
+✔ a target deleted after sandboxing counts as stale and is NOT resurrected (35.2026ms)
+✔ skills: first save creates no version; overwrites archive the previous content (46.9357ms)
+✔ skills: version pruning keeps only the newest 10 (141.6227ms)
+✔ skills tools: versions read-only, rollback approval-gated, honest errors (23.2516ms)
+▶ team lifecycle: create, spawn, invite, task, run, list, delete
+  ✔ team_run reverts task to open and records failure when the sub-agent throws (58.5826ms)
+  ✔ team_run without a host runSubTask reports a clean error (23.9772ms)
+  ✔ unknown team / task / missing name produce typed errors (33.7854ms)
+✔ team lifecycle: create, spawn, invite, task, run, list, delete (203.2136ms)
+✔ /custom_tools routes to custom-tools kind (kept alongside /chat) (13.0876ms)
+✔ /chat routes to chat kind and coexists with /custom_tools (1.0525ms)
+✔ applySendFlags: no flags leaves the body unchanged (1.1936ms)
+✔ applySendFlags: quiet only sets disable_notification (1.1374ms)
+✔ applySendFlags: protect only sets protect_content (0.5272ms)
+✔ applySendFlags: effect only sets message_effect_id to the mapped id (0.5422ms)
+✔ applySendFlags: all three flags merge onto one body (5.086ms)
+✔ applySendFlags: effectOverride wins over per-call effect (0.556ms)
+✔ applySendFlags: empty input body stays empty with quiet+protect (20.9454ms)
+✔ tgEscapeInline: plain text passes through unchanged (1.1728ms)
+✔ tgEscapeInline: empty string returns empty string (0.5231ms)
+✔ tgEscapeInline: a single ||spoiler|| becomes a tg-spoiler element (0.4803ms)
+✔ tgEscapeInline: multiple spoilers are each converted (0.4276ms)
+✔ tgEscapeInline: special characters are HTML-escaped (0.2945ms)
+✔ tgEscapeInline: special chars inside a spoiler are escaped but the element survives (0.3205ms)
+✔ tgEscapeInline: unbalanced || is left as plain escaped text (0.3244ms)
+✔ tgEscapeInline: equals tgEscape when no delimiter pair is present (0.3004ms)
+✔ tgEscapeInline: apostrophes and double quotes are not escaped (0.2909ms)
+✔ goalChecklistMarkup: 1 step shows ⬜ when done=0 (0.5912ms)
+✔ goalChecklistMarkup: 3 steps — done=1 shows ✅ on 1, ⬜ on 2 and 3 (0.3991ms)
+✔ goalChecklistMarkup: all steps done shows all ✅ (0.3248ms)
+✔ goalChecklistMarkup: done > steps.length still renders all steps as ✅ (0.2892ms)
+✔ goalChecklistMarkup: step text is sliced to 40 extra chars (0.2672ms)
+✔ goalChecklistMarkup: caps at 30 steps (0.6501ms)
+✔ goalChecklistText: title and progress bar appear at the top (14.8604ms)
+✔ goalChecklistText: done=0 shows all steps as ⬜ (0.3804ms)
+✔ goalChecklistText: partial done shows correct ✅/⬜ split (0.3429ms)
+✔ goalChecklistText: all done shows all ✅ (0.3295ms)
+✔ goalChecklistText: empty steps list still shows 100% (0.2994ms)
+✔ goalChecklistText: very long goal title is sliced to 120 chars (0.4423ms)
+✔ goalChecklistText: result is sliced to 3900 chars max (0.5431ms)
+✔ progressBar: 0% is all empty blocks (0.269ms)
+✔ progressBar: 50% fills half the bar (0.3242ms)
+✔ progressBar: 100% is all filled blocks (0.3459ms)
+✔ progressBar: custom width works (0.3595ms)
+✔ progressBar: out-of-range negatives clamp to 0% (0.3517ms)
+✔ progressBar: out-of-range over-100 clamps to 100% (0.2308ms)
+✔ progressBar: rounding applies to the label (0.2403ms)
+✔ progressBar: rounding fills 4 blocks at 35% (0.24ms)
+✔ quotedWords: no quotes returns bare words (0.6866ms)
+✔ quotedWords: bare words and a quoted span both tokenize (0.4034ms)
+✔ quotedWords: multiple quoted terms are all extracted along with bare words (0.3396ms)
+✔ quotedWords: quoted text with spaces inside is preserved (0.4309ms)
+✔ quotedWords: bare words and quoted words mix correctly (0.4326ms)
+✔ quotedWords: unmatched quote swallows to end keeping the quote char (0.2857ms)
+✔ quotedWords: empty string returns empty array (0.2622ms)
+✔ quotedWords: consecutive spaces are collapsed in bare words (0.3841ms)
+✔ goalChecklistMarkup: done steps get success style, pending get primary (0.3158ms)
+✔ goalChecklistMarkup: all-pending shows primary, all-done shows success (0.3273ms)
+✔ menu buttons all carry a normalized style class (0.4046ms)
+✔ liveMonitorText: shows the given task and a working line (0.3642ms)
+✔ liveMonitorText: falls back to "thinking…" when no working line yet (0.2698ms)
+✔ liveMonitorText: trims long task and long working line (0.2941ms)
+✔ liveMonitorText: empty task yields an empty task label but the working label stays (0.2533ms)
+✔ routeTelegramMessage recognises /start, /bind, /help, /status, /stop (9.9215ms)
+✔ routeTelegramMessage routes URLs to ingest-url (3.6485ms)
+✔ routeTelegramMessage routes plain text as submit-task (0.7714ms)
+✔ routeTelegramMessage returns unknown for empty input (0.7891ms)
+✔ TELEGRAM_VIDEO_LINK_RE matches video hosts, not plain URLs (0.9845ms)
+✔ TELEGRAM_HELP documents commands (0.4544ms)
+✔ menu buttons are icon-led, short, and route to real commands (2.0779ms)
+✔ telegramMenuMarkup wraps the buttons as reply_markup (1.2419ms)
+✔ every hub and category board button routes to a real command (3.478ms)
+✔ /menu <category> routes to the menu action, not unknown (1.0367ms)
+✔ telegramMenuFor picks the category board and falls back to the hub (1.3198ms)
+✔ telegramStatus reports unconfigured with no token (3.2417ms)
+✔ bindTelegramOwner / telegramOwnerChat roundtrip (3934.5078ms)
+✔ saveTelegramToken validates format and forget clears (2106.1308ms)
+✔ bare /task and /goal are guarded on the TYPED path too (not just buttons) (2.3064ms)
+✔ /model without a live host refuses honestly instead of faking success (2.8689ms)
+✔ plain text reaches the chat hook — the submit-task dead path (regression) (1775.6214ms)
+✔ an audio/ mime message routes to the voice-note action, not ingest-file (regression) (3.9518ms)
+✔ rich layer: bold first line, blockquote body, plain round-trip (1.954ms)
+✔ permission prompts reach the bot; no bot = fail-closed fallback signal (2.2811ms)
+✔ trust-toggle: bare /trust flips the state and the board label follows (2.7654ms)
+✔ companion loop flag gates host approval delegation (no loop → local dialog) (2792.4415ms)
+✔ companion routing: new control commands parse without ambiguity (6.2906ms)
+✔ /panic awaits the host note — a Promise must never be stringified (1.8358ms)
+✔ companion: /task is a real task, distinct from plain chat and /goal (0.4322ms)
+✔ one watch per data dir: a second watch is refused with a reason and never polls (33.3871ms)
+✔ stop() aborts an in-flight long poll so the process can drain (1596.5795ms)
+✔ one watch per data dir: stopping the owner frees the role for the next host (27.9666ms)
+✔ timeline merges audit entries and sessions newest-first, honoring filters (235.731ms)
+✔ sessionLog writes a redacted note to the ledger; timeline_view reads it; session_log is gated (21.3329ms)
+✔ generateVideo (sync route) downloads the MP4 to disk with the right auth/body (184.4134ms)
+✔ generateVideo (async job) polls GET /videos/{id} until completed (67.1291ms)
+✔ generateVideo surfaces route errors and failed jobs without leaking the key (85.3319ms)
+✔ video_generate tool is approval-gated and reports the saved path (42.1768ms)
+✔ video_slideshow fails honestly without ffmpeg and with bad input (22.7566ms)
+✔ makeSlideshow spawns the shim as argv and writes the output file (331.7329ms)
+✔ web_fetch refuses private/loopback literals before opening a socket (8.9846ms)
+✔ web_fetch reaches a loopback server only when the owner grants the capability (126.6036ms)
+✔ workflow_create: gated; validates; persists; upsert updates in place (33.2878ms)
+✔ workflow_list: empty state then shows name + step chain (13.7832ms)
+✔ workflow_run: executes steps in order, splices {{name}} and {{last}} (11.243ms)
+✔ interpolate: exact match passes raw values; unknown refs stay written; nested args resolved (2.6991ms)
+✔ workflow_run: approval denial aborts fail-closed; later steps never run (23.5911ms)
+✔ workflow_run: unknown tool or failing step stops the pipeline with a clear trail (17.0652ms)
+✔ workflow_run tool: unknown workflow errors helpfully; definitions persist to workflows.json (11.2605ms)
+✔ workflow_run: a granular policy deny blocks the step (a workflow is not a bypass) (23.6499ms)
+✔ workflow_run: a policy approve forces a prompt even on a free tool, naming the real tool (27.1301ms)
+✔ workflow_run: an armed emergency stop halts the pipeline before the next step (3.7664ms)
+✔ workflow_run resolves steps from ctx.tools (custom/MCP/plugin), not just the built-ins (1105.3277ms)
+✔ workflows.json: a stale lock is recovered and the write is atomic (no tmp left behind) (22.6856ms)
+✔ brain viewer: sources list real files newest-first and ignore strays (1417.4585ms)
+✔ brain viewer: one source returns its chunks, and a traversal is a 404 (68.454ms)
+✔ brain viewer: the graph reports entities, relations and the totals it capped (54.7881ms)
+✔ brain viewer: health reports the real numbers, not a hopeful label (46.9154ms)
+✔ brain viewer: the page ships the panel, the button and the routes it calls (48.5692ms)
+ℹ tests 419
+ℹ suites 0
+ℹ pass 419
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 68241.1565

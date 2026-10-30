@@ -1,0 +1,13 @@
+fix: every hand-rolled atomic writer now goes through core/atomicFile.ts (release follow-up)
+
+Unified 14 sites across 12 modules onto the shared helper: budget, costmeter, policy, workflow, instanceLock, plugins, custom tools, selfimprove, mcp.json (save + remove), vectors, session history, schedules, undo, and the knowledge store (whose local duplicate helper is deleted; 5 call sites now use the shared one). The weak writers gain fsync and cleanup-on-failure: the fixed-`.tmp` sites (mcp, custom, selfimprove, plugins) had NO fsync and NO temp cleanup, so a failed rename left debris and a crash could lose the write; policy/workflow/instanceLock wrote no fsync at all.
+
+Two sites are deliberately NOT unified, with reasons in the code:
+- memory/graph.ts flushes BOTH halves before renaming either - a deliberate cross-file ordering that per-half helper calls would weaken. True cross-file atomicity needs a journal either way.
+- core/vault.ts writePrivate runs hardenAtRest(tmp) before the rename and hardenAtRest(target) after (the ACL window); the helper has no pre-rename hook and this is the keystore's only write path.
+
+Two real defects were found by the new concurrency test while unifying (both fixed in the helper):
+1. pid+Date.now is NOT a unique temp name: two async writes to one target in the same millisecond collided and the loser's rename failed ENOENT. The strong sites this replaced (vectors/history/schedule/undo) used a monotonic counter; the helper now carries one too (`tmpSeq`).
+2. On Windows a rename can transiently fail EPERM/EACCES/EBUSY while another rename or an antivirus/indexer holds the target. The helper now retries a bounded 5 attempts with a short backoff, then cleans up and throws as before.
+
+Tests: new overlapping-writers test in atomicFile.test.ts (8 concurrent writes at one target: complete payload, no debris) - fails deterministically against the old helper (ENOENT). The M2 schedules test now asserts the rename was attempted at least once instead of exactly once (the retry is intended). Affected suites green: atomicFile 4/4, and 196 tests across budget/budget-ledger/policy/plugins/workflow/mcp/selfimprove/vectors/undo-gc/redact/audit-fixes/instance-lock/regression/kb-ingest/parser-hostile with the HKCU env merged (the one bare-env --resume failure is the documented machine-dependent gotcha). tsc 0.

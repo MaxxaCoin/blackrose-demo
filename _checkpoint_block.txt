@@ -1,0 +1,81 @@
+SESSION 2026-10-26 TIER 3 - NEXT WORK 8, 9, 10 CLOSED (NEWEST - supersedes the tier-2 block above, kept below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-26 (items 8, 9, 10 closed; 321ff57..c1df5d2)
+AI / AGENT: AutoClaw
+
+  1. ITEM 8, ONE TELEGRAM WATCH PER DATA DIR (321ff57): the watch owns an
+     instanceLock role 'telegram-watch' for its whole life; a second host gets
+     an inert handle and a REASON, not a second poller (two long-polls on one
+     bot token = 409s and split/duplicated updates). A dead owner's lock is
+     taken over automatically via the pid check, so a crashed host cannot wedge
+     Telegram off forever. 2 tests: refusal with reason; stopping the owner
+     frees the role for the next host.
+  2. ITEM 9, /EXIT HANG (321ff57): /exit drains naturally (no process.exit),
+     which the watch defeated - its while(!stopped) loop re-issues long polls
+     forever and each fetch's in-flight ref'd socket holds the event loop alive
+     after main() returned. The CLI now stops the watch on BOTH exit paths
+     (one-shot + REPL end; the web UI host already did), and stop() aborts the
+     pending long poll via an AbortController wired into telegramGetUpdates.
+     The abort test is self-demonstrating: against the old code the test
+     process itself wedges (the ref'd socket cannot drain), so the failure mode
+     IS the proof. An abort on the way out is not a watch failure and is no
+     longer logged as one.
+  3. ITEM 9, BRIDGE TIMEOUTS (ac7991d): bridge client jsonCall had no timeout -
+     a host that accepted the connection and hung wedged the caller forever.
+     Ceiling is generous (10 min) because /ask and /goal legitimately run a
+     full agent turn; BLACKROSE_BRIDGE_TIMEOUT_MS env-tunable; the error names
+     the route. aki 15/15.
+  4. ITEM 9, SEA ARGV DOUBLE-SLICE (in 321ff57): cliArgs is already uniform -
+     the extra isSea slice in one-shot mode dropped the first user arg in SEA
+     builds.
+  5. ITEM 9, /COMPACT ORPHAN TOOL_RESULT (bbd5523): the re-anchor checked only
+     role === 'user', never content blocks. Two orphan paths, both reproduced
+     against the real compactHistory before the fix: the boundary lands on a
+     user tool_result carrier whose tool_use was folded into the summary, or
+     the re-anchor slice lands on exactly that carrier. compactHistory now
+     applies the same guard trimHistory has (drop leading tool_result carriers;
+     a result always follows its use, so only already-removed pairs drop).
+     trimHistory does NOT mask this - its early return passes a short history
+     through unsanitized. New smoke checks use REAL tool_use/tool_result
+     blocks; the old checks used text-only messages, which is why the bug
+     lived. Pre-fix repro exits 1, post-fix 0 (validation/repro-compact-*).
+  6. ITEM 9, MIXED-DIM VECTOR INDEX (c1df5d2): the stranded re-embed in
+     vectorsFor can land in a different backend than the rest of the call
+     (quota spent between the two embeds); its vectors were inserted
+     unvalidated, so a gemini/3072 store could gain 256-d entries and cosine()
+     (Math.min truncation) degraded to garbage instead of failing. Serving
+     stays total; only same-space vectors are cached, and saveStore is the
+     persistence backstop (drop any entry whose decoded length disagrees with
+     the header dim). New src/memory/vectors.test.ts in npm test - the mixed
+     test fails against the old code (it persisted [3072,256]).
+  7. ITEM 10, DEAD ONEMIN ROUTE (no code change - data-side): the live chain
+     was the HKCU env var BLACKROSE_ROUTES (env wins over the vault chain, and
+     the vault chain was already clean: gemini,openai3). 'onemin' was removed
+     from that value (HKCU\Environment, WM_SETTINGCHANGE broadcast, verified);
+     the failover no longer pays its dead-key round trip. The onemin ADAPTER
+     code stays - it is tested, legitimate for a working key, and the doctor
+     branch only fires when the route is actually chained. Flagged, not
+     removed: 'kilo' is also in the env chain with no adapter in code, but the
+     factory skips it BEFORE any network call, so it costs a warning row, not
+     a round trip - left for the owner to prune.
+  8. GATES: tsc 0; SMOKE PASSED (HKCU env merged - the bare host fails the
+     same 4 machine-dependent checks as documented 2026-10-22: vault
+     round-trip, unknown-route skip, UI key roster, key rotation; they are the
+     documented false failures, not regressions); node:test 403/403 (up from
+     398: +2 single-watch, +1 abort-drain, +2 vectors); scan:secrets clean.
+     Full-gate log: validation/gate-item9-block.out (run ONCE over the final
+     tree, not per commit - the per-commit targeted runs are named in the
+     commit messages). Investigators' repro scripts: validation/repro-
+     compact-orphan.ts (exit 1 pre-fix, 0 post-fix),
+     validation/repro-compact-fixed.ts, _inv_compact.md, _inv_exit.md,
+     _inv_vectors was NOT produced - the vectors investigator failed and the
+     fix was found and proven directly in-session.
+  9. PUSHED 321ff57..c1df5d2 (rev-list origin/main...HEAD = 0 0 to verify).
+     NEXT: the release follow-ups stay next in line - build-exe subpath
+     specifiers (node:fs/promises class), liveConns stale-entry hygiene,
+     DNS-rebinding connect-time IP pinning, unifying the nine hand-rolled
+     atomic writers onto core/atomicFile.ts; then queue rows 137-139 and the
+     20-pair retrieval eval gate before bulk ingest.
+
+================================================================================
+

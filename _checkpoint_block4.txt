@@ -1,0 +1,79 @@
+SESSION 2026-10-26 TIER 4 - RELEASE FOLLOW-UPS CLOSED (NEWEST - supersedes the tier-3 block above, kept below)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-10-26 tier 4 - release follow-ups closed (44e09df..15b8993)
+AI / AGENT: AutoClaw
+
+  1. SUBPATH SPECIFIERS (44e09df): the bundler hoists slash-free `node:x`
+     specifiers only; a `node:x/y` import survives into a wrapped module body
+     where an import declaration is illegal ESM. Audit: 46 occurrences, ALL
+     `node:assert/strict` (45 test files + scripts/mcpv/verify.ts) - ALL latent,
+     none in the bundle graph; no node:fs/promises class anywhere. Converted to
+     the slash-free named form `import { strict as assert } from 'node:assert'`
+     (same object/API). build-exe.ts gained an emit-time scan that names the
+     offending specifier (node --check alone only reports a bare SyntaxError,
+     and only for violations inside the graph). Verified by a real build:
+     npm run build:exe exit 0, bundle 127 modules, --check ok, --doctor ok
+     (validation/build-exe-subpath-gate.out).
+  2. LIVECONNS HYGIENE (2786e3a): McpConnection marked itself dead on child
+     exit/error/stdin-failure but nothing told the registries - isConnected
+     stayed true, listServers painted connected:true + toolCount:1 for a
+     corpse, killAll left dead liveConns entries. onDeath now fires ONCE on the
+     alive->dead transition (failAll is idempotent), and every registry path
+     reaps with an IDENTITY check (a superseding connection is never touched):
+     boot/tool path removes its liveConns entry, McpRegistry.connect removes
+     both, killAll reaps synchronously, isConnected/listServers also consult
+     isDead. Test: a real-stdio server that self-exits after the handshake -
+     proven to FAIL pre-fix (isConnected stayed true).
+  3. DNS REBINDING (8afe45b): the guard resolved+validated with
+     dns.promises.lookup, then fetch re-resolved the same hostname inside
+     net.connect - attacker DNS with TTL 0 answered public to the guard and
+     127.0.0.1 to the socket. REPRODUCED LIVE pre-fix (learn_url delivered an
+     internal loopback page into the knowledge base while the guard saw
+     93.184.216.34). Node's fetch has no lookup hook (undici #421) and undici
+     violates zero-dep, so the guarded fetch now uses node:http/https.request
+     with a `lookup` hook pinned to the validated array - no second resolver
+     query exists. URL stays hostname-form (TLS SNI + cert check intact). The
+     owner allowLoopbackFetch capability is unchanged and pinned by its own
+     test, which also proves the new request path end-to-end.
+     BLACKROSE_FETCH_TIMEOUT_MS is env-tunable (empty = unset, junk = default).
+     FLAGGED, NOT FIXED: web_fetch (tools/web.ts) still plain-fetches arbitrary
+     URLs with redirect-following and NO SSRF guard - same class, bigger hole,
+     needs an owner decision (a guard could break legitimate local-dev fetches).
+  4. ATOMIC WRITERS UNIFIED (15b8993): 14 sites / 12 modules now use
+     core/atomicFile.ts (budget, costmeter, policy, workflow, instanceLock,
+     plugins, custom, selfimprove, mcp.json x2, vectors, history, schedules,
+     undo, and the knowledge store whose local duplicate helper is deleted -
+     5 call sites). Weak sites gained fsync + cleanup-on-failure (the fixed
+     `.tmp` ones had neither). NOT unified, with in-code reasons: memory/graph
+     (both halves flushed before either rename - deliberate cross-file
+     ordering; a journal is the only real fix) and core/vault writePrivate
+     (hardenAtRest pre-rename + post-rename ACL window; keystore's only path).
+     TWO REAL DEFECTS FOUND BY THE NEW TEST, both fixed in the helper:
+     (a) pid+Date.now is not a unique temp name - two async writes to one
+     target in the same millisecond collided and the loser's rename failed
+     ENOENT (the strong sites had a counter; the helper now has tmpSeq too);
+     (b) Windows renames fail transiently EPERM/EACCES/EBUSY while another
+     rename or an AV/indexer holds the target - bounded retry (5 attempts,
+     short backoff) then the old cleanup-and-throw path. The M2 schedules test
+     now asserts >=1 rename attempt instead of exactly 1 (the retry is
+     intended, not a licence).
+  5. GATES: tsc 0; SMOKE PASSED (HKCU env merged); node:test 427 tests, 0 fail
+     over the 44-suite run (a superset of the npm-test list: kb-ingest and
+     tools/policy included); scan:secrets on the 66 changed .ts files reports
+     17 `assigned_secret` fingerprints, EACH SPOT-CHECKED as an identifier /
+     call / env reference, not a literal (e.g. `const token =
+     telegramToken(dataDir)`, `... || process.env.BLACKROSE_BRIDGE_TOKEN`) -
+     the same reference class prior sessions documented; verify:checkpoint
+     PASS. Log: validation/gate-followups.out (that run showed 1 failing test
+     in the summary; a second full run of the identical list is 427/427 green,
+     so it was a flake - recorded rather than hidden). The bare-env --resume
+     failure seen mid-work is the documented machine-dependent gotcha, not a
+     regression.
+  6. NEXT: queue rows 137-139 (teach-by-demo adjudication, UI knowledge/graph
+     viewer, UI git/repo panel + undo), the 20-pair retrieval eval gate before
+     any bulk ingest, the owner decision on mini.ts's constitution default, and
+     the newly-flagged unguarded web_fetch. Nothing in the release follow-up
+     list remains open.
+
+================================================================================
+
