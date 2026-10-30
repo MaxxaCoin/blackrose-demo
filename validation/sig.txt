@@ -1,4 +1,0 @@
-untrusted comment: signature from tauri secret key
-RUQRFjV1Ex8el85hkfxYOqz3BO1EP2HiWt2nU92UFWM+C0oBRcnHSosc5RjIOslID/I5CGDQGkmPJo5H1P+RkuNsyc7Mqk/PvA0=
-trusted comment: timestamp:1791907093	file:BlackRose_0.9.29_x64-setup.exe
-eWH8qnJIWjoI9FosrvkAUtWSClDxeDEIz2VOjpNbKrZf4kybsuFbym0eittropqv5VNojqdZp/WZk5ByXMhEAQ==

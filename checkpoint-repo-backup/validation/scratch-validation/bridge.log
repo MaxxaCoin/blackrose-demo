@@ -1,2 +1,0 @@
-{"ts":"2026-09-16T12:58:27.341Z","method":"GET","path":"/health","status":200,"ms":6}
-{"ts":"2026-09-16T12:58:35.560Z","method":"POST","path":"/ask","status":200,"ms":7622}

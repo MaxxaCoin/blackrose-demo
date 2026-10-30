@@ -1,6 +1,0 @@
-
-> blackrose@0.9.17 scan:history
-> node scripts/scan-history.ts
-
-scan-history: 169 commit(s), 2.4 MB of diff
-scan-history: no credentials in history (9 fixture shape(s), 5 env/identifier reference(s) ignored).

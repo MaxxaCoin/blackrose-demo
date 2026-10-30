@@ -1,7 +1,0 @@
-
-> blackrose@0.8.0 test
-> node src/smoke.ts && node --test src/regression.test.ts
-
-TypeError: Cannot read properties of undefined (reading 'id')
-    at main (file:///C:/Users/pc/Desktop/BlackRose/cline/blackrose/src/smoke.ts:1053:43)
-    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)

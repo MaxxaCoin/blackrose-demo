@@ -1,8 +1,0 @@
-{
-  "source": "telemetry-runbook",
-  "kind": "file",
-  "saved": "2026-09-16T15:26:32.852Z",
-  "chunks": [
-    "Ops runbook for the telemetry service: to publish an update, tag the repo, build the installer, upload it to the share, then verify the pipeline finished green before announcing the rollout to the team."
-  ]
-}

@@ -1,5 +1,0 @@
-
-> blackrose@0.9.17 scan:secrets
-> node scripts/scan-secrets.ts
-
-scan-secrets: no credentials in 0 file(s). (0 test fixture(s), 0 env/identifier reference(s) ignored)

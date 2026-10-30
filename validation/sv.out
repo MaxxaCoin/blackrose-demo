@@ -1,4 +1,0 @@
-
-thread 'main' (4740) panicked at src\main.rs:30:10:
-parse public key from base64: InvalidEncoding
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

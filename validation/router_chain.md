@@ -1,1 +1,0 @@
-BlackRose uses a free-model router chain: OpenRouter first, then Groq, then NVIDIA, then Hugging Face, then Cloudflare, then local Ollama. This implements free -> local -> paid routing.

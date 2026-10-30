@@ -1,4 +1,0 @@
-BlackRose UI: http://localhost:8961
-  provider: router(openai→gemini→openai→onemin→openai→openai→openai→openai→ollama) · model: BlackRose2 → gemini-3-flash-preview → nvidia/nemotron-3-super-120b-a12b → gpt-4o-mini → nvidia/nemotron-3-super-120b-a12b:free → openai/gpt-oss-120b → meta-llama/Llama-3.3-70B-Instruct → @cf/openai/gpt-oss-120b → qwen2.5-coder:7b
-  approvals: shown as dialogs in the UI (Allow / Deny)
-  Ctrl+C to stop.

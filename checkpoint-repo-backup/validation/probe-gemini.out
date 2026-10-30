@@ -1,6 +1,0 @@
-=== gemini ===
-[models] HTTP 200 · 58 total
-[chat] HTTP 404 in 415ms · model=gemini-2.5-flash
-[chat] tool_calls: none
-[chat] content: ""
-GEMINI PROBE DONE
