@@ -1,0 +1,48 @@
+# BlackRose outer workspace — keep build output and runtime secrets out of git.
+#
+# WHY THIS EXISTS: this repo (MaxxaCoin/blackrose-demo) had NO ignore file, so a
+# single `git add -A` wanted 2,006 files: a 96 MB installer payload under $dst/,
+# the whole nested cline/src tree, and the real source repo under cline/blackrose.
+# git warned "adding embedded git repository" instead of failing, which is the
+# kind of thing that gets committed by accident on a bad day.
+
+# ── Installer / build payload ──────────────────────────────────────────────
+$dst/
+dist/
+dist-build/
+target/
+*.exe
+*.msi
+*.sig
+*.tar.gz
+*.zip
+
+# ── Nested repositories ────────────────────────────────────────────────────
+# cline/blackrose is its OWN git repo with its own history and its own remote.
+# Tracked as a directory here it would embed as a broken submodule pointer.
+cline/
+
+# ── Perch / agent scratch ──────────────────────────────────────────────────
+.perch/attachments/
+.zwork/
+
+# ── Release and validation scratch ─────────────────────────────────────────
+validation/
+checkpoint-repo-backup/
+minisign_temp/
+
+# ── Secrets ────────────────────────────────────────────────────────────────
+# Never commit a signing password, key dump, or API key. .zwork/attachments has
+# held both signpass.txt and oxion_api_key.txt in plaintext during a session.
+signpass.txt
+oxion_api_key.txt
+*.key
+*.pem
+.env
+.env.*
+
+# ── Logs ───────────────────────────────────────────────────────────────────
+*.log
+build-*.txt
+*-output.txt
+*-error.txt
