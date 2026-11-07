@@ -1,4 +1,72 @@
-SESSION 2026-11-07 - v0.11.6 PUBLISHED: THREE AUDIT PASSES, 29 DEFECTS FIXED, RELEASE REPAIRED (NEWEST)
+SESSION 2026-11-07 - KNOWLEDGE CORPUS FED: 42 WORLD-MODEL DOCS THROUGH THE AKI ENGINE (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-11-07T19:34 knowledge feeding complete - 42 docs, 282 chunks, all retrievable
+AI / AGENT: MiMo (OpenCode - user: "continue")
+
+  1. WHAT WAS FED. A fresh, self-contained world model written this session
+     under knowledge-src/ INSIDE the workspace (ingestItem refuses paths
+     outside cwd via isInsideWorkspace): 42 documents in 18 numbered topic
+     dirs - 00-reasoning (logic, evidence, decisions, systems), 01-physics,
+     02-chemistry, 03-earth-and-space, 04-biology, 05-mind (cognition,
+     learning, emotion, social), 06-mathematics, 07-history, 08-economics
+     (markets, money), 09-society, 10-language, 11-computing (fundamentals,
+     algorithms, databases, OS+network), 12-programming, 13-web-and-cloud,
+     14-security, 15-ai (ML, deep learning, language models+agents),
+     16-systems, 17-practical (productivity, troubleshooting, safety, food).
+     One topic per file, pure prose; README.md documents the layout and is
+     excluded from ingest. The owner's scope was "everything, tech
+     included" - overlap with the ~610 legacy docs was accepted on purpose.
+
+  2. HOW: new committed scripts/ingest-corpus.ts calls ingestItem directly -
+     the CLI --ingest path can only pass {source, kind} and cannot carry the
+     AKI trust metadata, and bolting a manifest parser onto the CLI would
+     have created an untested parallel path. Same engine, so scrubbing,
+     idempotency, workspace containment, vector indexing, read-back verify
+     and the knowledge.ingest audit row all still happen. Per-doc metadata
+     (tags/summary/howto/confidence/staleAfter) lives in
+     knowledge-src/manifest.json: the script aborts on an entry without a
+     file or a file without an entry, and REFUSES a manifest that sets
+     "verified" (verification is owner-only, knowledge_verify). --check is
+     a manifest audit only; --verify ingests then runs sample searches.
+
+  3. TWO BUGS FOUND WHILE WRITING IT, both fixed before the first real run:
+     walkDocs re-based its root on each recursion, so every relative path
+     lost its directory prefix (first --check reported 42 orphans + 42
+     unlisted); and manifest keys need forward slashes on Windows, so the
+     relative path is normalized through path.sep before comparison.
+
+  4. RESULT: 42 added / 0 failed, 282 chunks, 42/42 retrievable AND
+     vector-indexed, 42 knowledge.ingest audit rows (86 in the ledger
+     total). The re-run proved idempotent - 42 unchanged, metadata
+     refreshed, no duplicate records. Embedder gemini-embedding-001 matched
+     the store header, so the index APPENDED: vectors 3192 -> 3474 of the
+     8000 cap, knowledge docs 610 -> 652, no rebuild and no fallback
+     vectors anywhere near the real index (saveStore refuses that anyway).
+
+  5. TRUST POSTURE (deliberate): every new doc starts UNVERIFIED x0.5 -
+     knowledge_search returns [UNVERIFIED - demoted] tags until the owner
+     runs knowledge_verify. Confidence comes from the manifest (0.8-0.9);
+     staleAfter only on fast-moving topics (365d on the three AI docs, 548d
+     ML, 730d web/cloud/security) so the freshness pass re-flags them;
+     timeless topics (physics, math, logic) omit it. The ingest script
+     never writes verified=true - escalation stays impossible.
+
+  6. PROOF: node scripts/ingest-corpus.ts --verify ran real queries through
+     knowledgeSearchTool - the money and cache-invalidation probes returned
+     the new corpus docs with score + trust tags, and the second pass
+     reported all 42 unchanged (idempotency, not luck).
+
+  7. GATES: typecheck 0 errors, npm test 487/487 (78 s), scan:secrets clean
+     over the staged corpus, scan:history clean (460 commits),
+     verify:checkpoint PASS - outputs in validation/gate-feed-*.out
+     (validation/ is gitignored, as are docs/RELEASE-*.md). HELD FOR THE
+     OWNER: knowledge_verify to promote the corpus (42 docs - start with
+     one to confirm the path), plus the standing T4 (pairing-code owner
+     binding) and G1 (web-UI host never starts scheduler).
+
+================================================================================
+
+SESSION 2026-11-07 - v0.11.6 PUBLISHED: THREE AUDIT PASSES, 29 DEFECTS FIXED, RELEASE REPAIRED
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-11-07T08:55 v0.11.6 published - signed, verified, notes/tag/checkpoint repaired
 AI / AGENT: MiMo (OpenCode - user: "check everything done by previous agents and continue, fix any mistakes and do it cleanly")
