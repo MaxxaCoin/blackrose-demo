@@ -1,3 +1,70 @@
+SESSION 2026-11-07 - EMPTY-200 NOW FAILS THE ROUTE (NO MORE PLACEHOLDER REPLIES) + THE PESTER DENIAL ROOT-CAUSED
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-11-07T22:40 empty-200 throws so the chain falls through; the Pester denial was the 600s dialog timeout
+AI / AGENT: MiMo (OpenCode - user: "continue")
+
+  1. THE TWO LIVE REPORTS. (a) The AI keeps answering with the literal text
+     "(empty response from model)": 23 copies of the OpenAI placeholder and 3
+     of the Gemini one, every single one inside the active session
+     session-2026-09-29T13-33-44-w9ub.json (6221 messages), the newest four
+     straight after a one-line user nudge ("try the failed ones again", ".",
+     "what were we doing"). (b) A run_command that ran Pester was denied at
+     2026-11-07T12:08:33.099Z.
+
+  2. ROOT CAUSE OF (a): a 200 with no text and no tool calls was not an error,
+     it was a PLACEHOLDER. openai.ts and gemini.ts pushed a text block reading
+     "(empty response from model)" whenever content came out empty, and
+     router.ts only falls through to the next route on a THROW - so the
+     placeholder was recorded by recordRouteSuccess as a healthy answer: the
+     chain never advanced, route health stayed green, and the turn ended with
+     the placeholder as the reply. That is also why no "falling back" notice
+     exists anywhere in the data dir for those turns - there was nothing to
+     notice.
+
+  3. THE FIX (src/llm/openai.ts, src/llm/gemini.ts, src/llm/resilient.ts): an
+     empty 200 now THROWS "...: empty response from model (no text, no tool
+     calls)", which makes it an ordinary route failure. The router advances to
+     the next route; keyHealth's default classifies it transient ('quota' -> try
+     the next key, never parked); routeHealth's default paints it 'degraded'
+     (stays in the chain, recovers on its own - neither pattern matches 401/403
+     or the network rules). resilient.ts TRANSIENT_RE now also matches "empty
+     response", so if EVERY route empties the chain gets one bounded backoff
+     retry instead of failing the turn at once. Auth still fails fast: HTTP 401
+     matches none of that.
+
+  4. FOUR NEW HERMETIC TESTS in src/llm/adapters.test.ts (loopback fake
+     gateways only - no real network, no keys): openai and gemini throw on
+     every empty shape (choices: [], content null, content '', candidates: [],
+     parts: []); a router over [empty route, good route] serves route TWO's
+     answer and logs the fallthrough notice; resilient retries the empty 200
+     exactly once and still fails HTTP 401 on the first try. STASH PROOF run
+     live: stashing ONLY the three fix files (tests stay) makes 4/4 new tests
+     fail - 9 pass, and the router failure shows the returned literal
+     '(empty response from model)'; restoring the fix gives 13/13 in that file.
+
+  5. GATES: typecheck 0 errors, npm test 496/496 (492 inherited + the 4 above),
+     scan:secrets clean over the 4 staged files, scan:history clean,
+     verify:checkpoint PASS. Scope note for honesty: the fix reaches the user
+     only through the next build - the installed exe still carries the
+     placeholder behavior, so a live empty reply can recur until v0.11.7 ships.
+
+  6. ROOT CAUSE OF (b) - NOT a policy deny and NOT a human Deny tap. policy.json
+     holds allow rules only, and a human Deny (or the 90 s Telegram TTL) would
+     have landed within ~90 s of the ask. The budget ledger has a model call at
+     2026-11-07T11:58:33.010Z and the denial at 12:08:33.099Z: exactly +600.09 s,
+     which is the web UI's fail-closed in-app approval dialog timeout
+     (server.ts setTimeout(..., 600_000)). Nobody answered the dialog, it
+     expired to DENY, and agent.ts reported "Action denied by user." - so the
+     assistant correctly held off the Pester step. Remedy is operational, not
+     code: answer the in-app Allow dialog inside the 10 minutes, run a
+     monitored session in trust mode, or bind the Telegram companion so the ask
+     lands on the phone where the buttons live.
+
+  7. STILL OPEN / NEXT: knowledge_verify for the 42-doc corpus (owner, start
+     with one), T4 pairing-code owner binding, G1 web-UI host never starts the
+     scheduler; after the next build, watch the route tray - the route that
+     empties must show degraded and the NEXT route must answer.
+================================================================================
 SESSION 2026-11-07 - KNOWLEDGE CORPUS FED: 42 WORLD-MODEL DOCS THROUGH THE AKI ENGINE (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-11-07T19:34 knowledge feeding complete - 42 docs, 282 chunks, all retrievable
