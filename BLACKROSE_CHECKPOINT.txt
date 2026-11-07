@@ -56,13 +56,29 @@ AI / AGENT: MiMo (OpenCode - user: "continue")
      the new corpus docs with score + trust tags, and the second pass
      reported all 42 unchanged (idempotency, not luck).
 
-  7. GATES: typecheck 0 errors, npm test 487/487 (78 s), scan:secrets clean
-     over the staged corpus, scan:history clean (460 commits),
-     verify:checkpoint PASS - outputs in validation/gate-feed-*.out
-     (validation/ is gitignored, as are docs/RELEASE-*.md). HELD FOR THE
-     OWNER: knowledge_verify to promote the corpus (42 docs - start with
-     one to confirm the path), plus the standing T4 (pairing-code owner
-     binding) and G1 (web-UI host never starts scheduler).
+  7. GATES: typecheck 0 errors, npm test 492/492 (the 487 inherited from
+     v0.11.6 plus the 5 ingest-corpus gate tests listed in item 8),
+     scan:secrets clean over the staged corpus, scan:history clean (462
+     commits), verify:checkpoint PASS - outputs in
+     validation/gate-feed*.out (validation/ is gitignored, as are
+     docs/RELEASE-*.md). HELD FOR THE OWNER: knowledge_verify to promote
+     the corpus (42 docs - start with one to confirm the path), plus the
+     standing T4 (pairing-code owner binding) and G1 (web-UI host never
+     starts scheduler).
+
+  8. GATE TESTS FOR THE FEEDING TOOL (added the same session, after the
+     first green run): src/ingest-corpus.test.ts - 5 hermetic spawn tests
+     over temp fixtures. They run --check, which returns before the
+     embedder or the data dir is ever touched, with BLACKROSE_DATA_DIR
+     pointed at a throwaway dir - a regression cannot reach the live
+     store. Covered: a synced corpus passes with README excluded and
+     nested keys keeping their directory prefix; an unlisted file aborts
+     and is NAMED with its prefix; an orphan manifest entry aborts; a
+     manifest carrying "verified" is refused (owner-only); a missing
+     manifest aborts instead of ingesting blind. The nested-path test is
+     the regression test for the walkDocs re-basing bug of item 3:
+     reverting the fix makes 4 of the 5 fail - proven live by stashing
+     the fix, running the suite, and restoring it from the commit.
 
 ================================================================================
 
