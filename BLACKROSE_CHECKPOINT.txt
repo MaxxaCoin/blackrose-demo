@@ -1,3 +1,75 @@
+
+SESSION 2026-11-08 - AUDIT OF THE P1/P2 PLANNER COMMIT + THE TRACE/EVAL HARNESS FINISHED AND WIRED (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-11-08T17:56 verification pass: 513/513 green, release re-verified live, harness defects fixed
+AI / AGENT: GLM 5.3 Flash (OpenCode - user: "check and verify everything")
+
+  1. WHAT THIS SESSION INHERITED. HEAD 8cfeec5 (P1+P2 planner/reflect, 1
+     commit ahead of origin/main, unpushed) plus an UNCOMMITTED trace/eval
+     harness in the working tree: src/core/trace.ts (the writer + grading),
+     src/tools/trace.ts (trace_view + eval_report tools), src/tools/
+     trace.test.ts (10 tests), traceRunId threading through core/agent.ts,
+     registration in tools/index.ts, and the suite entry in package.json.
+     The session's mandate was "check and verify everything": audit the
+     inherited work, run every gate, and re-verify the published release.
+
+  2. DEFECT D1 (test arithmetic, FIXED): trace.test.ts line 137 "Loosen:
+     all pass again" set denialRate 0.9, but run B has 1 ask / 1 denial =
+     rate 1.0, and 1.0 > 0.9 FAILS - the loosened gate was arithmetically
+     impossible to satisfy; the suite could never have gone green twice in
+     a row on any machine. Fixed to denialRate: 1, which also pins the
+     boundary (cmp is <=, so 1.0 <= 1.0 passes). Observed live: 512/513
+     before (the one fail at line 138), 513/513 after.
+
+  3. DEFECT D2 (fail-open torn write, FIXED): saveThresholds used a bare
+     fs.writeFileSync, violating the repo's M5/L5 standard (14 sites
+     unified on core/atomicFile.ts). A torn thresholds file silently
+     degrades the quality gate to "no thresholds" because loadThresholds
+     treats corrupt JSON as none - fail-OPEN. Now writeFileAtomicAtSync
+     (tmp + fsync + rename + Windows-retry), which also replaces the
+     mkdirSync.
+
+  4. DEFECT D3 (dead ternary, FIXED): eval_report returned
+     isError: rep.verdict === 'fail' ? false : false - always false, so a
+     FAILING gate report looked like a normal reply. Now isError is true
+     when the verdict fails (fail-loud, matching the repo's stated rule).
+
+  5. THE HARNESS WAS DORMANT - NOW WIRED (owner chose REPL + web UI): no
+     host passed a traceRunId, so traceStart was only ever called from
+     tests and no real run was traced. Wired: REPL main loop + REPL
+     sub-agent + the Telegram tgChat path (src/index.ts), and the web
+     /api/ask loop + web sub-agent (src/ui/web/server.ts) - one traceStart
+     per logical run, continuations appending to the SAME run id. Sources
+     recorded: repl / repl-sub-agent / telegram / telegram-voice /
+     web / web-sub-agent. runGoal, bridge, and schedule runner remain
+     unwired (owner scoped this to REPL + web UI).
+
+  6. GATES ON THIS TREE: typecheck 0 errors; npm test 513/513 (503
+     inherited from 8cfeec5 + the harness's 10; the first full run was
+     512/513 with the D1 fail, the brain.test.ts flake appeared once in a
+     later run and passed on rerun of the identical tree - same
+     machine-dependent flake the file already records); scan:secrets clean
+     over the 6 staged files (2 test fixtures ignored); scan:history clean
+     (464 commits); verify:checkpoint PASS (all 9 checks).
+
+  7. RELEASE RE-VERIFIED LIVE (all checkpoint claims held): endpoint
+     releases/latest/download/latest.json HTTP 200 advertising 0.11.6,
+     notes == "BlackRose 0.11.6 - three audit passes, 29 defects fixed",
+     pub_date 2026-11-06T16:50:44Z, no BOM; the manifest signature string
+     is byte-identical to scripts/latest.json on disk; installer HEAD 200
+     at exactly 25,981,292 bytes; release API lists all three assets
+     (installer id 717870455, .sig 420 B id 717876123, latest.json 753 B -
+     its asset id is newer than the checkpoint records because the notes
+     repair re-uploaded ONLY that asset, as documented); tag v0.11.6 ->
+     48d291c locally and on origin (refs/tags/v0.11.6 verified via
+     ls-remote); origin/main is 0 ahead / 1 behind (the unpushed 8cfeec5).
+
+  8. STILL OPEN / NEXT: push 8cfeec5 + this commit to origin/main; T4
+     pairing-code owner binding; G1 web-UI host never starts the scheduler;
+     knowledge_verify for the 42-doc corpus (owner); optional follow-up -
+     wire traceStart into runGoal / bridge / schedule runner so every host
+     is traced.
+================================================================================
 SESSION 2026-11-07 - EMPTY-200 NOW FAILS THE ROUTE (NO MORE PLACEHOLDER REPLIES) + THE PESTER DENIAL ROOT-CAUSED
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-11-07T22:40 empty-200 throws so the chain falls through; the Pester denial was the 600s dialog timeout

@@ -1,5 +1,17 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+VERIFICATION PASS (2026-11-08, see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - Audited the 2026-11-08 P1+P2 planner/reflect commit (8cfeec5) and the
+    uncommitted trace/eval harness; fixed 3 defects in the harness (test
+    arithmetic that could never pass, a fail-open torn write on the
+    thresholds file, a dead isError ternary) and wired the harness into
+    the REPL, Telegram and web UI hosts so real runs are traced.
+  - Gates on HEAD: typecheck 0; npm test 513/513; scan:secrets + scan:history
+    clean; verify:checkpoint PASS. Release re-verified LIVE: endpoint 200
+    advertising 0.11.6, installer HEAD 200 at 25,981,292 bytes, tag on the
+    bump commit, both repos' claims held.
+
+
 RELEASE PIPELINE REPAIRED (2026-11-07, auditing the previous agents' work):
   1. STALE RELEASE NOTES: the published v0.11.6 body and its latest.json
      carried 0.11.4-era text — scripts/sign-release.ps1 still held a
