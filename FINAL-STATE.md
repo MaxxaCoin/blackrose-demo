@@ -1,5 +1,19 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEM SHIPPED (2026-11-09, T4 — see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - T4 pairing-code owner binding (src/tools/telegram.ts): an OPT-IN
+    one-time code that disables TOFU (first-message binding) while armed.
+    Minted host-side only — telegram tool action:pair, approval-gated —
+    8-char base64url (48 bits) in the sealed vault; while armed only
+    /pair <code> binds, a successful pair consumes the code, compare is
+    timing-safe (SHA-256 both sides); action:unpair restores TOFU; no code
+    armed = legacy TOFU byte-for-byte. Status surfaces (ownerPreview,
+    online note) show the armed state; forget clears the pair field.
+  - 4 new tests (routing, e2e bind/consume against a local fake Bot API,
+    TOFU-unchanged, tool lifecycle + gates); npm test 527/527.
+  - Gates: typecheck 0; scan:secrets + scan:history clean (466 commits);
+    verify:checkpoint PASS (both copies byte-identical, sha256 f9a3c9e8b5d6).
+
 BUILD QUEUE ITEMS SHIPPED (2026-11-09, see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - Pinned eval task suite (src/eval/): 8 end-to-end benchmark tasks (tool
     orchestration, graph two-hop, planted-failure recovery, a must-refuse
@@ -123,7 +137,8 @@ TELEGRAM-COMPANION AUDIT (2026-11-06, 927d8fa) — 12 defects T1-T8/N1-N6:
   N5 failed replies were awaited and discarded -> logged via onEvent.
   N6 runOnce vs loop could issue concurrent getUpdates (Telegram 409) ->
     one shared poll lock.
-  HELD for the owner: T4 (pairing-code owner binding).
+  T4 (pairing-code owner binding) SHIPPED 2026-11-09 — see the newest
+  checkpoint block; was "held for the owner" since this audit.
 
 AKI AUDIT + FIXES (2026-11-04) — knowledge-ingest subsystem, 11 defects, ALL FIXED:
   committed e2efb09, pushed. typecheck 0 errors; npm test 458/458

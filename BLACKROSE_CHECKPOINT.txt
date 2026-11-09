@@ -1,4 +1,65 @@
 
+SESSION 2026-11-09 - T4 PAIRING-CODE BINDING SHIPPED: TOFU LOCKED BEHIND A ONE-TIME CODE (NEWEST)
+------------------------------------------------------------------------------------------------
+DATE / TIME: 2026-11-09 - t4 shipped: typecheck 0, npm test 527/527, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "lets do these one by one")
+
+  1. MANDATE: work the remaining roadmap one item at a time; T4 was first.
+     No spec existed in docs for T4/G1, so T4 was designed here: an OPT-IN
+     pairing-code that disables TOFU (first-message binding) while armed.
+     The code is minted on the trusted side only - telegram tool action:pair,
+     approval-gated - 8 chars of base64url (6 random bytes = 48 bits), stored
+     in the sealed vault under BLACKROSE_TELEGRAM_PAIR_CODE. While armed the
+     bot binds ONLY on /pair <code>; a successful pair CONSUMES the code
+     (one-time); the compare is timing-safe (both sides SHA-256 hashed, then
+     timingSafeEqual). No code armed = legacy TOFU byte-for-byte, so existing
+     setups are unchanged; action:unpair clears it and restores TOFU.
+
+  2. IMPLEMENTATION (src/tools/telegram.ts): routeTelegramMessage parses
+     /pair into {kind:'pair', code} (so a bound chat answering "already
+     paired" can never fall through to the model as chat); the UNBOUND branch
+     of handleTelegramUpdate intercepts /pair BEFORE the TOFU bind - a
+     correct code binds this chat + disarms + replies with the menu card, a
+     wrong or missing code replies honestly ("locked behind a pairing code" /
+     "pairing code is not valid - codes are one-time") and binds NOTHING; the
+     tool refuses action:pair when an owner chat is already bound (and never
+     touches the armed code on refusal); status surfaces reflect it
+     (ownerPreview "(unbound - pairing code armed; send /pair <code>)", online
+     note "Pairing code armed - send /pair <code> ..."); forgetTelegramToken
+     clears the pair field alongside token + owner; /help lists /pair.
+
+  3. TESTS (4 new in src/tools/telegram.test.ts, 527 total): (a) routing of
+     /pair with, without, and upper-cased; (b) e2e against a LOCAL fake Bot
+     API that records EVERY request body - a plain first message = hint + NO
+     bind + zero agent turns, a wrong code = "not valid" + still unbound, the
+     correct code = binds to that chat AND the code is consumed (verify then
+     fails); (c) TOFU-unchanged: no code armed, the first private message
+     still binds with the classic reply; (d) tool lifecycle - pair/unpair are
+     approval-gated while status is free, the minted code is 8-char base64url
+     and verifies only exactly, a re-mint rotates and kills the old code, a
+     BOUND owner is refused a new mint without disturbing the armed code,
+     unpair clears and both status surfaces return to their TOFU/bound text.
+
+  4. VERIFICATION NOTES: hermetic - each T4 test uses a fresh tmpDataDir
+     (vault state never leaks between tests), a fake Bot API on 127.0.0.1:0
+     (no network; all connections closed in finally), and
+     resetRichCapability() first so every send starts from "not tried yet".
+     Assertions scan ALL recorded bodies because a reply may ride the rich
+     rung (sendRichMessage), where HTML escaping turns <code> into
+     &lt;code&gt; - hence plain phrases ("pairing code", "pairing code is not
+     valid", "Paired. This chat") instead of literal markup.
+
+  5. GATES ON THIS TREE: typecheck 0 errors; npm test 527/527 (523 inherited
+     + 4 T4); scan:secrets clean over the 2 staged files; scan:history clean
+     (466 commits); verify:checkpoint PASS (both copies byte-identical).
+
+  6. STILL OPEN / NEXT: G1 - the web UI host never starts the scheduler
+     (src/ui/web/server.ts has no startScheduler call while src/index.ts:442
+     has one), so scheduled tasks silently never run under the web host; then
+     knowledge_verify for the 42-doc corpus (owner); the multi-hour soak on a
+     real task + mine ~/.blackrose/traces (no live traces yet); optional -
+     wire traceStart into runGoal / bridge / schedule runner.
+================================================================================
 SESSION 2026-11-09 - EVAL SUITE + GRAPHRAG FUSION + TRACE MINER SHIPPED (NEWEST)
 --------------------------------------------------------------------------------
 DATE / TIME: 2026-11-09 - gates green: typecheck 0, npm test 523/523, scans + checkpoint PASS
