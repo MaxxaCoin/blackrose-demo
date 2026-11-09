@@ -1,4 +1,55 @@
 
+SESSION 2026-11-09 - G1 WIRED: THE --ui WEB HOST NOW RUNS THE SCHEDULE RUNNER (NEWEST)
+---------------------------------------------------------------------------------------
+DATE / TIME: 2026-11-09T16:12 g1 wired: typecheck 0, npm test 530/530, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "lets do these one by one")
+
+  1. MANDATE (continued from the T4 block below): work the remaining roadmap
+     one item at a time - G1 was second. G1 had no spec in docs either, so it
+     was designed here: the web UI HOST (node src/index.ts --ui) must run the
+     same fail-closed schedule runner as the console host, or scheduled tasks
+     silently never fire while the desktop app is open.
+
+  2. THE DEFECT (confirmed before fixing): index.ts dispatches --ui to
+     runWebUi() and RETURNS at lines 148-151 - long before the console path
+     reaches startScheduler() at line 442. So under the web host, schedules
+     sat in schedules.json looking healthy while NO tick ever read them: a
+     task that was "scheduled" simply never ran for the entire life of the
+     process, with nothing in the UI saying so.
+
+  3. THE FIX (src/ui/web/main.ts, runWebUi - the --ui host seam that mirrors
+     index.ts): startScheduler() is called right after the UI is up, with the
+     same contract as the console host - dataDir/cwd/client/tools from this
+     host, system: () => buildSystem() (a FRESH prompt per mission, not the
+     boot snapshot), onEvent logging, and onResult pushing a one-line
+     verdict to the owner's Telegram via telegramSchedulePushback - a push
+     failure logs but never kills the runner, and "no token"/"no owner" stay
+     silent. stop() (SIGINT/SIGTERM) now calls scheduler.stop() BEFORE
+     h.close(), releasing the role lock and cutting the in-flight run first.
+
+  4. SAFETY: wiring it host-side is safe because startScheduler self-guards -
+     acquireRoleLock(dataDir, 'scheduler') per data dir; a SECOND host over
+     the same data dir gets a reported reason and a no-op handle (no tick
+     started), so CLI + UI + bridge can coexist without double-firing (and
+     double-spending tokens). Each tick also re-checks the emergency latch.
+
+  5. TESTS (3 new in src/ui/web/main.test.ts, wired into npm test - 530
+     total): main.ts runs a host loop so it cannot be imported - the tests
+     source-pin it the way audit-fixes.test.ts pins index.ts. (a) the host
+     imports startScheduler AND calls it with dataDir/cwd/client/tools, a
+     live buildSystem() and the pushback contract (silent when no
+     token/owner); (b) stop() calls scheduler.stop() before h.close(); (c) a
+     contract pin on schedule/runner.ts: a refused lock returns a no-op
+     handle after reporting the reason and NEVER starts setInterval
+     (behavioral proof of the lock remains in instance-lock.test.ts).
+
+  6. GATES ON THIS TREE: typecheck 0 errors; npm test 530/530 (527 inherited
+     + 3 G1, package.json test script extended with the new file); scans
+     clean. STILL OPEN / NEXT: knowledge_verify for the 42-doc corpus
+     (owner); the multi-hour soak on a real task + mine ~/.blackrose/traces
+     (no live traces yet); optional - wire traceStart into runGoal / bridge /
+     schedule runner.
+================================================================================
 SESSION 2026-11-09 - T4 PAIRING-CODE BINDING SHIPPED: TOFU LOCKED BEHIND A ONE-TIME CODE (NEWEST)
 ------------------------------------------------------------------------------------------------
 DATE / TIME: 2026-11-09 - t4 shipped: typecheck 0, npm test 527/527, scans + checkpoint PASS

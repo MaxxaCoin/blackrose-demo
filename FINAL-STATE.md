@@ -1,5 +1,19 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEM SHIPPED (2026-11-09, G1 — see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - G1: the --ui web host now runs the schedule runner (src/ui/web/main.ts
+    runWebUi). The defect: index.ts returned from runWebUi at line 148-151
+    BEFORE the console host's startScheduler() call at line 442, so
+    scheduled tasks silently never fired while the desktop app ran behind
+    the web UI. runWebUi now starts the same fail-closed runner (fresh
+    buildSystem per mission, Telegram schedule pushback, per-dataDir
+    scheduler role lock so a second host can't double-fire) and stop()
+    releases it before h.close().
+  - 3 source-pinning tests (src/ui/web/main.test.ts, wired into npm test);
+    npm test 530/530.
+  - Gates: typecheck 0; scan:secrets clean (4 staged) + scan:history clean
+    (467 commits); verify:checkpoint PASS (sha256 6bc3a3ed2d18).
+
 BUILD QUEUE ITEM SHIPPED (2026-11-09, T4 — see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - T4 pairing-code owner binding (src/tools/telegram.ts): an OPT-IN
     one-time code that disables TOFU (first-message binding) while armed.
