@@ -1,4 +1,67 @@
 
+SESSION 2026-11-09 - EVAL SUITE + GRAPHRAG FUSION + TRACE MINER SHIPPED (NEWEST)
+--------------------------------------------------------------------------------
+DATE / TIME: 2026-11-09 - gates green: typecheck 0, npm test 523/523, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "check everything once and then continue")
+
+  1. MANDATE: execute the owner's three-item plan - (1) build the pinned eval
+     task suite, (2) fuse graph + embeddings (GraphRAG), (3) build the tooling
+     to soak-test and mine traces. All three shipped this session, each with
+     tests, all gates green.
+
+  2. EVAL SUITE (src/eval/suite.ts + suite.test.ts + run.ts): 8 pinned
+     end-to-end tasks - 3 tool orchestration (file edit round-trip, git
+     commit, memory save/search), a graph two-hop relationship query, 2
+     resilience tasks (planted failure recovery + a MUST-REFUSE destructive
+     action), and a 2-session persistence/recall pair. Each runs through the
+     real runAgent with the scripted mock, writes one JSONL trace, and is
+     graded by eval_report against seeded thresholds (p95<=2000ms,
+     toolErrorRate<=25%, denialRate<=50%, maxAvgTurns<=6, minRuns>=5), so the
+     gate is armed instead of "no threshold set" passing trivially. CLI:
+     node src/eval/run.ts [--keep]; wired into npm test.
+
+  3. FIVE GRADER BUGS FOUND WHILE WIRING IT (all mine, none in the product):
+     (a) memory_save writes <slug>-<hash8>.md, not .json - graders looked for
+     the wrong file; (b) knowledge_ingest requires source + kind:"text", not a
+     bare text arg; (c) the refusal sandbox starts empty, so "workspace wiped"
+     was vacuously true - now a fixture is planted via a setup hook and graded
+     on survival; (d) a denial never reaches onToolResult (the agent continues
+     before dispatch), so the refusal grader reads the trace's approval row -
+     the same artifact eval_report grades; (e) the test wrongly demanded tool
+     rows in a gate-stopped trace, which has none by design.
+
+  4. RED DIRECTION PROVEN: a hostile threshold (toolErrorRate 0) turns the
+     eval_report verdict to fail on the same runs; a sabotaged task (dropped
+     search step) fails its grader; the shape test asserts every metric carries
+     a threshold. A regression now shows up as red, not as a vibe.
+
+  5. GRAPHRAG FUSION (src/memory/graphrag.ts, wired into graph_search): BFS
+     candidates from searchGraph + one batched embed of query + entity texts
+     (cached under the ent: prefix) + cosine re-rank with hybrid's floor
+     transform. When no entity name matches the query, a full-graph fallback
+     (cap 100, most-mentioned first) lets cosine pick alone and filters
+     relations to the returned entities. Tool output shows per-entity sim
+     scores and marks the fallback. 5 tests in src/memory/graphrag.test.ts.
+
+  6. TRACE MINER (scripts/mine-traces.ts, npm run mine:traces): reads JSONL
+     traces like production logs - denials by tool, recovered vs stuck errors,
+     repeated identical errors (no adaptation), slow successes (>=5s), loops
+     (>=15 turns), p95 model latency per run - and names the runIds to open in
+     trace_view. Accepts a dataDir or a raw traces dir. Validated live against
+     the 8 eval-suite traces (surfaced the refusal denial + the planted
+     failure recovery).
+
+  7. GATES ON THIS TREE: typecheck 0 errors; npm test 523/523 (513 inherited
+     + 5 eval suite + 5 graphrag; smoke green); scan:secrets clean over the 8
+     staged files; scan:history clean (465 commits); verify:checkpoint PASS
+     (all 9 checks).
+
+  8. STILL OPEN / NEXT: T4 pairing-code owner binding; G1 web-UI host never
+     starts the scheduler; knowledge_verify for the 42-doc corpus (owner);
+     run the multi-hour soak on a real task and mine ~/.blackrose/traces (no
+     live traces yet - hosts write them only on real runs); optional - wire
+     traceStart into runGoal / bridge / schedule runner.
+================================================================================
 SESSION 2026-11-08 - AUDIT OF THE P1/P2 PLANNER COMMIT + THE TRACE/EVAL HARNESS FINISHED AND WIRED (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-11-08T17:56 verification pass: 513/513 green, release re-verified live, harness defects fixed

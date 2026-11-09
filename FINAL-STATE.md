@@ -1,5 +1,21 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEMS SHIPPED (2026-11-09, see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - Pinned eval task suite (src/eval/): 8 end-to-end benchmark tasks (tool
+    orchestration, graph two-hop, planted-failure recovery, a must-refuse
+    destructive action, two-session persistence) run through the real agent
+    and graded via the same trace -> eval_report pipeline as live runs;
+    thresholds seeded so the gate is armed, red direction proven by tests;
+    wired into npm test; CLI node src/eval/run.ts [--keep].
+  - GraphRAG fusion (src/memory/graphrag.ts, wired into graph_search): BFS
+    candidates re-ranked by cosine over cached entity vectors; full-graph
+    fallback when no entity name matches; 5 tests.
+  - Trace miner (scripts/mine-traces.ts, npm run mine:traces): denials,
+    recovered/stuck/repeated errors, slow successes, loops, p95 model
+    latency — validated live against the eval-suite traces.
+  - Gates: typecheck 0; npm test 523/523; scan:secrets + scan:history clean;
+    verify:checkpoint PASS (both copies byte-identical, sha256 b9c6b024bc8d).
+
 VERIFICATION PASS (2026-11-08, see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - Audited the 2026-11-08 P1+P2 planner/reflect commit (8cfeec5) and the
     uncommitted trace/eval harness; fixed 3 defects in the harness (test
