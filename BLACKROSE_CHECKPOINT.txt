@@ -1,4 +1,57 @@
 
+SESSION 2026-11-10 - MINER THIRD FAIL-OPEN: "NO ADAPTATION" READ CLEAN WHILE ONE ERROR HIT 18 RUNS (NEWEST)
+---------------------------------------------------------------------------------------
+DATE / TIME: 2026-11-10T17:00 cross-run repetition mined: typecheck 0, npm test 541/541, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "check the progress")
+
+  1. MANDATE (continued): the soak has been running ~5 hours (bridge :8787 +
+     --ui :8788 with the scheduler, owner-decided UNCAPPED) and the progress
+     check was to read what it produced. It produced 215 traces / ~470 KB,
+     208+ done, 561 tool calls (4.5% errored), 143 denials and 0 granted -
+     and a THIRD fail-open in `npm run mine:traces`, the very tool the soak
+     exists to feed.
+
+  2. THE DEFECT: "Repeated identical errors" only fired when the SAME tool
+     failed with the SAME text TWICE WITHIN ONE RUN (single-run state
+     machine). A failure that recurs on EVERY FIRING therefore never
+     registered: ui_elements.json was missing in 18 SEPARATE runs over the
+     soak, listed as 18 unrelated "stuck errors", while the repetition
+     section read "0 - no adaptation". The report asserted no pattern for the
+     clearest pattern there is - the exact claim a soak is meant to refute,
+     and the same fail-open shape as the two miner bugs already fixed.
+
+  3. THE FIX (scripts/mine-traces.ts): a second accumulator keyed by
+     tool+error text, valued by a SET of runIds, so one run hammering the
+     same error 12x still counts as ONE run. New report section "Same error
+     across runs" lists only keys seen in >= 2 distinct runs, sorted by run
+     count, with the run ids so a named run can be opened in trace_view. The
+     within-run view is KEPT - they answer different questions (didn't adapt
+     inside this run vs nobody fixed it between runs). The verdict line now
+     counts the new signal too, or it would still read "nothing suspicious"
+     with a real pattern on screen.
+
+  4. RESULT ON LIVE DATA: 3 groups surfaced - 18 run(s) missing
+     phase21/ui_elements.json, 3 run(s) missing
+     digital_world_map/discover_models.py, 2 run(s) missing
+     configs/resource_limits.json. Also visible in the same report: 129 of
+     the 143 denials are run_command from unattended schedule firings, the
+     scheduler now SILENTLY SKIPS those tasks ("standing denials remain the
+     newest signal") rather than prompting, and 3 runs tried to policy_set a
+     run_command allow rule for .blackrose paths - all 3 DENIED, and
+     policy.json still holds 0 run_command entries. Approval gate held.
+
+  5. TEST (src/mine-traces.test.ts, now 5 cases): three runs missing the
+     same file plus one with an unrelated error must report exactly ONE
+     cross-run group of 3 runs, must NOT fold the single-run error in, and
+     the within-run counter must stay 0. Regression-pins the fail-open.
+
+  6. GATES: typecheck 0 errors; npm test 541/541; scan:secrets clean (2
+     staged files); scan:history clean (471 commits, 6.2 MB);
+     verify:checkpoint PASS. Live route tray also confirms the earlier
+     router fix: openai1 is back to ok (it was degraded on the 128-tool
+     cap) while openai2/oxion stay down.
+
+================================================================================
 SESSION 2026-11-10 - ROUTE DEFECT: 165 TOOLS VS GROQ'S 128 CAP, LEARNED CEILING INSTEAD OF A PERMANENT 400 (NEWEST)
 ---------------------------------------------------------------------------------------
 DATE / TIME: 2026-11-10T16:15 router tool-ceiling fixed: typecheck 0, npm test 540/540, scans + checkpoint PASS

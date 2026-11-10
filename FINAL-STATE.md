@@ -1,5 +1,32 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEM SHIPPED (2026-11-10, MINER CROSS-RUN REPETITION — see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - Third fail-open in `npm run mine:traces`, found by reading the 5-hour
+    soak's output. "Repeated identical errors" only fired when ONE run
+    repeated the same error twice, so a failure recurring on EVERY firing
+    never registered: ui_elements.json was missing in 18 SEPARATE runs,
+    listed as 18 unrelated "stuck errors", while the repetition section
+    read "0 — no adaptation". The report claimed no pattern for the
+    clearest pattern there is.
+  - Fix (scripts/mine-traces.ts): accumulate tool+error text against a SET
+    of runIds (one run hammering an error 12x = ONE run), then report keys
+    seen in >= 2 distinct runs under "Same error across runs", sorted by
+    run count with the ids for trace_view. The within-run view is kept —
+    it answers a different question (didn't adapt inside this run vs
+    nobody fixed it between runs). The verdict line counts it too, or it
+    would still print "nothing suspicious" with a pattern on screen.
+  - Live result: 3 groups — 18 runs missing phase21/ui_elements.json, 3
+    missing digital_world_map/discover_models.py, 2 missing
+    configs/resource_limits.json.
+  - Soak status at read time: ~215 traces / 470 KB over ~5h, 208+ done,
+    561 tool calls (4.5% errored), 143 denials / 0 granted, 0
+    run_command policies created (3 policy_set attempts all denied — the
+    approval gate held). Route tray shows openai1 back to ok, confirming
+    the tool-ceiling fix; openai2/oxion still down.
+  - Test: src/mine-traces.test.ts (5 cases). Gates: typecheck 0;
+    scan:secrets clean (3 staged) + scan:history clean (471 commits);
+    verify:checkpoint PASS (sha256 cac25bcb923f), npm test 541/541.
+
 BUILD QUEUE ITEM SHIPPED (2026-11-10, ROUTER TOOL CEILING — see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - Defect found while starting the soak: BlackRose sends 165 tool schemas
     per turn, Groq (route openai1) caps at 128 and answers HTTP 400
