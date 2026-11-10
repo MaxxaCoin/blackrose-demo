@@ -1,5 +1,21 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEM SHIPPED (2026-11-10, P1 TRACE WIRING — see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - Every host that dispatches a run now opens a labeled trace, so a soak
+    produces mineable data: runGoal owns ONE trace for the whole goal
+    (source 'goal', or a host-supplied label) covering the planner call
+    (timed by hand, model row), every step run and the verify run, closed
+    by a LAST goal-level run_end with cumulative turns (readTrace's
+    last-wins end reports the goal, not the verify segment); failedGoal is
+    the chokepoint that closes failing runs. Host labels: bridge /ask ->
+    'bridge', bridge /goal -> 'bridge-goal' (passed in, no double-start),
+    bridge sub-agents -> 'bridge-sub-agent', schedule firing -> 'schedule'.
+    Web /goal self-starts 'goal' (sibling of /api/ask's askTraceId) and
+    telegram goals route through tgGoal only — no double traces.
+  - 5 new tests (src/trace-wiring.test.ts, appended to npm test); 535/535.
+  - Gates: typecheck 0; scan:secrets clean (6 files) + scan:history clean
+    (468 commits); verify:checkpoint PASS (sha256 17ba5b11de91).
+
 BUILD QUEUE ITEM SHIPPED (2026-11-09, G1 — see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - G1: the --ui web host now runs the schedule runner (src/ui/web/main.ts
     runWebUi). The defect: index.ts returned from runWebUi at line 148-151

@@ -1,4 +1,71 @@
 
+SESSION 2026-11-10 - P1 TRACE WIRING: GOALS, BRIDGE AND SCHEDULED RUNS NOW LEAVE MINEABLE TRACES (NEWEST)
+---------------------------------------------------------------------------------------
+DATE / TIME: 2026-11-10T14:05 trace wired: typecheck 0, npm test 535/535, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "check everything once and continue")
+
+  1. MANDATE (continued from the G1 block below): work the remaining roadmap one
+     item at a time. Next open item was the trace gap G1's own closing note left
+     behind: core/trace.ts + the agent dispatch chokepoint already existed (P1),
+     but only two hosts passed a traceRunId - the REPL's /api/ask and the web
+     UI's sub-agents. Goals, bridge traffic and scheduled missions ran UNTRACED,
+     so a soak of those hosts would have produced nothing for `npm run
+     mine:traces` to mine.
+
+  2. runGoal NOW OWNS ONE TRACE (src/core/taskEngine.ts): after the emergency
+     latch check (a refused goal must NOT leave an orphan run) it computes
+     `traceId = o.traceRunId ?? traceStart(dataDir, {source:'goal', model})`.
+     Everything appends to that ONE run: the planner call (planGoal bypasses
+     runAgent, so runGoal times it by hand and appends a model row with
+     turn/ms/route - omitted when planGoal throws, matching agent.ts), every
+     step run, and the verify run (both runAgent calls pass traceRunId:
+     traceId). Plan throw paths close the trace with a run_end BEFORE rethrowing.
+
+  3. THE GOAL-LEVEL run_end IS WRITTEN LAST: the per-segment run_end rows from
+     the agent runs stay, then failedGoal (the dead-end chokepoint - all three
+     call sites now pass outcome + traceRunId) or the success path appends a
+     final goal-level run_end with CUMULATIVE turns, so readTrace's last-wins
+     end reports the whole goal instead of only the verify segment. Outcome
+     mapping: aborted/budgetStop/exhausted come from the step or verify flags;
+     a thrown step or plan = 'error' (or 'aborted' when ctx.signal aborted);
+     success = the verify run's flags else 'done'. NOT_VERIFIED on a run that
+     COMPLETED still ends 'done' - the outcome is the run lifecycle, not the
+     verdict.
+
+  4. HOST LABELS (each seam passes its own traceRunId): bridge /ask opens
+     source "bridge"; bridge /goal passes "bridge-goal" (no double-start -
+     runGoal appends to the run it is handed); bridge main.ts runSubTask labels
+     depth-1 sub-agents "bridge-sub-agent"; schedule/runner runOne labels each
+     firing "schedule" right before runAgent (after the unattended ctx). Web
+     /goal still self-starts "goal" - it is a sibling branch of /api/ask's
+     askTraceId - and telegram goals only route through tgGoal, so no host ends
+     up with two traces for one run.
+
+  5. TESTS (5 new in src/trace-wiring.test.ts, appended to the npm test script
+     - 535 total): (a) a verified goal = exactly ONE trace file, source "goal",
+     6 model rows (1 planner + 2 for step 1 + 2 for step 2 + 1 for verify - the
+     COUNT pins the hand-timed planner row, since agent turns also start at 0),
+     and 4 run_ends whose last is the goal-level row with turns equal to the sum
+     of the three segment ends and outcome "done"; (b) the dead-end recipe
+     closes its trace with an "exhausted" goal run_end - a failed run never
+     leaves an open file; (c) bridge /ask + /goal over HTTP produce EXACTLY two
+     files with sources {bridge, bridge-goal}, proving /goal did not self-start
+     a third; (d) a firing schedule is polled (readTrace end, 10s deadline,
+     t.after stop) for a "schedule"-labeled run ending "done"; (e) source pin on
+     bridge/main.ts: the runSubTask block must pass traceRunId
+     traceStart(config.dataDir, source 'bridge-sub-agent') - that host only
+     runs with a live provider, so it cannot be driven behaviorally.
+
+  6. GATES ON THIS TREE: typecheck 0 errors; npm test 535/535 (530 inherited +
+     5 new, package.json test script extended with the new file); scan:secrets
+     clean (6 files); scan:history clean in the inner repo (468 commits, 6.2 MB
+     of diff - the outer copy still cannot run it, git log exceeds Node's char
+     buffer); checkpoint byte-identical in both copies. STILL OPEN / NEXT:
+     knowledge_verify for the 42-doc corpus (owner); the multi-hour soak on a
+     real task + `npm run mine:traces` over ~/.blackrose/traces (owner) - now
+     reachable, because goal / bridge / bridge-goal / bridge-sub-agent /
+     schedule runs all leave labeled traces.
+================================================================================
 SESSION 2026-11-09 - G1 WIRED: THE --ui WEB HOST NOW RUNS THE SCHEDULE RUNNER (NEWEST)
 ---------------------------------------------------------------------------------------
 DATE / TIME: 2026-11-09T16:12 g1 wired: typecheck 0, npm test 530/530, scans + checkpoint PASS
