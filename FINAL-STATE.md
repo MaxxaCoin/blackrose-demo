@@ -1,5 +1,33 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEM SHIPPED (2026-11-10, SIDEBAR FOLDERS LOAD CLOSED + TRUST MODE GETS ITS OWN SIDEBAR BUTTON — see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - Ask (owner): "once the ui is loaded, the sidepanels automatically keeps
+    opened, i want them closed unless i open them" and "create a separate
+    sidebar button of the trust mode unlike in the settings option".
+  - Fix A (src/ui/web/assets.ts): all nine <details class="grp"> groups
+    shipped with the `open` attribute, so a fresh page load presented ten
+    expanded panels and pushed the session list below the fold. Every one
+    now starts closed; the browser keeps whatever the user opens during
+    that visit. No JS reads group state (the folders are pure HTML
+    toggles), so nothing else in the client changed.
+  - Fix B: #btn-trust lived INSIDE the collapsed Settings folder — a global
+    "approves everything" switch you had to expand a panel to even see. It
+    is now a direct child of <aside>, above the first folder, with a
+    comment pinning that it must never be hidden by a collapsed panel. The
+    honest danger tooltip (names what trust approves, "keep OFF by
+    default") travels with the button so the move cannot drop the warning.
+  - Test: new regression case — no grp details starts open, >=10 folders
+    still present (the fix cannot be "delete the panels"), btn-trust index
+    sits between <aside> and the first folder and before the Settings
+    summary, tooltip strings asserted on the button tag. Smoke sidebar
+    check downgraded to order-only; stale "start open" comments fixed in
+    assets.ts and smoke.ts.
+  - Gates: typecheck 0; npm test 547/547 (546 baseline + 1 new, smoke
+    included); scan:secrets clean (4 staged); scan:history clean (473
+    commits, 6.3 MB); verify:checkpoint PASS (sha256 c29dfac4017c). Soak
+    left running untouched (it validates the previous build); the sidebar
+    change takes effect on the next page load.
+
 BUILD QUEUE ITEM SHIPPED (2026-11-10, TRUST MODE COVERS UNATTENDED APPROVALS — see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - Defect (the trust-mode roadmap item): trust was interactive-only.
     `let trustOn` lives in ui/web/server.ts, but the scheduler's

@@ -1,4 +1,55 @@
 
+SESSION 2026-11-10 - SIDEBAR FOLDERS NOW LOAD CLOSED AND TRUST MODE GETS ITS OWN BUTTON ABOVE THEM (NEWEST)
+---------------------------------------------------------------------------------------
+DATE / TIME: 2026-11-10T17:59 folders closed by default + trust button out of Settings: typecheck 0, npm test 547/547, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "i want some changes in the ui")
+
+  1. THE ASK (two UI changes, one decision): every sidebar folder shipped
+     with `open`, so a fresh load presented ten expanded panels and pushed
+     the session list below the fold - "once the ui is loaded, the
+     sidepanels automatically keeps opened, i want them closed unless i open
+     them". Second, the trust toggle lived INSIDE the Settings folder, so
+     the global "approves everything" switch was itself behind a collapsed
+     panel - "create a separate sidebar button of the trust mode unlike in
+     the settings option".
+
+  2. THE FIX (ui/web/assets.ts): all nine `open` attributes stripped from
+     `<details class="grp">`, so the page loads with every folder shut and
+     the browser keeps whatever the user opens during that visit. No JS
+     reads group state - the folders are pure HTML toggles - so nothing
+     else in the client needed to change. Counting them also proved the
+     folders were the only thing holding the panels open.
+
+  3. TRUST MOVES ABOVE THE FOLDERS: `#btn-trust` left Settings and is now a
+     direct child of `<aside>`, before the first `<details>`, with a
+     comment saying it must never be hidden by a collapsed folder - a
+     consent switch you have to expand a panel to reach is a switch people
+     forget is on. The honest danger tooltip (names what trust actually
+     approves, keeps "keep OFF by default") travels with the button so the
+     move cannot quietly drop the warning that matters.
+
+  4. TEST (regression.test.ts, new case): no `<details class="grp"...open>`
+     anywhere in the source; at least 10 folders still present, so the fix
+     cannot be "delete the panels"; `id="btn-trust"` sits between `<aside>`
+     and the first folder and before the Settings summary; and the
+     tooltip strings "approves EVERYTHING" / "keep OFF by default" are
+     asserted on the button tag itself. Smoke sidebar check downgraded to
+     order-only and its comments now say so instead of claiming folders
+     start open.
+
+  5. NOTHING ELSE BROKE: 547/547 (546 baseline + 1 new). Every pre-existing
+     pin survives the move - smoke `<details class="grp"` presence, the
+     sidebar id list containing btn-trust, `id="btn-trust"` + `/api/trust`,
+     and the trust JS pins (`const next = !trustOn`, `JSON.stringify({ on:
+     next })`, no `chooseTrust` / `min left`).
+
+  6. GATES: typecheck 0 errors; npm test 547/547 (smoke included);
+     scan:secrets clean (3 files staged); scan:history clean (473 commits,
+     6.3 MB); verify:checkpoint PASS. Soak left running untouched - it
+     validates the previous build, and this change is client-side markup
+     only, so it takes effect on the next page load.
+
+================================================================================
 SESSION 2026-11-10 - TRUST MODE COVERS UNATTENDED APPROVALS: THE UI SWITCH GRANTS SCHEDULED RUNS INSTEAD OF SILENTLY DENYING THEM (NEWEST)
 ---------------------------------------------------------------------------------------
 DATE / TIME: 2026-11-10T17:36 trust wired into scheduler + inbox approvals: typecheck 0, npm test 546/546, scans + checkpoint PASS
