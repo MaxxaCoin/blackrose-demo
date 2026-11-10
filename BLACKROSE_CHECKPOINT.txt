@@ -1,4 +1,59 @@
 
+SESSION 2026-11-10 - ROUTE DEFECT: 165 TOOLS VS GROQ'S 128 CAP, LEARNED CEILING INSTEAD OF A PERMANENT 400 (NEWEST)
+---------------------------------------------------------------------------------------
+DATE / TIME: 2026-11-10T16:15 router tool-ceiling fixed: typecheck 0, npm test 540/540, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "do what you see right")
+
+  1. MANDATE (continued): the last two roadmap items are the soak and the
+     corpus verification. Corpus is DONE (42/42, block below). The soak was
+     started next - bridge on :8787 plus the --ui host on :8788 carrying the
+     scheduler (the bridge returns before startScheduler, so one host cannot
+     do both; the role lock makes two hosts safe) - and proving it surfaced a
+     THIRD fail-open, this one in the model router.
+
+  2. THE DEFECT: BlackRose sends 165 tool schemas on every agent turn, but
+     Groq (route openai1) caps a request at 128 - it answers HTTP 400
+     "'tools' : maximum number of items is 128". The router had no notion of
+     a tool limit, so it re-sent the SAME oversized request to openai1 on
+     every single turn, paid the round trip, and repainted the route tray
+     "degraded" each time. With openai2 (fetch failed) and oxion (401) already
+     down, that wasted hop sat in the hot path of most turns. Nothing in the
+     codebase declared a per-provider tool ceiling at all.
+
+  3. THE FIX (src/llm/router.ts): the router now learns the ceiling from the
+     provider's OWN words - on catch it matches /maximum number of items is
+     (\d+)/i and records it against that route name. Before each call it
+     skips routes whose learned cap is below THIS request's tool count, so a
+     doomed request is never retried. Two guards keep it honest: the skip is a
+     soft preference (if nothing fits, everything is tried anyway - same rule
+     as the known-down skip), and it is PER CALL, not a route kill, so a
+     tool-less request (the planner sends none) still reaches the route. No
+     per-vendor table that could rot.
+
+  4. TEST (src/llm/adapters.test.ts): "a tool-count 400 teaches a per-call
+     ceiling instead of being retried every turn" - asserts the route is tried
+     exactly once, that the provider's limit surfaces as the fallthrough
+     reason, that the NEXT oversized call skips it with no failure notice, and
+     that a tool-less call still reaches it. npm test 540/540 (one unrelated
+     telegram T7 flake on the first run, green on re-run - it caches a Bot API
+     404 capability verdict).
+
+  5. SOAK RUNNING, and the pipeline is now proven on REAL data: 36 runs mined
+     from ~/.blackrose/traces - outcomes done=35 error=1, 80 tool calls (9
+     errored, 11.3%), 27 denials (22x run_command unattended, 3x schedule_task,
+     1x write_file outside workspace, 1x policy_set), 2 recovered failures and
+     7 stuck errors (a repeatedly missing ui_elements.json, one ECONNRESET).
+     Bridge /ask answered, bridge /goal ran a real planner + write_file +
+     list_dir + read_file and closed done (it created the probe file), and the
+     scheduler fires ~every 5 min with every trace closing run_end done.
+     OWNER DECISION RECORDED: the user declined a spend cap ("i dont want any
+     limits though"), so budget.json stays UNCAPPED by explicit choice - the
+     earlier recommendation to arm one is overridden.
+
+  6. GATES: typecheck 0 errors; npm test 540/540; scan:secrets clean (3 staged
+     files); scan:history clean (470 commits, 6.2 MB); verify:checkpoint PASS.
+
+================================================================================
 SESSION 2026-11-10 - KNOWLEDGE VERIFY 42/42 + TWO FAIL-OPEN MINER DEFECTS FIXED (NEWEST)
 ---------------------------------------------------------------------------------------
 DATE / TIME: 2026-11-10T15:30 corpus verified 42/42 + miner fixed: typecheck 0, npm test 539/539, scans + checkpoint PASS

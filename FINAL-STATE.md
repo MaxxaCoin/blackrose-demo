@@ -1,5 +1,30 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEM SHIPPED (2026-11-10, ROUTER TOOL CEILING — see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - Defect found while starting the soak: BlackRose sends 165 tool schemas
+    per turn, Groq (route openai1) caps at 128 and answers HTTP 400
+    "'tools' : maximum number of items is 128". The router had no notion
+    of a tool limit, so it re-sent the SAME oversized request on every
+    turn, paid the round trip, and repainted the route tray degraded each
+    time — with openai2 (fetch failed) and oxion (HTTP 401) down, that sat
+    in the hot path of most turns.
+  - Fix (src/llm/router.ts): learn the ceiling from the provider's OWN
+    error message, keyed by route name, and skip routes whose cap is below
+    the current request's tool count. The skip is a soft preference (if
+    nothing fits, try everything — same rule as the known-down skip) and
+    is per CALL, not a route kill, so a tool-less request (the planner
+    sends none) still reaches the route. No per-vendor table to rot.
+  - Test: src/llm/adapters.test.ts pins try-exactly-once, the limit
+    surfacing as the fallthrough reason, the next oversized call skipping
+    it with no failure notice, and a tool-less call still reaching it.
+  - Soak now running: bridge :8787 + --ui :8788 (scheduler pid 3704); the
+    bridge host returns before startScheduler so one host cannot do both.
+    Miner over live data: 36 runs, done=35 error=1, 80 tool calls, 27
+    denials, 7 stuck errors. Owner declined a spend cap (uncapped by
+    explicit choice).
+  - Gates: typecheck 0; scan:secrets clean (3 staged) + scan:history clean
+    (470 commits); verify:checkpoint PASS (sha256 cee3cc34ef7c).
+
 BUILD QUEUE ITEM SHIPPED (2026-11-10, KNOWLEDGE VERIFY 42/42 + MINE-TRACES DEFECTS — see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - Owner verification of the 42-doc knowledge corpus, content review FIRST
     (knowledge_verify proves a file is UNCHANGED since ingest — integrity,
@@ -25,9 +50,12 @@ BUILD QUEUE ITEM SHIPPED (2026-11-10, KNOWLEDGE VERIFY 42/42 + MINE-TRACES DEFEC
     defects; npm test 539/539.
   - Gates: typecheck 0; scan:secrets clean (16 staged) + scan:history clean
     (469 commits); verify:checkpoint PASS (sha256 c2f9ee4974f2).
-  - OPEN before the soak: ~/.blackrose/budget.json has NO cap key — spend
-    is UNCAPPED; set a cap first. Standing: exposed API keys from an
-    unfiltered env dump need rotation; openai2 fetch failures + oxion 401.
+  - SPEND CAP: budget.json has NO cap key, so spend is UNCAPPED — and the
+    owner was asked before the soak and explicitly declined a limit ("i
+    dont want any limits though"), so uncapped is a recorded DECISION, not
+    an oversight. Standing: exposed API keys from an unfiltered env dump
+    need rotation; openai2 fetch failures + oxion 401 (the latter now has a
+    router-side tool ceiling, see the block above).
 
 BUILD QUEUE ITEM SHIPPED (2026-11-10, P1 TRACE WIRING — see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - Every host that dispatches a run now opens a labeled trace, so a soak
