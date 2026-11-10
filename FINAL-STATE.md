@@ -1,5 +1,34 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEM SHIPPED (2026-11-10, KNOWLEDGE VERIFY 42/42 + MINE-TRACES DEFECTS — see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - Owner verification of the 42-doc knowledge corpus, content review FIRST
+    (knowledge_verify proves a file is UNCHANGED since ingest — integrity,
+    not truth): a subagent read all 42 docs and found 1 major factual error
+    (bacteria "most successful by biomass" — plants hold ~80% of Earth's
+    biomass), 6 minor (TΔΔS Gibbs typo, half-a-tennis-court alveoli,
+    "CO2 not O2" as absolute, WWII death toll attached to both world wars,
+    2008 crisis cited as authoritarian-information failure, 6 in of water
+    "takes a car off the road") and 8 text corruptions — all 15 fixed,
+    10 files re-ingested (283 chunks, 42/42 retrievable).
+  - scripts/verify-corpus.ts (new) drives the EXPORTED
+    knowledgeVerifyTool.run for every corpus item (--check read-only,
+    --limit N): 42 verified, 0 stale, 0 unreadable, 0 unverified.
+  - Two FAIL-OPEN miner defects found live while proving the soak pipeline
+    and fixed: (1) resolveRuns preferred ANY top-level .jsonl, so
+    ~/.blackrose/experience_memory.jsonl shadowed traces/ and the real
+    trace was never read — "1 run, no-run_end" over the wrong file; (2)
+    readTrace(dataDir,id) always derives <dataDir>/traces/<id>.jsonl, so
+    the documented --data <traces dir> form read ZERO rows and graded every
+    run no-run_end. Directory now resolved once (resolveTarget), reads go
+    through new exported readTraceFile(file, runId).
+  - src/mine-traces.test.ts (new): 4 spawn-based tests pinning both
+    defects; npm test 539/539.
+  - Gates: typecheck 0; scan:secrets clean (16 staged) + scan:history clean
+    (469 commits); verify:checkpoint PASS (sha256 c2f9ee4974f2).
+  - OPEN before the soak: ~/.blackrose/budget.json has NO cap key — spend
+    is UNCAPPED; set a cap first. Standing: exposed API keys from an
+    unfiltered env dump need rotation; openai2 fetch failures + oxion 401.
+
 BUILD QUEUE ITEM SHIPPED (2026-11-10, P1 TRACE WIRING — see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - Every host that dispatches a run now opens a labeled trace, so a soak
     produces mineable data: runGoal owns ONE trace for the whole goal

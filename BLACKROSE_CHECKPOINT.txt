@@ -1,4 +1,68 @@
 
+SESSION 2026-11-10 - KNOWLEDGE VERIFY 42/42 + TWO FAIL-OPEN MINER DEFECTS FIXED (NEWEST)
+---------------------------------------------------------------------------------------
+DATE / TIME: 2026-11-10T15:30 corpus verified 42/42 + miner fixed: typecheck 0, npm test 539/539, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "do what you see right")
+
+  1. MANDATE (continued from the P1 block below): the last two roadmap items are
+     the owner verification of the 42-doc corpus and the multi-hour soak plus
+     `npm run mine:traces`. Order taken: content review FIRST (knowledge_verify
+     only proves a file is UNCHANGED since ingest - integrity, not truth), then
+     verification, then proving the soak pipeline for real before burning tokens
+     on an unattended run.
+
+  2. CONTENT REVIEW: a background subagent read all 42 docs in full and returned
+     ERRORS FOUND - 1 major (cells-genetics: "bacteria are the most successful by
+     biomass" - plants hold ~80% of Earth's biomass; bacteria win by cell COUNT),
+     6 minor (TΔΔS typo in the Gibbs formula, half-a-tennis-court alveoli
+     comparison, "CO2 not O2" as an absolute, 70-85M attached to BOTH world wars
+     when that is WWII alone, 2008 crisis cited as an example of AUTHORITARIAN
+     information failure, 6 inches of water "takes a car off the road"), plus 8
+     text corruptions (stray CJK in the human-body doc, Galaphage, coincedence,
+     "A engine", unpraced, Reprove, truncated "high to potential"). ALL 15 FIXED
+     in knowledge-src; 10 files re-ingested (32 unchanged), 283 chunks, 42/42
+     retrievable and vector-indexed.
+
+  3. scripts/verify-corpus.ts (NEW): drives the EXPORTED knowledgeVerifyTool.run
+     for every corpus item - no second verification implementation to drift, same
+     rule as ingest-corpus.ts driving ingestItem. --check is read-only, --limit 1
+     verifies one first, no flags = all. It cannot mark a changed source verified
+     (the tool refuses on hash mismatch and reports stale). RESULT: 42 verified,
+     0 stale, 0 unreadable, 0 unverified.
+
+  4. MINER DEFECT 1 (FAIL-OPEN, found live): resolveRuns preferred ANY top-level
+     .jsonl in the target, and ~/.blackrose has experience_memory.jsonl, so
+     `npm run mine:traces` mined THAT file and never opened traces/ - it printed
+     "1 run, no-run_end, no model rows" while the real trace sat one level down.
+     After a soak that empty report would have read as "nothing suspicious".
+     traces/ now wins whenever it exists; a direct listing is used only when the
+     target IS the traces dir or has no traces/ child.
+
+  5. MINER DEFECT 2 (FAIL-OPEN, same session): row reads went through
+     readTrace(dataDir, id), which ALWAYS derives <dataDir>/traces/<id>.jsonl, so
+     the documented `--data <traces dir>` form (and a copied-out traces folder)
+     found the files but read ZERO rows - every run graded no-run_end. Fixed by
+     resolving the directory ONCE (resolveTarget -> tracesDirPath) and reading via
+     a new exported readTraceFile(file, runId) in core/trace.ts (readTrace now
+     delegates to it). Both defects are pinned by src/mine-traces.test.ts: 4
+     spawn-based tests over the committed script (shadowing, direct traces dir,
+     flat copied folder, honest empty report).
+
+  6. GATES: typecheck 0 errors; npm test 539/539 (535 baseline + 4 new
+     mine-traces tests); scan:secrets clean over 15 staged files; scan:history
+     clean (469 commits, 6.2 MB); verify:checkpoint PASS.
+
+  7. SOAK READINESS, proven free first: eval suite 8/8 PASS (p95 1 ms, tool
+     error 6.7%, denial 33.3%) and the miner surfaced a real run_command denial
+     plus a real recovered edit_file failure from those traces; a live REPL turn
+     wrote ~/.blackrose/traces/20261110-050058-8hihs1.jsonl (source repl, model
+     row, run_end done). OPEN BEFORE THE SOAK: ~/.blackrose/budget.json has NO
+     cap key, so spend is UNCAPPED - set one first. Also standing: an unfiltered
+     env dump earlier in this session printed live API keys and the Telegram bot
+     token into the transcript (rotate them), and route health still shows openai2
+     fetch failures + oxion HTTP 401 from the 2026-11-08 watch item.
+
+================================================================================
 SESSION 2026-11-10 - P1 TRACE WIRING: GOALS, BRIDGE AND SCHEDULED RUNS NOW LEAVE MINEABLE TRACES (NEWEST)
 ---------------------------------------------------------------------------------------
 DATE / TIME: 2026-11-10T14:05 trace wired: typecheck 0, npm test 535/535, scans + checkpoint PASS
