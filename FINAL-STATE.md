@@ -1,5 +1,37 @@
 BLACKROSE v0.11.6 — FULL PROJECT STATUS (v0.11.6 RELEASED 2026-11-06, RELEASE PIPELINE REPAIRED 2026-11-07; before that: re-audited 2026-11-03, v0.11.4/0.11.5 RELEASED 2026-11-04, AKI AUDITED+FIXED 2026-11-04)
 
+BUILD QUEUE ITEM SHIPPED (2026-11-10, TRUST MODE COVERS UNATTENDED APPROVALS — see BLACKROSE_CHECKPOINT.txt newest block for detail):
+  - Defect (the trust-mode roadmap item): trust was interactive-only.
+    `let trustOn` lives in ui/web/server.ts, but the scheduler's
+    askApproval (schedule/runner.ts) and the inbox watcher's guard
+    (tools/inbox.ts) each built their own fail-closed gate that never saw
+    it — with trust ON every unattended run still auto-denied every gated
+    tool (soak at read time: 143 denials / 0 granted, firing schedules
+    doing silent no-ops), the opposite of "trust mode should allow all the
+    permissions".
+  - Fix (src/core/trust.ts): a process-wide consent registry of LIVE
+    getters — registerTrustSource(fn) + processTrustOn(), fail-closed when
+    nothing is registered. server.ts registers trustActive beside
+    `let trustOn = false` (the regression one-source-of-truth pin holds
+    unchanged); telegram.ts registers consoleTrustOn so
+    BLACKROSE_APPROVE=all (already documented as process-wide consent)
+    finally reaches unattended surfaces too. No host call site changed, so
+    there is no wiring to forget. Every grant writes a transcript line and
+    lands in the trace as approval ok:true (denials ok:false), giving
+    mine:traces a granted-vs-denied story; trust OFF keeps the exact deny
+    line and never-hang behavior.
+  - Test: src/trust-unattended.test.ts (5 cases): the REAL /api/trust
+    toggle drives a live scheduler both ways, console trust grants, the
+    SCHEDULE_APPROVE=all hatch grants under a distinct label (no vacuous
+    pass), the registry fails closed, source pins cover both registrations
+    and the inbox watcher's guard. Trace approvals asserted as a SET — the
+    runId stamp is only second-granular.
+  - Gates: typecheck 0; npm test 546/546 (541 baseline + 5 new, smoke
+    included); scan:secrets clean (8 staged); scan:history clean (472
+    commits, 6.3 MB); verify:checkpoint PASS (sha256 70fc90ac3689). Soak
+    left running untouched (it validates the previous build); the new
+    wiring takes effect on the next host start.
+
 BUILD QUEUE ITEM SHIPPED (2026-11-10, MINER CROSS-RUN REPETITION — see BLACKROSE_CHECKPOINT.txt newest block for detail):
   - Third fail-open in `npm run mine:traces`, found by reading the 5-hour
     soak's output. "Repeated identical errors" only fired when ONE run

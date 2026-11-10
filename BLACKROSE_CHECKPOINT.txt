@@ -1,4 +1,57 @@
 
+SESSION 2026-11-10 - TRUST MODE COVERS UNATTENDED APPROVALS: THE UI SWITCH GRANTS SCHEDULED RUNS INSTEAD OF SILENTLY DENYING THEM (NEWEST)
+---------------------------------------------------------------------------------------
+DATE / TIME: 2026-11-10T17:36 trust wired into scheduler + inbox approvals: typecheck 0, npm test 546/546, scans + checkpoint PASS
+AI / AGENT: MiMo-V2.6-Flash (OpenCode - user: "trust mode should allow all the permissions")
+
+  1. THE GAP: trust was interactive-only. `let trustOn` lives in
+     ui/web/server.ts and the web UI gates read it, but the scheduler's
+     askApproval (schedule/runner.ts) and the inbox watcher's guard
+     (tools/inbox.ts) each built their own fail-closed gate that never saw
+     that switch - so with trust ON every unattended run still auto-denied
+     every gated tool: the live soak logged 143 denials / 0 granted and the
+     firing schedules did silent no-ops, the opposite of what was asked.
+
+  2. THE FIX (core/trust.ts): a process-wide consent registry.
+     registerTrustSource(src) takes a LIVE getter, processTrustOn() ORs the
+     registered sources, and no source registered = false = the exact old
+     fail-closed behavior. Only getters, never copied booleans: a mirror can
+     disagree with the switch, and whichever read is mistaken decides whether
+     a tool runs unattended.
+
+  3. WHO REGISTERS: server.ts registers trustActive beside `let trustOn =
+     false` (the regression.test.ts one-source-of-truth pin holds unchanged),
+     and telegram.ts registers () => consoleTrustOn so BLACKROSE_APPROVE=all
+     - already documented as "process-wide consent" - finally reaches
+     unattended surfaces too. The scheduler and inbox watcher now call
+     processTrustOn(); no host call site changed, so there is no wiring to
+     forget in a future host.
+
+  4. APPROVALS STAY VISIBLE: a grant writes the transcript line "unattended
+     run auto-approved (trust on | SCHEDULE_APPROVE=all)" and lands in the
+     trace as approval ok:true; a denial lands as ok:false - mine:traces now
+     sees a granted-vs-denied story instead of 143/0. Trust OFF keeps the
+     exact deny line and the never-hang behavior (a timer cannot ask a
+     human).
+
+  5. TEST (src/trust-unattended.test.ts, new, 5 cases): the registry fails
+     closed with no sources; the REAL /api/trust toggle drives a live
+     scheduler both ways (ON runs the gated tool + traced ok:true, OFF denies
+     + traced ok:false, both event lines asserted); console trust grants;
+     the SCHEDULE_APPROVE=all hatch grants under a DISTINCT label so this
+     cannot pass vacuously; source pins cover the registration points and
+     the inbox watcher's guard (unreachable behaviorally). Trace approvals
+     are asserted as a SET - the runId stamp is only second-granular, so
+     file order lies within one second.
+
+  6. GATES: typecheck 0 errors; npm test 546/546 (541 baseline + 5 new,
+     smoke included); scan:secrets clean (7 code files staged, re-run clean
+     over all 8 including this checkpoint); scan:history clean (472 commits,
+     6.3 MB); verify:checkpoint PASS. Soak left running untouched (it
+     validates the previous build) - the new wiring takes effect on the
+     next host start.
+
+================================================================================
 SESSION 2026-11-10 - MINER THIRD FAIL-OPEN: "NO ADAPTATION" READ CLEAN WHILE ONE ERROR HIT 18 RUNS (NEWEST)
 ---------------------------------------------------------------------------------------
 DATE / TIME: 2026-11-10T17:00 cross-run repetition mined: typecheck 0, npm test 541/541, scans + checkpoint PASS
