@@ -1,3 +1,51 @@
+SESSION 2026-11-11 CONTINUED - ROW 139 SHIPPED: THE JOURNAL + UNDO PANEL (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-11-12T00:06 row 139 - the agent's changes are visible and reversible
+AI / AGENT: AutoClaw
+
+  1. WHAT SHIPPED (4e100ed): a Journal & undo panel ("nine o'clock" button in
+     the Workspace group) over the B2 undo journal, which was complete and
+     tested but INVISIBLE - the UI's read-only allowlist had no history tools,
+     so "what did it change, put it back" was a chat prompt and a guess. Three
+     read-only GETs and one write: /api/history/entries (journal newest-first
+     with undoStats), /api/history/entry?id (per-file records), /api/history/git
+     (workspace status + last 15 commits via the bounded runGit, no path
+     input), POST /api/history/restore (restoreEntry by id).
+  2. THE CONSENT MODEL, stated precisely: the restore POST is the one write,
+     and it is the OWNER'S OWN CLICK in a token-gated loopback UI - the same
+     rationale as the panic button (a rollback behind a second prompt is a
+     rollback nobody uses). restoreEntry itself snapshots a safety pre-image
+     (role 'safety', tool 'undo') before overwriting, so undoing is itself
+     undoable; the panel filters those safety rows out of the action list.
+     readEntry validates the id shape (^[a-z0-9_]+$), so a traversal attempt is
+     a 404, not a read outside the journal.
+  3. A UI LESSON NOW WRITTEN DOWN: the smoke check "unique element ids" scans
+     the served page WITH the inline script concatenated, so any interpolated
+     id=... attribute inside panel JS is counted by its literal source text -
+     two data-id="...' + escHtml(e.id) + '" expressions collided as one
+     "duplicate id" while every real id was unique. Rule for panel authors:
+     never put a computed value into an attribute whose name ends in id=;
+     close over the variable in the click handler instead. (The regex also
+     matches data-id=, since it ends in id=.)
+  4. VERIFIED: tsc 0; src/ui/web/history.test.ts 5/5 (list + stats; full entry
+     detail; traversal 404s; a REAL restore round-trip seeded through the same
+     snapshotBeforeWrite path the file tools use - file content reverts, entry
+     reads restored, the safety snapshot is journaled, re-restore is safe and
+     idempotent; git route answers isRepo; the served page ships the panel, the
+     button and every route the script calls) wired into npm test; SMOKE
+     PASSED; node --test 596/596; scan:secrets classified. The panel was
+     verified in the browser during the row-138 pass pattern (served-page
+     parse + id-uniqueness probes); no visual check of THIS panel yet.
+  5. CONTEXT: this lands on top of the 2026-11-11 sweep block (git tool +
+     checkpoint hardening, 7188924/7cb7015) and closes queue row 139. Still
+     open: rows 137 (teach-by-demo), the audit LOW nits, and the owner items -
+     a fresh oxion key (the service is UP but the sealed key answers revoked),
+     Gemini billing for this project, and the three standing decisions.
+  6. NOTE FOR THE NEXT SESSION: package.json's test list is now 66 suites
+     (596 tests). The interrupted OpenCode session's own checkpoint protocol
+     was honored throughout: docs/07-BUILD-CHECKLIST.md remains the source of
+     truth for the requirements audit, and this block does not touch it.
+================================================================================
 SESSION 2026-11-11 - FULL-SOURCE SWEEP + GIT TOOL AND CHECKPOINT HARDENING (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-11-11T23:03 full-source sweep - 6 defects fixed (git x3, checkpoint x3), 4 new modules audited clean
