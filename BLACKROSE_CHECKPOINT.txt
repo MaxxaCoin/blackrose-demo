@@ -1,3 +1,56 @@
+SESSION 2026-11-11 - FULL-SOURCE SWEEP + GIT TOOL AND CHECKPOINT HARDENING (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-11-11T23:03 full-source sweep - 6 defects fixed (git x3, checkpoint x3), 4 new modules audited clean
+AI / AGENT: AutoClaw (continuing the interrupted OpenCode session
+            ses_e653e81bbffeoIejZRJNVHbut2, which died in a 15x
+            interrupted-response loop on glm-5.3-flash:free at 19:15)
+
+  1. WHAT THIS PASS WAS: a full-source sweep ordered by the owner ("check
+     every program and process"). A six-auditor parallel dispatch was accepted
+     by the host but never started; one canary ran and delivered the schedule
+     findings; everything else was audited directly via risk-pattern batteries
+     (spawn/exec, fetch timeouts, route ordering vs the auth guard, token
+     comparison, JSON.parse guards, path containment, timer lifecycle) plus
+     full reads of every hit. Report: validation/autoclaw/sweep-2026-11-11.md.
+  2. GIT TOOL HARDENED (7188924), three defects: (a) NO CONTAINMENT - repoDir
+     resolved any path on the machine, so status/log/diff (which ask no
+     approval) could read another project's repo; now every git tool refuses a
+     directory outside the workspace; (b) OPTION INJECTION - git push takes
+     remote and branch positionally, so remote:"--force" turned an approved
+     plain push into a force-push the owner never saw; flag-shaped or
+     whitespace-bearing refs are refused before spawn and the approval dialog
+     now names what is pushed; (c) NO TIMEOUT - a credential prompt wedged the
+     turn forever; now 120s, tree-kill, honest resolution.
+  3. MISSION CHECKPOINT HARDENED (7cb7015), three defects in the B15 layer:
+     saveMissionCheckpoint wrote non-atomically, so a crash mid-write truncated
+     the resume point and the mission restarted FROM SCRATCH repeating side
+     effects (now tmp+rename+fsync); a corrupt checkpoint was silently
+     equivalent to none (now quarantined .corrupt-<ts> with a log line);
+     removeSchedule left goals/missions/<id>.json behind - a zombie riding
+     .aistate forever that an in-flight run re-created (removal now clears it
+     and the runner refuses to save for a dead schedule).
+  4. THE FOUR NEW MODULES READ COLD, no high-severity findings: licensing.ts
+     (signature before payload semantics, fail-closed ledger, exempt panic/
+     doctor/license tools, design honestly states "not DRM"), contexts.ts
+     (every degradation path returns default; cwd+project-notes re-scope;
+     memory/knowledge/sessions deliberately shared), planner.ts (A* g+h over
+     done-states, greedy straw man, UCT MCTS fallback), competition.ts (judge
+     output parsed defensively). Two LOW nits recorded in the sweep report:
+     deviceId() non-atomic write, licenseGateReason first-match order.
+  5. VERIFIED: tsc 0; SMOKE PASSED; node --test 590/590 (0 fail) on
+     validation/gate-checkpoint.out; scan:secrets classified on every changed
+     file; verify:checkpoint PASS. Spot-checks confirm the 2026-11-10 audit's
+     claims in code (telegram approval TTL resolves DENY, scheduler latch
+     re-checked per mission, goal runs thread the abort signal). The served
+     UI script parses clean; every /api route sits behind the guard;
+     timingSafeEqual on both token surfaces.
+  6. STILL OPEN: oxion answers 401 invalid_api_key (maintenance ended, key
+     revoked - needs a fresh key from the owner; the premium route stays dead
+     until then); Gemini billing for this project; audit LOW nits above; a
+     future deep line-read of tools/telegram.ts and ui/web/assets.ts (only
+     pattern-swept this pass); the six-auditor dispatch never started - if
+     parallel audits are wanted again, use one canary first.
+================================================================================
 
 SESSION 2026-11-10 - SIDEBAR FOLDERS NOW LOAD CLOSED AND TRUST MODE GETS ITS OWN BUTTON ABOVE THEM (NEWEST)
 ---------------------------------------------------------------------------------------
