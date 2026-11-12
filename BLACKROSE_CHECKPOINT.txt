@@ -1,3 +1,55 @@
+SESSION 2026-11-12 - TEACH-BY-CORRECTION SHIPPED AND THE 23-HOUR SOAK WOUND DOWN (NEWEST)
+-------------------------------------------------------------------------------
+DATE / TIME: 2026-11-12T07:05 correction_record lands (queue row 4) + soak ended clean: typecheck 0, npm test 601/601, scans + checkpoint PASS
+AI / AGENT: AutoClaw (OpenCode - owner: "continue its work")
+
+  1. WHAT SHIPPED: teach-by-correction (requirements-audit row 4 / P2). The
+     owner's "no - do it this way instead" turn now becomes the NEXT VERSION
+     of the named skill via correction_record (src/tools/macro.ts): the
+     correction is appended as a dated "## Correction (YYYY-MM-DD)" block that
+     skill_run consumes on every replay, and saveSkill archives the
+     pre-correction recipe first (row 88 versioning), so skill_rollback
+     restores the exact instructions being fixed - and the rollback is itself
+     reversible. Demonstration (macro_record) captured what RAN; this captures
+     what to do INSTEAD, which was the missing half of the learning loop.
+  2. THE SAFETY PROPERTIES, each pinned by a test in src/tools/correction.test.ts
+     (5 tests): approval-gated exactly like skill_save and the gate reason
+     carries the skill name + what will change; a DENIED correction mutates
+     NOTHING - proven through runAgent with a scripted client (skill file
+     byte-identical, no version archived, denial on the audit ledger);
+     fail-closed on bad input (unknown skill, empty, >4000 chars, a correction
+     that was ONLY credential-like values) - each says why and changes nothing.
+  3. DURABLE TEXT IS REDACTED: the correction passes through the same
+     redactSecrets as memory writes before the skill file is written - skills
+     ride .aistate export, so a pasted API key in a corrective turn must never
+     become a portable leak - and the tool result TELLS the caller what was
+     redacted (silent redaction is indistinguishable from data loss). The
+     "all-redacted" refusal looks at what remains after [REDACTED:...] markers
+     are stripped, because redactSecrets keeps a 7-char family prefix (sk-ant-)
+     and a trim() check alone would have stored the residue as if it were a rule.
+  4. WIRING: registered in src/tools/index.ts (import + registry) and added to
+     BUILTIN_TOOL_NAMES so a custom tool cannot shadow it - the drift guard
+     (builtin-names.test.ts) covers it automatically. correction.test.ts appended
+     to the package.json test script (now 67 suites). Checklist row struck and
+     moved to the struck-history table; the audit progress note now says the
+     first FOUR rows are DONE (licensing, competition, context switching,
+     teach-by-correction).
+  5. THE SOAK IS OVER (owner-approved 2026-11-11): bridge PID 6572 and
+     UI/scheduler PID 3404 (both started 2026-11-10 18:11, ~23h) stopped;
+     ports 8787/8788 confirmed free. Final read-out before shutdown: 712 traces,
+     latest 100 runs = 99 done / 0 tool errors / 19 approvals granted / 0
+     denied - the trust fix demonstrably worked. One anomalous 16.6M ms p95 run
+     (20261110-203114-gi5j1u) is restart-spanning, not a real latency. The soak
+     shells' logs showed the scheduler firing healthily (update_world_map,
+     KGSync, backups) with openai2 failing over every call - that route was
+     already known-down; the chain absorbed it as designed.
+  6. GATES for this block: tsc --noEmit 0; npm test 601/601 (596 + 5 new);
+     scan:secrets clean (5 staged files, 2 test fixtures ignored);
+     scan:history clean (484 commits, 6.6 MB); verify:checkpoint PASS.
+     Next in queue: Digital World Map (P2), Multilingual intelligence (P2),
+     then the P3 ladder. v0.11.7 cut still pending owner go-ahead.
+
+================================================================================
 SESSION 2026-11-11 CONTINUED - ROW 139 SHIPPED: THE JOURNAL + UNDO PANEL (NEWEST)
 -------------------------------------------------------------------------------
 DATE / TIME: 2026-11-12T00:06 row 139 - the agent's changes are visible and reversible
